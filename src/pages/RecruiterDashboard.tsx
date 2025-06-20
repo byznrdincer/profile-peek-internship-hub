@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,86 +7,97 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Users, Eye, Download, Mail, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
 
+interface StudentData {
+  id: string;
+  user_id: string;
+  name: string;
+  university: string;
+  major: string;
+  graduation_year: string;
+  bio: string;
+  skills: string[];
+  profile_views: number;
+  resume_url?: string;
+  resume_filename?: string;
+  projects: Array<{
+    id: string;
+    title: string;
+    description: string;
+    technologies: string[];
+  }>;
+}
+
 const RecruiterDashboard = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [graduationYear, setGraduationYear] = useState("");
   const [major, setMajor] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
+  const [students, setStudents] = useState<StudentData[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Mock student data
-  const students = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah@email.com",
-      university: "MIT",
-      major: "Computer Science",
-      graduationYear: "2024",
-      bio: "Passionate full-stack developer with experience in React and Node.js. Love solving complex problems and building user-friendly applications.",
-      skills: ["React", "Node.js", "Python", "MongoDB", "TypeScript"],
-      projects: [
-        {
-          title: "E-commerce Platform",
-          description: "Built a full-stack e-commerce platform with React, Node.js, and MongoDB. Implemented user authentication, payment processing, and inventory management.",
-          tech: ["React", "Node.js", "MongoDB", "Stripe"]
-        },
-        {
-          title: "Weather App",
-          description: "Created a responsive weather application using React and OpenWeather API. Features include location-based weather, 5-day forecast, and favorite locations.",
-          tech: ["React", "API Integration", "CSS3"]
-        }
-      ],
-      profileViews: 15,
-      lastViewed: null
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      email: "michael@email.com",
-      university: "Stanford",
-      major: "Data Science",
-      graduationYear: "2025",
-      bio: "Data science enthusiast with strong background in machine learning and statistical analysis. Experienced in Python, R, and various ML frameworks.",
-      skills: ["Python", "Machine Learning", "TensorFlow", "R", "SQL", "Pandas"],
-      projects: [
-        {
-          title: "Movie Recommendation System",
-          description: "Developed a collaborative filtering recommendation system using Python and scikit-learn. Achieved 85% accuracy in predicting user preferences.",
-          tech: ["Python", "scikit-learn", "Pandas", "NumPy"]
-        }
-      ],
-      profileViews: 8,
-      lastViewed: null
-    },
-    {
-      id: 3,
-      name: "Emily Davis",
-      email: "emily@email.com",
-      university: "UC Berkeley",
-      major: "Computer Science",
-      graduationYear: "2024",
-      bio: "Frontend developer with a passion for creating beautiful, accessible user interfaces. Strong background in React, Vue.js, and modern CSS frameworks.",
-      skills: ["React", "Vue.js", "CSS3", "JavaScript", "Figma", "Tailwind CSS"],
-      projects: [
-        {
-          title: "Design System Library",
-          description: "Created a comprehensive design system library with React components, used across multiple projects. Includes accessibility features and comprehensive documentation.",
-          tech: ["React", "Storybook", "CSS3", "Accessibility"]
-        }
-      ],
-      profileViews: 22,
-      lastViewed: null
-    }
-  ];
-
-  const [filteredStudents, setFilteredStudents] = useState(students);
-
   const availableSkills = ["React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", "R", "Pandas"];
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  useEffect(() => {
+    setFilteredStudents(students);
+  }, [students]);
+
+  const loadStudents = async () => {
+    setLoading(true);
+    try {
+      const { data: studentsData, error } = await supabase
+        .from('student_profiles')
+        .select(`
+          *,
+          student_projects (
+            id,
+            title,
+            description,
+            technologies
+          )
+        `);
+
+      if (error) throw error;
+
+      const formattedStudents: StudentData[] = studentsData?.map(student => ({
+        id: student.id,
+        user_id: student.user_id,
+        name: student.name || 'Anonymous Student',
+        university: student.university || 'Not specified',
+        major: student.major || 'Not specified',
+        graduation_year: student.graduation_year || 'Not specified',
+        bio: student.bio || 'No bio available',
+        skills: student.skills || [],
+        profile_views: student.profile_views || 0,
+        resume_url: student.resume_url,
+        resume_filename: student.resume_filename,
+        projects: student.student_projects || []
+      })) || [];
+
+      setStudents(formattedStudents);
+    } catch (error) {
+      console.error('Error loading students:', error);
+      toast({
+        title: "Error loading students",
+        description: "There was an error loading student profiles.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSkillFilter = (skill: string) => {
     if (selectedSkills.includes(skill)) {
@@ -105,7 +115,7 @@ const RecruiterDashboard = () => {
       const matchesSkills = selectedSkills.length === 0 || 
                            selectedSkills.some(skill => student.skills.includes(skill));
       
-      const matchesYear = !graduationYear || student.graduationYear === graduationYear;
+      const matchesYear = !graduationYear || student.graduation_year === graduationYear;
       
       const matchesMajor = !major || student.major.toLowerCase().includes(major.toLowerCase());
       
@@ -119,23 +129,70 @@ const RecruiterDashboard = () => {
     });
   };
 
-  const viewProfile = (student: any) => {
+  const viewProfile = async (student: StudentData) => {
     setSelectedStudent(student);
-    // Simulate profile view notification
-    toast({
-      title: "Profile viewed",
-      description: `${student.name} has been notified that you viewed their profile`,
-    });
+    
+    try {
+      // Increment profile view
+      await supabase.rpc('increment_profile_view', {
+        student_user_id: student.user_id
+      });
+      
+      toast({
+        title: "Profile viewed",
+        description: `${student.name} has been notified that you viewed their profile`,
+      });
+    } catch (error) {
+      console.error('Error recording profile view:', error);
+    }
   };
 
-  const downloadResume = (studentName: string) => {
-    toast({
-      title: "Resume downloaded",
-      description: `${studentName}'s resume has been downloaded`,
-    });
+  const downloadResume = async (student: StudentData) => {
+    if (!student.resume_url) {
+      toast({
+        title: "No resume available",
+        description: `${student.name} hasn't uploaded a resume yet.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const fileName = `${student.user_id}/resume.${student.resume_url.split('.').pop()}`;
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .download(fileName);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = student.resume_filename || 'resume';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Resume downloaded",
+        description: `${student.name}'s resume has been downloaded`,
+      });
+    } catch (error) {
+      console.error('Error downloading resume:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the resume.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const contactStudent = (student: any) => {
+  const contactStudent = (student: StudentData) => {
+    // Get student email from profiles table
+    const mailto = `mailto:?subject=Internship Opportunity&body=Hi ${student.name},%0D%0A%0D%0AI found your profile on InternUpload and would like to discuss potential internship opportunities.%0D%0A%0D%0ABest regards`;
+    window.open(mailto);
+    
     toast({
       title: "Contact initiated",
       description: `Opening email to contact ${student.name}`,
@@ -144,6 +201,17 @@ const RecruiterDashboard = () => {
 
   if (selectedStudent) {
     return <StudentProfile student={selectedStudent} onBack={() => setSelectedStudent(null)} />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-600"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -156,7 +224,6 @@ const RecruiterDashboard = () => {
           <p className="text-xl text-gray-600">Discover talented students and find your next great hire</p>
         </div>
 
-        {/* Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -184,22 +251,25 @@ const RecruiterDashboard = () => {
               <Eye className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
+              <div className="text-2xl font-bold">
+                {filteredStudents.reduce((sum, student) => sum + student.profile_views, 0)}
+              </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Contacted</CardTitle>
+              <CardTitle className="text-sm font-medium opacity-90">With Resumes</CardTitle>
               <Mail className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">
+                {students.filter(s => s.resume_url).length}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -208,7 +278,6 @@ const RecruiterDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Search */}
             <div className="flex gap-4">
               <div className="flex-1">
                 <Label htmlFor="search">Search students</Label>
@@ -230,7 +299,6 @@ const RecruiterDashboard = () => {
               </div>
             </div>
 
-            {/* Additional Filters */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="major">Major</Label>
@@ -256,7 +324,6 @@ const RecruiterDashboard = () => {
               </div>
             </div>
 
-            {/* Skills Filter */}
             <div>
               <Label>Filter by Skills</Label>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -275,7 +342,6 @@ const RecruiterDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Student Profiles */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStudents.map(student => (
             <Card key={student.id} className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -283,13 +349,20 @@ const RecruiterDashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl text-blue-600">{student.name}</CardTitle>
-                    <p className="text-gray-600">{student.major} • {student.graduationYear}</p>
+                    <p className="text-gray-600">{student.major} • {student.graduation_year}</p>
                     <p className="text-sm text-gray-500">{student.university}</p>
                   </div>
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {student.profileViews}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      {student.profile_views}
+                    </Badge>
+                    {student.resume_url && (
+                      <Badge variant="outline" className="text-xs">
+                        Resume
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -327,7 +400,8 @@ const RecruiterDashboard = () => {
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => downloadResume(student.name)}
+                    onClick={() => downloadResume(student)}
+                    disabled={!student.resume_url}
                   >
                     <Download className="h-4 w-4" />
                   </Button>
@@ -344,7 +418,7 @@ const RecruiterDashboard = () => {
           ))}
         </div>
 
-        {filteredStudents.length === 0 && (
+        {filteredStudents.length === 0 && !loading && (
           <div className="text-center py-12">
             <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No students found</h3>

@@ -1,11 +1,18 @@
 
 import { Button } from "@/components/ui/button";
-import { Briefcase, Home, User, Users } from "lucide-react";
+import { Briefcase, Home, User, Users, LogOut } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -29,23 +36,49 @@ const Navigation = () => {
             Home
           </Button>
           
-          <Button
-            variant={location.pathname === '/student-dashboard' ? "default" : "ghost"}
-            onClick={() => navigate('/student-dashboard')}
-            className="flex items-center gap-2"
-          >
-            <User className="h-4 w-4" />
-            Student
-          </Button>
-          
-          <Button
-            variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
-            onClick={() => navigate('/recruiter-dashboard')}
-            className="flex items-center gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Recruiter
-          </Button>
+          {isAuthenticated ? (
+            <>
+              {profile?.role === 'student' && (
+                <Button
+                  variant={location.pathname === '/student-dashboard' ? "default" : "ghost"}
+                  onClick={() => navigate('/student-dashboard')}
+                  className="flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              )}
+              
+              {profile?.role === 'recruiter' && (
+                <Button
+                  variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
+                  onClick={() => navigate('/recruiter-dashboard')}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              )}
+              
+              <Button
+                variant="ghost"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="default"
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-2"
+            >
+              <User className="h-4 w-4" />
+              Login
+            </Button>
+          )}
         </nav>
       </div>
     </header>

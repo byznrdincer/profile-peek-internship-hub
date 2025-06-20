@@ -1,32 +1,98 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Plus, X, User, FileText, Code, Trophy, Eye } from "lucide-react";
+import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
-  const [projects, setProjects] = useState<Array<{title: string, description: string, tech: string[]}>>([]);
-  const [profileViews, setProfileViews] = useState(12);
+  const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[]}>>([]);
+  const [profileViews, setProfileViews] = useState(0);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
     university: "",
     major: "",
-    graduationYear: "",
+    graduation_year: "",
     bio: "",
-    resume: null as File | null
   });
+
+  // Load existing profile data
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+      loadProjects();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+
+    const { data: profile, error } = await supabase
+      .from('student_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error loading profile:', error);
+      return;
+    }
+
+    if (profile) {
+      setFormData({
+        name: profile.name || "",
+        phone: profile.phone || "",
+        university: profile.university || "",
+        major: profile.major || "",
+        graduation_year: profile.graduation_year || "",
+        bio: profile.bio || "",
+      });
+      setSkills(profile.skills || []);
+      setProfileViews(profile.profile_views || 0);
+      setExistingResumeUrl(profile.resume_url);
+    }
+  };
+
+  const loadProjects = async () => {
+    if (!user) return;
+
+    const { data: studentProfile } = await supabase
+      .from('student_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (studentProfile) {
+      const { data: projectsData, error } = await supabase
+        .from('student_projects')
+        .select('*')
+        .eq('student_id', studentProfile.id);
+
+      if (!error && projectsData) {
+        setProjects(projectsData.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description || "",
+          technologies: p.technologies || []
+        })));
+      }
+    }
+  };
 
   const addSkill = () => {
     if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
@@ -40,12 +106,12 @@ const StudentDashboard = () => {
   };
 
   const addProject = () => {
-    setProjects([...projects, { title: "", description: "", tech: [] }]);
+    setProjects([...projects, { title: "", description: "", technologies: [] }]);
   };
 
   const updateProject = (index: number, field: string, value: string) => {
     const updated = [...projects];
-    if (field === 'tech') {
+    if (field === 'technologies') {
       updated[index][field] = value.split(',').map(t => t.trim());
     } else {
       updated[index][field] = value;
@@ -60,20 +126,176 @@ const StudentDashboard = () => {
   const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({...formData, resume: file});
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setResumeFile(file);
       toast({
-        title: "Resume uploaded successfully!",
-        description: `${file.name} has been uploaded.`,
+        title: "Resume selected",
+        description: `${file.name} is ready to upload.`,
       });
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const uploadResume = async () => {
+    if (!resumeFile || !user) return;
+
+    setLoading(true);
+    try {
+      const fileExt = resumeFile.name.split('.').pop();
+      const fileName = `${user.id}/resume.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, resumeFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(fileName);
+
+      // Update profile with resume info
+      const { error: updateError } = await supabase
+        .from('student_profiles')
+        .update({ 
+          resume_url: publicUrl,
+          resume_filename: resumeFile.name 
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setExistingResumeUrl(publicUrl);
+      setResumeFile(null);
+      
+      toast({
+        title: "Resume uploaded successfully!",
+        description: "Your resume has been uploaded and is now visible to recruiters.",
+      });
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadResume = async () => {
+    if (!existingResumeUrl || !user) return;
+
+    try {
+      const fileName = `${user.id}/resume.${existingResumeUrl.split('.').pop()}`;
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .download(fileName);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resume';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading resume:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading your resume.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Profile saved successfully!",
-      description: "Your profile is now visible to recruiters.",
-    });
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // Upload resume if selected
+      if (resumeFile) {
+        await uploadResume();
+      }
+
+      // Update profile
+      const { error: profileError } = await supabase
+        .from('student_profiles')
+        .update({
+          name: formData.name,
+          phone: formData.phone,
+          university: formData.university,
+          major: formData.major,
+          graduation_year: formData.graduation_year,
+          bio: formData.bio,
+          skills: skills,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Get student profile ID for projects
+      const { data: studentProfile } = await supabase
+        .from('student_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (studentProfile) {
+        // Delete existing projects
+        await supabase
+          .from('student_projects')
+          .delete()
+          .eq('student_id', studentProfile.id);
+
+        // Insert new projects
+        if (projects.length > 0) {
+          const projectsToInsert = projects
+            .filter(p => p.title.trim())
+            .map(project => ({
+              student_id: studentProfile.id,
+              title: project.title,
+              description: project.description,
+              technologies: project.technologies
+            }));
+
+          if (projectsToInsert.length > 0) {
+            const { error: projectsError } = await supabase
+              .from('student_projects')
+              .insert(projectsToInsert);
+
+            if (projectsError) throw projectsError;
+          }
+        }
+      }
+
+      toast({
+        title: "Profile saved successfully!",
+        description: "Your profile is now visible to recruiters.",
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,7 +308,6 @@ const StudentDashboard = () => {
           <p className="text-xl text-gray-600">Build your profile and get discovered by top recruiters</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -95,7 +316,7 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{profileViews}</div>
-              <p className="text-xs opacity-90">+3 from last week</p>
+              <p className="text-xs opacity-90">Total views</p>
             </CardContent>
           </Card>
           
@@ -123,7 +344,6 @@ const StudentDashboard = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Personal Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -140,16 +360,6 @@ const StudentDashboard = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="John Doe"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    placeholder="john@example.com"
                   />
                 </div>
                 <div>
@@ -183,8 +393,8 @@ const StudentDashboard = () => {
                   <Label htmlFor="graduationYear">Graduation Year</Label>
                   <Input
                     id="graduationYear"
-                    value={formData.graduationYear}
-                    onChange={(e) => setFormData({...formData, graduationYear: e.target.value})}
+                    value={formData.graduation_year}
+                    onChange={(e) => setFormData({...formData, graduation_year: e.target.value})}
                     placeholder="2024"
                   />
                 </div>
@@ -202,7 +412,6 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Resume Upload */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -210,11 +419,29 @@ const StudentDashboard = () => {
                 Resume Upload
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {existingResumeUrl && (
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-green-600" />
+                    <span className="text-sm text-green-700">Resume uploaded successfully</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadResume}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              )}
+              
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
                 <Upload className="h-8 w-8 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 mb-4">
-                  {formData.resume ? formData.resume.name : "Upload your resume (PDF, DOC, DOCX)"}
+                  {resumeFile ? resumeFile.name : "Upload your resume (PDF, DOC, DOCX)"}
                 </p>
                 <Input
                   type="file"
@@ -232,7 +459,6 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Skills */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -269,7 +495,6 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Projects */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -316,8 +541,8 @@ const StudentDashboard = () => {
                     <div>
                       <Label>Technologies Used</Label>
                       <Input
-                        value={project.tech.join(', ')}
-                        onChange={(e) => updateProject(index, 'tech', e.target.value)}
+                        value={project.technologies.join(', ')}
+                        onChange={(e) => updateProject(index, 'technologies', e.target.value)}
                         placeholder="React, Node.js, MongoDB"
                       />
                     </div>
@@ -334,8 +559,12 @@ const StudentDashboard = () => {
           </Card>
 
           <div className="flex justify-end">
-            <Button type="submit" className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8">
-              Save Profile
+            <Button 
+              type="submit" 
+              className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save Profile"}
             </Button>
           </div>
         </form>
