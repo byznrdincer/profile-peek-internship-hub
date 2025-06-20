@@ -9,13 +9,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { User, Briefcase } from "lucide-react";
+import { User, Briefcase, GraduationCap, Building } from "lucide-react";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ 
+    email: "", 
+    password: "",
+    role: "student" as "student" | "recruiter"
+  });
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
@@ -52,7 +56,7 @@ const Auth = () => {
         });
       } else {
         toast({
-          title: "Welcome back!",
+          title: `Welcome back, ${loginData.role}!`,
           description: "You have been logged in successfully.",
         });
         navigate('/');
@@ -131,6 +135,28 @@ const Auth = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
+                  <Label htmlFor="login-role">Login as</Label>
+                  <Select value={loginData.role} onValueChange={(value: "student" | "recruiter") => setLoginData({ ...loginData, role: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Student Login
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recruiter">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Recruiter Login
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="login-email">Email</Label>
                   <Input
                     id="login-email"
@@ -155,7 +181,7 @@ const Auth = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-teal-500"
                   disabled={loading}
                 >
-                  {loading ? "Logging in..." : "Login"}
+                  {loading ? "Logging in..." : `Login as ${loginData.role === 'student' ? 'Student' : 'Recruiter'}`}
                 </Button>
               </form>
             </TabsContent>
@@ -200,13 +226,13 @@ const Auth = () => {
                     <SelectContent>
                       <SelectItem value="student">
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
+                          <GraduationCap className="h-4 w-4" />
                           Student
                         </div>
                       </SelectItem>
                       <SelectItem value="recruiter">
                         <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
+                          <Building className="h-4 w-4" />
                           Recruiter
                         </div>
                       </SelectItem>
@@ -218,7 +244,7 @@ const Auth = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-teal-500"
                   disabled={loading}
                 >
-                  {loading ? "Creating account..." : "Sign Up"}
+                  {loading ? "Creating account..." : `Sign Up as ${signupData.role === 'student' ? 'Student' : 'Recruiter'}`}
                 </Button>
               </form>
             </TabsContent>

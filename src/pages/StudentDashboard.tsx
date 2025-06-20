@@ -15,6 +15,7 @@ const StudentDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
   const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[]}>>([]);
@@ -126,7 +127,8 @@ const StudentDashboard = () => {
   const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
           description: "Please upload a file smaller than 10MB.",
@@ -134,6 +136,18 @@ const StudentDashboard = () => {
         });
         return;
       }
+      
+      // Check file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a PDF, DOC, or DOCX file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setResumeFile(file);
       toast({
         title: "Resume selected",
@@ -143,50 +157,79 @@ const StudentDashboard = () => {
   };
 
   const uploadResume = async () => {
-    if (!resumeFile || !user) return;
+    if (!resumeFile || !user) {
+      toast({
+        title: "Upload failed",
+        description: "Please select a file first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setLoading(true);
+    setUploadingResume(true);
     try {
       const fileExt = resumeFile.name.split('.').pop();
-      const fileName = `${user.id}/resume.${fileExt}`;
+      const fileName = `${user.id}/resume_${Date.now()}.${fileExt}`;
+
+      console.log('Uploading file:', fileName);
 
       const { error: uploadError } = await supabase.storage
         .from('resumes')
-        .upload(fileName, resumeFile, { upsert: true });
+        .upload(fileName, resumeFile, { 
+          upsert: true,
+          contentType: resumeFile.type
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('resumes')
         .getPublicUrl(fileName);
 
+      console.log('Public URL:', publicUrl);
+
       // Update profile with resume info
       const { error: updateError } = await supabase
         .from('student_profiles')
-        .update({ 
+        .upsert({ 
+          user_id: user.id,
           resume_url: publicUrl,
-          resume_filename: resumeFile.name 
-        })
-        .eq('user_id', user.id);
+          resume_filename: resumeFile.name,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
 
       setExistingResumeUrl(publicUrl);
       setResumeFile(null);
+      
+      // Reset file input
+      const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
       
       toast({
         title: "Resume uploaded successfully!",
         description: "Your resume has been uploaded and is now visible to recruiters.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading resume:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your resume. Please try again.",
+        description: error.message || "There was an error uploading your resume. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setUploadingResume(false);
     }
   };
 
@@ -194,17 +237,20 @@ const StudentDashboard = () => {
     if (!existingResumeUrl || !user) return;
 
     try {
-      const fileName = `${user.id}/resume.${existingResumeUrl.split('.').pop()}`;
+      // Extract filename from URL
+      const urlParts = existingResumeUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      
       const { data, error } = await supabase.storage
         .from('resumes')
-        .download(fileName);
+        .download(`${user.id}/${fileName}`);
 
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'resume';
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -225,15 +271,11 @@ const StudentDashboard = () => {
 
     setLoading(true);
     try {
-      // Upload resume if selected
-      if (resumeFile) {
-        await uploadResume();
-      }
-
       // Update profile
       const { error: profileError } = await supabase
         .from('student_profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           name: formData.name,
           phone: formData.phone,
           university: formData.university,
@@ -242,8 +284,9 @@ const StudentDashboard = () => {
           bio: formData.bio,
           skills: skills,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (profileError) throw profileError;
 
@@ -443,18 +486,32 @@ const StudentDashboard = () => {
                 <p className="text-gray-600 mb-4">
                   {resumeFile ? resumeFile.name : "Upload your resume (PDF, DOC, DOCX)"}
                 </p>
-                <Input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleResumeUpload}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <Label htmlFor="resume-upload">
-                  <Button type="button" variant="outline" className="cursor-pointer">
-                    Choose File
-                  </Button>
-                </Label>
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleResumeUpload}
+                    className="hidden"
+                    id="resume-upload"
+                  />
+                  <div className="flex gap-2 justify-center">
+                    <Label htmlFor="resume-upload">
+                      <Button type="button" variant="outline" className="cursor-pointer">
+                        Choose File
+                      </Button>
+                    </Label>
+                    {resumeFile && (
+                      <Button
+                        type="button"
+                        onClick={uploadResume}
+                        disabled={uploadingResume}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {uploadingResume ? "Uploading..." : "Upload Resume"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
