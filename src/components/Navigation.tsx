@@ -31,7 +31,6 @@ const Navigation = () => {
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="flex items-center gap-2">
                   <Menu className="h-4 w-4" />
-                  Menu
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="w-[400px] p-4">
@@ -55,7 +54,7 @@ const Navigation = () => {
                           </div>
                         </Button>
                         
-                        {isAuthenticated ? (
+                        {isAuthenticated && (
                           <>
                             {profile?.role === 'student' && (
                               <Button
@@ -99,18 +98,6 @@ const Navigation = () => {
                               </Button>
                             </div>
                           </>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            onClick={() => navigate('/auth')}
-                            className="justify-start gap-2 h-auto p-2"
-                          >
-                            <User className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">Login</div>
-                              <div className="text-xs text-muted-foreground">Access your account</div>
-                            </div>
-                          </Button>
                         )}
                       </div>
                     </div>
