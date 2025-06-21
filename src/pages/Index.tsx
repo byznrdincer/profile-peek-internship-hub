@@ -23,7 +23,7 @@ const Index = () => {
               <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Dream Internships</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              InternUpload bridges the gap between talented students and innovative companies. 
+              InternStack bridges the gap between talented students and innovative companies. 
               Showcase your skills, discover opportunities, and launch your career.
             </p>
             
@@ -73,84 +73,65 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Features Section */}
+        {/* How InternStack Works - Steps */}
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How InternUpload Works</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">How InternStack Works</h2>
             <p className="text-xl text-gray-600">Simple steps to connect talent with opportunity</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Upload className="h-8 w-8 text-white" />
+          <div className="max-w-4xl mx-auto">
+            <div className="relative">
+              {/* Step 1 */}
+              <div className="flex items-center mb-12">
+                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">
+                  1
                 </div>
-                <CardTitle>Students Upload Profiles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Create comprehensive profiles showcasing skills, projects, and resumes to stand out to recruiters.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="h-8 w-8 text-white" />
+                <div className="flex-1">
+                  <div className="flex items-center mb-2">
+                    <Upload className="h-6 w-6 text-blue-600 mr-2" />
+                    <h3 className="text-xl font-semibold text-gray-900">Students Upload Profiles</h3>
+                  </div>
+                  <p className="text-gray-600">
+                    Create comprehensive profiles showcasing skills, projects, and resumes to stand out to recruiters.
+                  </p>
                 </div>
-                <CardTitle>Recruiters Discover Talent</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Browse and filter through talented students, download resumes, and find the perfect fit for your team.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-8 w-8 text-white" />
+              {/* Step 2 */}
+              <div className="flex items-center mb-12">
+                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">
+                  2
                 </div>
-                <CardTitle>Make Connections</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Direct communication between students and recruiters leads to meaningful internship opportunities.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <div className="flex-1">
+                  <div className="flex items-center mb-2">
+                    <Search className="h-6 w-6 text-teal-600 mr-2" />
+                    <h3 className="text-xl font-semibold text-gray-900">Recruiters Discover Talent</h3>
+                  </div>
+                  <p className="text-gray-600">
+                    Browse and filter through talented students, download resumes, and find the perfect fit for your team.
+                  </p>
+                </div>
+              </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join thousands of students and recruiters already using InternUpload
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg"
-                variant="secondary"
-                onClick={() => navigate('/auth')}
-                className="px-8"
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Join as Student
-              </Button>
-              <Button 
-                size="lg"
-                variant="outline"
-                onClick={() => navigate('/auth')}
-                className="px-8 text-white border-white hover:bg-white hover:text-blue-600"
-              >
-                <Briefcase className="mr-2 h-5 w-5" />
-                Join as Recruiter  
-              </Button>
+              {/* Step 3 */}
+              <div className="flex items-center">
+                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">
+                  3
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center mb-2">
+                    <Star className="h-6 w-6 text-purple-600 mr-2" />
+                    <h3 className="text-xl font-semibold text-gray-900">Make Connections</h3>
+                  </div>
+                  <p className="text-gray-600">
+                    Direct communication between students and recruiters leads to meaningful internship opportunities.
+                  </p>
+                </div>
+              </div>
+
+              {/* Connecting Lines */}
+              <div className="absolute left-8 top-20 bottom-20 w-0.5 bg-gradient-to-b from-blue-600 via-teal-600 to-purple-600 -z-10"></div>
             </div>
           </div>
         </div>
