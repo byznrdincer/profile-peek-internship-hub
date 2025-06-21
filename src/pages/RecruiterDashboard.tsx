@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter } from "lucide-react";
+import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +37,27 @@ const RecruiterDashboard = () => {
     location: "",
   });
 
+  // Helper function to determine if a user is active (logged in within last 30 days)
+  const isActiveUser = (lastLoginAt: string | null) => {
+    if (!lastLoginAt) return false;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return new Date(lastLoginAt) > thirtyDaysAgo;
+  };
+
+  // Helper function to get activity status
+  const getActivityStatus = (lastLoginAt: string | null) => {
+    if (!lastLoginAt) return 'inactive';
+    
+    const now = new Date();
+    const lastLogin = new Date(lastLoginAt);
+    const daysDiff = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff <= 7) return 'very-active';
+    if (daysDiff <= 30) return 'active';
+    return 'inactive';
+  };
+
   // Load recruiter profile and students
   useEffect(() => {
     if (user) {
@@ -46,7 +67,7 @@ const RecruiterDashboard = () => {
     }
   }, [user]);
 
-  // Filter students based on search term, skill filter, and location filter
+  // Filter and sort students based on search term, skill filter, location filter, and activity
   useEffect(() => {
     let filtered = students;
     
@@ -72,6 +93,23 @@ const RecruiterDashboard = () => {
         student.location?.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
+    
+    // Sort by activity level: very active > active > inactive
+    filtered.sort((a, b) => {
+      const aActivity = getActivityStatus(a.last_login_at);
+      const bActivity = getActivityStatus(b.last_login_at);
+      
+      const activityOrder = { 'very-active': 0, 'active': 1, 'inactive': 2 };
+      const aOrder = activityOrder[aActivity as keyof typeof activityOrder];
+      const bOrder = activityOrder[bActivity as keyof typeof activityOrder];
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      
+      // Secondary sort by profile views (descending)
+      return (b.profile_views || 0) - (a.profile_views || 0);
+    });
     
     setFilteredStudents(filtered);
   }, [students, searchTerm, skillFilter, locationFilter]);
@@ -424,6 +462,9 @@ const RecruiterDashboard = () => {
                 <CardTitle>
                   Student Profiles ({filteredStudents.length})
                 </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Active users (logged in recently) are shown first
+                </p>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -452,86 +493,103 @@ const RecruiterDashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredStudents.map((student) => (
-                      <div
-                        key={student.id}
-                        className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => handleViewProfile(student)}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-lg font-semibold text-blue-600">{student.name || 'Anonymous Student'}</h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {student.university || 'University not specified'}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                Class of {student.graduation_year || 'N/A'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                              <p>{student.major || 'Major not specified'}</p>
-                              {student.location && (
-                                <span className="flex items-center gap-1 text-green-600">
+                    {filteredStudents.map((student) => {
+                      const activityStatus = getActivityStatus(student.last_login_at);
+                      return (
+                        <div
+                          key={student.id}
+                          className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => handleViewProfile(student)}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-blue-600">{student.name || 'Anonymous Student'}</h3>
+                                {activityStatus === 'very-active' && (
+                                  <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
+                                    <Activity className="h-3 w-3" />
+                                    Very Active
+                                  </Badge>
+                                )}
+                                {activityStatus === 'active' && (
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                                    <Activity className="h-3 w-3" />
+                                    Active
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                <span className="flex items-center gap-1">
                                   <MapPin className="h-3 w-3" />
-                                  {student.location}
+                                  {student.university || 'University not specified'}
                                 </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  Class of {student.graduation_year || 'N/A'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                <p>{student.major || 'Major not specified'}</p>
+                                {student.location && (
+                                  <span className="flex items-center gap-1 text-green-600">
+                                    <MapPin className="h-3 w-3" />
+                                    {student.location}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                {student.profile_views || 0}
+                              </Badge>
+                              {student.resume_url && (
+                                <Badge variant="outline" className="text-green-600">
+                                  Resume
+                                </Badge>
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              {student.profile_views || 0}
-                            </Badge>
-                            {student.resume_url && (
-                              <Badge variant="outline" className="text-green-600">
-                                Resume
-                              </Badge>
-                            )}
+                          
+                          {student.bio && (
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                              {student.bio}
+                            </p>
+                          )}
+                          
+                          {student.skills && student.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {student.skills.slice(0, 5).map((skill: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {student.skills.length > 5 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{student.skills.length - 5} more
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Code className="h-3 w-3" />
+                                {student.skills?.length || 0} skills
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Trophy className="h-3 w-3" />
+                                {student.projects?.length || 0} projects
+                              </span>
+                            </div>
+                            <Button size="sm" variant="outline">
+                              View Profile
+                            </Button>
                           </div>
                         </div>
-                        
-                        {student.bio && (
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                            {student.bio}
-                          </p>
-                        )}
-                        
-                        {student.skills && student.skills.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-3">
-                            {student.skills.slice(0, 5).map((skill: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))}
-                            {student.skills.length > 5 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{student.skills.length - 5} more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Code className="h-3 w-3" />
-                              {student.skills?.length || 0} skills
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Trophy className="h-3 w-3" />
-                              {student.projects?.length || 0} projects
-                            </span>
-                          </div>
-                          <Button size="sm" variant="outline">
-                            View Profile
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

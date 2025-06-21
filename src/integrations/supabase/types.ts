@@ -115,6 +115,7 @@ export type Database = {
           github_url: string | null
           graduation_year: string | null
           id: string
+          last_login_at: string | null
           linkedin_url: string | null
           location: string | null
           major: string | null
@@ -135,6 +136,7 @@ export type Database = {
           github_url?: string | null
           graduation_year?: string | null
           id?: string
+          last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           github_url?: string | null
           graduation_year?: string | null
           id?: string
+          last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
@@ -213,6 +216,10 @@ export type Database = {
     Functions: {
       increment_profile_view: {
         Args: { student_user_id: string }
+        Returns: undefined
+      }
+      update_student_last_login: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }

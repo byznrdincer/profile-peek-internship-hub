@@ -32,6 +32,16 @@ export const useAuth = () => {
               .single();
             
             setProfile(profileData);
+            
+            // Update last login for students
+            if (profileData?.role === 'student') {
+              try {
+                await supabase.rpc('update_student_last_login');
+              } catch (error) {
+                console.error('Error updating student last login:', error);
+              }
+            }
+            
             setLoading(false);
           }, 0);
         } else {
@@ -55,6 +65,16 @@ export const useAuth = () => {
             .single();
           
           setProfile(profileData);
+          
+          // Update last login for students
+          if (profileData?.role === 'student') {
+            try {
+              await supabase.rpc('update_student_last_login');
+            } catch (error) {
+              console.error('Error updating student last login:', error);
+            }
+          }
+          
           setLoading(false);
         }, 0);
       } else {
