@@ -38,6 +38,18 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
+  const validateRecruiterEmail = (email: string) => {
+    // Block common personal email domains for recruiters
+    const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
+    const domain = email.split('@')[1]?.toLowerCase();
+    
+    if (personalDomains.includes(domain)) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -74,6 +86,17 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate recruiter email
+    if (loginData.role === 'recruiter' && !validateRecruiterEmail(loginData.email)) {
+      toast({
+        title: "Invalid email domain",
+        description: "Recruiters must use a company email address. Personal email domains like Gmail are not allowed.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
@@ -107,6 +130,17 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate recruiter email
+    if (signupData.role === 'recruiter' && !validateRecruiterEmail(signupData.email)) {
+      toast({
+        title: "Invalid email domain",
+        description: "Recruiters must use a company email address. Personal email domains like Gmail are not allowed.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.signUp({
@@ -176,29 +210,33 @@ const Auth = () => {
             
             <TabsContent value="login">
               <div className="space-y-4">
-                <Button
-                  onClick={handleGoogleLogin}
-                  variant="outline"
-                  className="w-full flex items-center gap-2"
-                  disabled={loading}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  {loading ? "Signing in..." : "Continue with Google"}
-                </Button>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or</span>
-                  </div>
-                </div>
+                {loginData.role === 'student' && (
+                  <>
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-2"
+                      disabled={loading}
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      {loading ? "Signing in..." : "Continue with Google"}
+                    </Button>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Or</span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
@@ -224,14 +262,22 @@ const Auth = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email">
+                      {loginData.role === 'recruiter' ? 'Company Email' : 'Email'}
+                    </Label>
                     <Input
                       id="login-email"
                       type="email"
                       value={loginData.email}
                       onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      placeholder={loginData.role === 'recruiter' ? 'recruiter@company.com' : 'your@email.com'}
                       required
                     />
+                    {loginData.role === 'recruiter' && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Must be a company email address (Gmail not allowed)
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="login-password">Password</Label>
@@ -256,29 +302,33 @@ const Auth = () => {
             
             <TabsContent value="signup">
               <div className="space-y-4">
-                <Button
-                  onClick={handleGoogleLogin}
-                  variant="outline"
-                  className="w-full flex items-center gap-2"
-                  disabled={loading}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  {loading ? "Signing up..." : "Sign up with Google"}
-                </Button>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or</span>
-                  </div>
-                </div>
+                {signupData.role === 'student' && (
+                  <>
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="w-full flex items-center gap-2"
+                      disabled={loading}
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      {loading ? "Signing up..." : "Sign up with Google"}
+                    </Button>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Or</span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div>
@@ -291,14 +341,22 @@ const Auth = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">
+                      {signupData.role === 'recruiter' ? 'Company Email' : 'Email'}
+                    </Label>
                     <Input
                       id="signup-email"
                       type="email"
                       value={signupData.email}
                       onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      placeholder={signupData.role === 'recruiter' ? 'recruiter@company.com' : 'your@email.com'}
                       required
                     />
+                    {signupData.role === 'recruiter' && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Must be a company email address (Gmail not allowed)
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="signup-password">Password</Label>
