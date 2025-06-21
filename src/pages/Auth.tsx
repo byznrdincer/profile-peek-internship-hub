@@ -153,14 +153,11 @@ const Auth = () => {
         }
       };
 
-      // Only add email redirect and confirmation for students
+      // Only add email confirmation for students
       if (signupData.role === 'student') {
         signupOptions.options.emailRedirectTo = `${window.location.origin}/`;
-      } else {
-        // For recruiters, disable email confirmation
-        signupOptions.options.emailRedirectTo = `${window.location.origin}/`;
-        signupOptions.options.confirmEmail = false;
       }
+      // For recruiters, we don't add any email confirmation options
 
       const { error } = await supabase.auth.signUp(signupOptions);
 
@@ -178,8 +175,8 @@ const Auth = () => {
           });
         } else {
           toast({
-            title: "Account created!",
-            description: "Your recruiter account has been created successfully. You can now log in.",
+            title: "Recruiter account created!",
+            description: "Your account has been created successfully. You can now log in immediately.",
           });
         }
       }
