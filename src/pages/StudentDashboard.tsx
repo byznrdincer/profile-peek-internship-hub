@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
+import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -345,12 +346,12 @@ const StudentDashboard = () => {
     setProjects([...projects, { title: "", description: "", technologies: [] }]);
   };
 
-  const updateProject = (index: number, field: string, value: string) => {
+  const updateProject = (index: number, field: string, value: string | string[]) => {
     const updated = [...projects];
     if (field === 'technologies') {
-      updated[index][field] = value.split(',').map(t => t.trim());
+      updated[index][field] = Array.isArray(value) ? value : value.split(',').map(t => t.trim());
     } else {
-      updated[index][field] = value;
+      updated[index][field] = value as string;
     }
     setProjects(updated);
   };
@@ -835,11 +836,12 @@ const StudentDashboard = () => {
                       />
                     </div>
                     <div>
-                      <Label>Technologies Used</Label>
-                      <Input
-                        value={project.technologies.join(', ')}
-                        onChange={(e) => updateProject(index, 'technologies', e.target.value)}
-                        placeholder="React, Node.js, MongoDB"
+                      <EnhancedSearchableMultiSelect
+                        options={commonSkills}
+                        selected={project.technologies}
+                        onSelectionChange={(technologies) => updateProject(index, 'technologies', technologies)}
+                        placeholder="Add technologies used in this project..."
+                        label="Technologies Used"
                       />
                     </div>
                   </div>
