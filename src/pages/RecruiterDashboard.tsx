@@ -1,80 +1,97 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Users, Eye, Download, Mail, Calendar, Code, FolderOpen, MapPin } from "lucide-react";
+import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
-import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
-
-interface StudentData {
-  id: string;
-  user_id: string;
-  name: string;
-  university: string;
-  major: string;
-  graduation_year: string;
-  bio: string;
-  location?: string;
-  skills: string[];
-  profile_views: number;
-  resume_url?: string;
-  resume_filename?: string;
-  projects: Array<{
-    id: string;
-    title: string;
-    description: string;
-    technologies: string[];
-  }>;
-}
 
 const RecruiterDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [skillsSearchTerm, setSkillsSearchTerm] = useState("");
-  const [projectSearchTerm, setProjectSearchTerm] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedProjectTechnologies, setSelectedProjectTechnologies] = useState<string[]>([]);
-  const [graduationYear, setGraduationYear] = useState("");
-  const [major, setMajor] = useState("");
-  const [location, setLocation] = useState("");
-  const [minProjects, setMinProjects] = useState("0");
-  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
-  const [students, setStudents] = useState<StudentData[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [students, setStudents] = useState<any[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [skillFilter, setSkillFilter] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalViews: 0,
+    newProfiles: 0
+  });
   
-  // Dynamically generate available skills from all student profiles
-  const availableSkills = Array.from(
-    new Set(
-      students.flatMap(student => student.skills || [])
-    )
-  ).filter(Boolean).sort();
-  
-  // Dynamically generate available project technologies from all student projects
-  const availableProjectTechnologies = Array.from(
-    new Set(
-      students.flatMap(student => 
-        student.projects.flatMap(project => project.technologies || [])
-      )
-    )
-  ).filter(Boolean).sort();
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    company_name: "",
+    position: "",
+    location: "",
+  });
 
-  const graduationYears = ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"];
-
+  // Load recruiter profile and students
   useEffect(() => {
-    loadStudents();
-  }, []);
+    if (user) {
+      loadProfile();
+      loadStudents();
+      loadStats();
+    }
+  }, [user]);
 
+  // Filter students based on search term and skill filter
   useEffect(() => {
-    setFilteredStudents(students);
-  }, [students]);
+    let filtered = students;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(student =>
+        student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.university?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.major?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.bio?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (skillFilter) {
+      filtered = filtered.filter(student =>
+        student.skills?.some((skill: string) =>
+          skill.toLowerCase().includes(skillFilter.toLowerCase())
+        )
+      );
+    }
+    
+    setFilteredStudents(filtered);
+  }, [students, searchTerm, skillFilter]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+
+    const { data: profile, error } = await supabase
+      .from('recruiter_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error loading profile:', error);
+      return;
+    }
+
+    if (profile) {
+      setFormData({
+        name: profile.name || "",
+        phone: profile.phone || "",
+        company_name: profile.company_name || "",
+        position: profile.position || "",
+        location: profile.location || "",
+      });
+    }
+  };
 
   const loadStudents = async () => {
     setLoading(true);
@@ -83,33 +100,30 @@ const RecruiterDashboard = () => {
         .from('student_profiles')
         .select(`
           *,
-          student_projects (
-            id,
-            title,
-            description,
-            technologies
-          )
-        `);
+          student_projects (*)
+        `)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedStudents: StudentData[] = studentsData?.map(student => ({
-        id: student.id,
-        user_id: student.user_id,
-        name: student.name || 'Anonymous Student',
-        university: student.university || 'Not specified',
-        major: student.major || 'Not specified',
-        graduation_year: student.graduation_year || 'Not specified',
-        bio: student.bio || 'No bio available',
-        location: student.location || undefined,
-        skills: student.skills || [],
-        profile_views: student.profile_views || 0,
-        resume_url: student.resume_url,
-        resume_filename: student.resume_filename,
-        projects: student.student_projects || []
-      })) || [];
+      // Add user email from profiles table
+      const studentsWithEmail = await Promise.all(
+        studentsData.map(async (student) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('user_id', student.user_id)
+            .single();
+          
+          return {
+            ...student,
+            email: profile?.email || '',
+            projects: student.student_projects || []
+          };
+        })
+      );
 
-      setStudents(formattedStudents);
+      setStudents(studentsWithEmail);
     } catch (error) {
       console.error('Error loading students:', error);
       toast({
@@ -122,442 +136,355 @@ const RecruiterDashboard = () => {
     }
   };
 
-  const handleSkillFilter = (skill: string) => {
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(selectedSkills.filter(s => s !== skill));
-    } else {
-      setSelectedSkills([...selectedSkills, skill]);
+  const loadStats = async () => {
+    try {
+      // Get total students count
+      const { count: totalStudents } = await supabase
+        .from('student_profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Get total profile views for this recruiter
+      const { data: recruiterProfile } = await supabase
+        .from('recruiter_profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      let totalViews = 0;
+      if (recruiterProfile) {
+        const { count: viewsCount } = await supabase
+          .from('profile_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('recruiter_id', recruiterProfile.id);
+        totalViews = viewsCount || 0;
+      }
+
+      // Get new profiles (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: newProfiles } = await supabase
+        .from('student_profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      setStats({
+        totalStudents: totalStudents || 0,
+        totalViews,
+        newProfiles: newProfiles || 0
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
     }
   };
 
-  const handleProjectTechnologyFilter = (tech: string) => {
-    if (selectedProjectTechnologies.includes(tech)) {
-      setSelectedProjectTechnologies(selectedProjectTechnologies.filter(t => t !== tech));
-    } else {
-      setSelectedProjectTechnologies([...selectedProjectTechnologies, tech]);
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = students.filter(student => {
-      const matchesSkillsSearch = !skillsSearchTerm || 
-                                 student.skills.some(skill => skill.toLowerCase().includes(skillsSearchTerm.toLowerCase()));
-      
-      const matchesSkills = selectedSkills.length === 0 || 
-                           selectedSkills.some(skill => student.skills.includes(skill));
-      
-      const matchesYear = !graduationYear || student.graduation_year === graduationYear;
-      
-      const matchesMajor = !major || student.major.toLowerCase().includes(major.toLowerCase());
-      
-      const matchesLocation = !location || (student.location && student.location.toLowerCase().includes(location.toLowerCase()));
-      
-      const minProjectsNum = parseInt(minProjects) || 0;
-      const matchesProjectCount = student.projects.length >= minProjectsNum;
-      
-      const matchesProjectSearch = !projectSearchTerm || 
-                                  student.projects.some(project => 
-                                    project.title.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
-                                    project.description.toLowerCase().includes(projectSearchTerm.toLowerCase())
-                                  );
-      
-      const matchesProjectTechnologies = selectedProjectTechnologies.length === 0 ||
-                                        student.projects.some(project =>
-                                          selectedProjectTechnologies.some(tech =>
-                                            project.technologies?.includes(tech)
-                                          )
-                                        );
-      
-      return matchesSkillsSearch && matchesSkills && matchesYear && matchesMajor && 
-             matchesLocation && matchesProjectCount && matchesProjectSearch && matchesProjectTechnologies;
-    });
-    
-    setFilteredStudents(filtered);
-    toast({
-      title: "Filters applied",
-      description: `Found ${filtered.length} matching profiles`,
-    });
-  };
-
-  const clearFilters = () => {
-    setSkillsSearchTerm("");
-    setProjectSearchTerm("");
-    setSelectedSkills([]);
-    setSelectedProjectTechnologies([]);
-    setGraduationYear("");
-    setMajor("");
-    setLocation("");
-    setMinProjects("0");
-    setFilteredStudents(students);
-    toast({
-      title: "Filters cleared",
-      description: "All filters have been reset",
-    });
-  };
-
-  const viewProfile = async (student: StudentData) => {
+  const handleViewProfile = async (student: any) => {
     setSelectedStudent(student);
     
+    // Increment profile view
     try {
-      // Increment profile view
       await supabase.rpc('increment_profile_view', {
         student_user_id: student.user_id
       });
-      
-      toast({
-        title: "Profile viewed",
-        description: `${student.name} has been notified that you viewed their profile`,
-      });
     } catch (error) {
-      console.error('Error recording profile view:', error);
+      console.error('Error incrementing profile view:', error);
     }
   };
 
-  const downloadResume = async (student: StudentData) => {
-    if (!student.resume_url) {
-      toast({
-        title: "No resume available",
-        description: `${student.name} hasn't uploaded a resume yet.`,
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
 
+    setLoading(true);
     try {
-      const fileName = `${student.user_id}/resume.${student.resume_url.split('.').pop()}`;
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .download(fileName);
+      const { error } = await supabase
+        .from('recruiter_profiles')
+        .upsert({
+          user_id: user.id,
+          name: formData.name,
+          phone: formData.phone,
+          company_name: formData.company_name,
+          position: formData.position,
+          location: formData.location,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = student.resume_filename || 'resume';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
       toast({
-        title: "Resume downloaded",
-        description: `${student.name}'s resume has been downloaded`,
+        title: "Profile updated successfully!",
+        description: "Your recruiter profile has been saved.",
       });
     } catch (error) {
-      console.error('Error downloading resume:', error);
+      console.error('Error saving profile:', error);
       toast({
-        title: "Download failed",
-        description: "There was an error downloading the resume.",
+        title: "Save failed",
+        description: "There was an error saving your profile. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const contactStudent = (student: StudentData) => {
-    // Get student email from profiles table
-    const mailto = `mailto:?subject=Internship Opportunity&body=Hi ${student.name},%0D%0A%0D%0AI found your profile on InternStack and would like to discuss potential internship opportunities.%0D%0A%0D%0ABest regards`;
-    window.open(mailto);
-    
-    toast({
-      title: "Contact initiated",
-      description: `Opening email to contact ${student.name}`,
-    });
-  };
-
   if (selectedStudent) {
-    return <StudentProfile student={selectedStudent} onBack={() => setSelectedStudent(null)} />;
-  }
-
-  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-600"></div>
-        </div>
-      </div>
+      <StudentProfile
+        student={selectedStudent}
+        onBack={() => setSelectedStudent(null)}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
-          <p className="text-xl text-gray-600">Discover talented students and find your next great hire</p>
+          <p className="text-xl text-gray-600">Discover and connect with talented students</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Total Profiles</CardTitle>
+              <CardTitle className="text-sm font-medium opacity-90">Total Students</CardTitle>
               <Users className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{students.length}</div>
+              <div className="text-2xl font-bold">{stats.totalStudents}</div>
+              <p className="text-xs opacity-90">Available profiles</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Filtered Results</CardTitle>
-              <Filter className="h-4 w-4 opacity-90" />
+              <CardTitle className="text-sm font-medium opacity-90">Profile Views</CardTitle>
+              <Eye className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{filteredStudents.length}</div>
+              <div className="text-2xl font-bold">{stats.totalViews}</div>
+              <p className="text-xs opacity-90">Total views by you</p>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Total Projects</CardTitle>
-              <FolderOpen className="h-4 w-4 opacity-90" />
+              <CardTitle className="text-sm font-medium opacity-90">New Profiles</CardTitle>
+              <Building className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {filteredStudents.reduce((sum, student) => sum + student.projects.length, 0)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">With Resumes</CardTitle>
-              <Mail className="h-4 w-4 opacity-90" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {students.filter(s => s.resume_url).length}
-              </div>
+              <div className="text-2xl font-bold">{stats.newProfiles}</div>
+              <p className="text-xs opacity-90">Last 30 days</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Smart Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Smart Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Skills search and Actions */}
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="skills-search">Search by skills</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="skills-search"
-                    value={skillsSearchTerm}
-                    onChange={(e) => setSkillsSearchTerm(e.target.value)}
-                    placeholder="Search by skills..."
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div className="self-end flex gap-2">
-                <Button onClick={applyFilters} className="bg-gradient-to-r from-teal-500 to-blue-500">
-                  Apply Filters
-                </Button>
-                <Button onClick={clearFilters} variant="outline">
-                  Clear All
-                </Button>
-              </div>
-            </div>
-
-            {/* Project-specific filters */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="project-search">Search in Projects</Label>
-                <div className="relative">
-                  <Code className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="project-search"
-                    value={projectSearchTerm}
-                    onChange={(e) => setProjectSearchTerm(e.target.value)}
-                    placeholder="Search project titles and descriptions..."
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="min-projects">Minimum Projects</Label>
-                <Input
-                  id="min-projects"
-                  type="number"
-                  value={minProjects}
-                  onChange={(e) => setMinProjects(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                />
-              </div>
-            </div>
-
-            {/* Student profile filters */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="major">Major</Label>
-                <Input
-                  id="major"
-                  value={major}
-                  onChange={(e) => setMajor(e.target.value)}
-                  placeholder="Computer Science, Data Science..."
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City, State, Country..."
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="graduation">Graduation Year</Label>
-                <Select value={graduationYear} onValueChange={setGraduationYear}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {graduationYears.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Enhanced Skills and Technologies filters */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <EnhancedSearchableMultiSelect
-                options={availableSkills}
-                selected={selectedSkills}
-                onSelectionChange={setSelectedSkills}
-                placeholder="Select student skills..."
-                label="Filter by Student Skills"
-              />
-              
-              <EnhancedSearchableMultiSelect
-                options={availableProjectTechnologies}
-                selected={selectedProjectTechnologies}
-                onSelectionChange={setSelectedProjectTechnologies}
-                placeholder="Select project technologies..."
-                label="Filter by Project Technologies"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Student Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStudents.map(student => (
-            <Card key={student.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Profile Section */}
+          <div className="space-y-6">
+            <Card>
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Your Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <CardTitle className="text-xl text-blue-600">{student.name}</CardTitle>
-                    <p className="text-gray-600">{student.major} • {student.graduation_year}</p>
-                    <p className="text-sm text-gray-500">{student.university}</p>
-                    {student.location && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {student.location}
-                      </p>
-                    )}
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="Your Name"
+                    />
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {student.profile_views}
-                    </Badge>
-                    {student.resume_url && (
-                      <Badge variant="outline" className="text-xs">
-                        Resume
-                      </Badge>
-                    )}
+                  <div>
+                    <Label htmlFor="company">Company Name</Label>
+                    <Input
+                      id="company"
+                      value={formData.company_name}
+                      onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+                      placeholder="Your Company"
+                    />
                   </div>
-                </div>
+                  <div>
+                    <Label htmlFor="position">Position</Label>
+                    <Input
+                      id="position"
+                      value={formData.position}
+                      onChange={(e) => setFormData({...formData, position: e.target.value})}
+                      placeholder="HR Manager, Technical Recruiter, etc."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="(555) 123-4567"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      placeholder="New York, NY"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
+                    disabled={loading}
+                  >
+                    {loading ? "Saving..." : "Update Profile"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Student Search and List */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Search and Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Find Students
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-gray-600 text-sm line-clamp-3">{student.bio}</p>
-                
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Skills:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {student.skills.slice(0, 4).map(skill => (
-                      <Badge key={skill} variant="outline" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                    {student.skills.length > 4 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{student.skills.length - 4} more
-                      </Badge>
-                    )}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="search">Search Students</Label>
+                    <Input
+                      id="search"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search by name, university, major, or bio..."
+                    />
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                    <FolderOpen className="h-3 w-3" />
-                    Projects: {student.projects.length}
-                  </p>
-                  {student.projects.length > 0 && (
-                    <div className="text-xs text-gray-500">
-                      {student.projects.slice(0, 2).map(project => project.title).join(", ")}
-                      {student.projects.length > 2 && "..."}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => viewProfile(student)}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-teal-500"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Profile
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => downloadResume(student)}
-                    disabled={!student.resume_url}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => contactStudent(student)}
-                  >
-                    <Mail className="h-4 w-4" />
-                  </Button>
+                  <div>
+                    <Label htmlFor="skillFilter">Filter by Skill</Label>
+                    <Input
+                      id="skillFilter"
+                      value={skillFilter}
+                      onChange={(e) => setSkillFilter(e.target.value)}
+                      placeholder="e.g., React, Python, Machine Learning..."
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
 
-        {filteredStudents.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No students found</h3>
-            <p className="text-gray-500">Try adjusting your search criteria or filters</p>
+            {/* Student List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Student Profiles ({filteredStudents.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading student profiles...</p>
+                  </div>
+                ) : filteredStudents.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No students found matching your criteria.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredStudents.map((student) => (
+                      <div
+                        key={student.id}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleViewProfile(student)}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="text-lg font-semibold text-blue-600">{student.name || 'Anonymous Student'}</h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {student.university || 'University not specified'}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Class of {student.graduation_year || 'N/A'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mt-1">{student.major || 'Major not specified'}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {student.profile_views || 0}
+                            </Badge>
+                            {student.resume_url && (
+                              <Badge variant="outline" className="text-green-600">
+                                Resume
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {student.bio && (
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                            {student.bio}
+                          </p>
+                        )}
+                        
+                        {student.skills && student.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {student.skills.slice(0, 5).map((skill: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                            {student.skills.length > 5 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{student.skills.length - 5} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Code className="h-3 w-3" />
+                              {student.skills?.length || 0} skills
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Trophy className="h-3 w-3" />
+                              {student.projects?.length || 0} projects
+                            </span>
+                          </div>
+                          <Button size="sm" variant="outline">
+                            View Profile
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

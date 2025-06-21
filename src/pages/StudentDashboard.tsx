@@ -266,6 +266,7 @@ const StudentDashboard = () => {
     major: "",
     graduation_year: "",
     bio: "",
+    location: "",
   });
 
   // Load existing profile data
@@ -298,6 +299,7 @@ const StudentDashboard = () => {
         major: profile.major || "",
         graduation_year: profile.graduation_year || "",
         bio: profile.bio || "",
+        location: profile.location || "",
       });
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
@@ -538,6 +540,7 @@ const StudentDashboard = () => {
           major: formData.major,
           graduation_year: formData.graduation_year,
           bio: formData.bio,
+          location: formData.location,
           skills: skills,
           updated_at: new Date().toISOString()
         }, {
@@ -695,6 +698,15 @@ const StudentDashboard = () => {
                     value={formData.graduation_year}
                     onChange={(e) => setFormData({...formData, graduation_year: e.target.value})}
                     placeholder="2024"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    placeholder="New York, NY"
                   />
                 </div>
               </div>
