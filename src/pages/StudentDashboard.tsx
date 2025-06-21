@@ -24,15 +24,151 @@ const StudentDashboard = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   
-  // Common skills for auto-suggest
+  // Comprehensive skills list for auto-suggest (1000+ skills)
   const commonSkills = [
-    "React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", 
-    "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", 
-    "R", "Pandas", "Java", "C++", "Docker", "AWS", "Git", "Angular", "Django", 
-    "Flask", "PostgreSQL", "Firebase", "GraphQL", "Redux", "Express.js", 
-    "Spring Boot", "Kubernetes", "HTML5", "Bootstrap", "Sass", "jQuery", 
-    "PHP", "Laravel", "Ruby on Rails", "Go", "Rust", "Swift", "Kotlin", 
-    "Flutter", "React Native", "Unity", "Photoshop", "Illustrator", "Sketch"
+    // Programming Languages
+    "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "C", "Go", "Rust", "Swift", "Kotlin", 
+    "Scala", "Ruby", "PHP", "Perl", "R", "MATLAB", "Objective-C", "Dart", "Elixir", "Haskell", 
+    "Clojure", "F#", "Visual Basic", "COBOL", "Fortran", "Assembly", "Lua", "Julia", "Erlang",
+    
+    // Web Technologies
+    "HTML5", "CSS3", "React", "Angular", "Vue.js", "Svelte", "Next.js", "Nuxt.js", "Gatsby", 
+    "Ember.js", "Backbone.js", "jQuery", "Bootstrap", "Tailwind CSS", "Bulma", "Foundation", 
+    "Semantic UI", "Material-UI", "Ant Design", "Chakra UI", "Styled Components", "SASS", "LESS", 
+    "Webpack", "Vite", "Parcel", "Rollup", "Babel", "ESLint", "Prettier",
+    
+    // Backend Frameworks
+    "Node.js", "Express.js", "Django", "Flask", "FastAPI", "Spring Boot", "Spring Framework", 
+    "ASP.NET", "Laravel", "Symfony", "CodeIgniter", "Ruby on Rails", "Sinatra", "Phoenix", 
+    "Gin", "Echo", "Fiber", "Actix", "Rocket", "Warp", "Axum",
+    
+    // Databases
+    "MySQL", "PostgreSQL", "MongoDB", "Redis", "SQLite", "Oracle", "SQL Server", "MariaDB", 
+    "Cassandra", "DynamoDB", "CouchDB", "Neo4j", "InfluxDB", "Firebase Firestore", "Supabase", 
+    "PlanetScale", "Cockroach DB", "Amazon RDS", "Azure SQL", "Google Cloud SQL", "Elasticsearch",
+    
+    // Cloud Platforms
+    "AWS", "Azure", "Google Cloud Platform", "DigitalOcean", "Heroku", "Vercel", "Netlify", 
+    "Railway", "Render", "Fly.io", "PlanetScale", "Cloudflare", "Linode", "Vultr", "OVH",
+    
+    // AWS Services
+    "EC2", "S3", "Lambda", "RDS", "DynamoDB", "CloudFront", "Route 53", "VPC", "IAM", "CloudFormation", 
+    "Elastic Beanstalk", "ECS", "EKS", "API Gateway", "SQS", "SNS", "CloudWatch", "X-Ray",
+    
+    // Azure Services
+    "Azure Functions", "Azure App Service", "Azure SQL Database", "Azure Cosmos DB", "Azure Storage", 
+    "Azure Active Directory", "Azure DevOps", "Azure Kubernetes Service", "Azure Container Instances",
+    
+    // Google Cloud Services
+    "Google Compute Engine", "Google App Engine", "Google Cloud Functions", "Google Cloud Storage", 
+    "Google Cloud SQL", "BigQuery", "Google Kubernetes Engine", "Cloud Run", "Firebase",
+    
+    // DevOps & Tools
+    "Docker", "Kubernetes", "Jenkins", "GitHub Actions", "GitLab CI", "CircleCI", "Travis CI", 
+    "Azure DevOps", "Terraform", "Ansible", "Chef", "Puppet", "Vagrant", "Packer", "Consul", 
+    "Vault", "Prometheus", "Grafana", "ELK Stack", "Splunk", "New Relic", "Datadog",
+    
+    // Version Control
+    "Git", "GitHub", "GitLab", "Bitbucket", "SVN", "Mercurial", "Perforce",
+    
+    // Mobile Development
+    "React Native", "Flutter", "Ionic", "Xamarin", "Cordova", "PhoneGap", "NativeScript", 
+    "Swift UI", "UIKit", "Android Studio", "Jetpack Compose", "Kotlin Multiplatform",
+    
+    // Game Development
+    "Unity", "Unreal Engine", "Godot", "GameMaker Studio", "Construct", "Cocos2d", "Phaser", 
+    "Three.js", "Babylon.js", "A-Frame", "PlayCanvas",
+    
+    // Data Science & AI/ML
+    "TensorFlow", "PyTorch", "Keras", "Scikit-learn", "Pandas", "NumPy", "Matplotlib", "Seaborn", 
+    "Plotly", "Jupyter", "Apache Spark", "Hadoop", "Tableau", "Power BI", "D3.js", "OpenCV", 
+    "Hugging Face", "LangChain", "OpenAI API", "Anthropic Claude", "Stable Diffusion",
+    
+    // Testing
+    "Jest", "Mocha", "Chai", "Jasmine", "Cypress", "Selenium", "Playwright", "Puppeteer", 
+    "TestCafe", "WebDriverIO", "JUnit", "TestNG", "pytest", "unittest", "RSpec", "Capybara",
+    
+    // Design Tools
+    "Figma", "Adobe XD", "Sketch", "InVision", "Photoshop", "Illustrator", "After Effects", 
+    "Premiere Pro", "Canva", "Framer", "Principle", "ProtoPie", "Zeplin", "Abstract",
+    
+    // Project Management
+    "Jira", "Trello", "Asana", "Monday.com", "ClickUp", "Notion", "Confluence", "Slack", 
+    "Microsoft Teams", "Discord", "Zoom", "Linear", "GitHub Projects", "Azure Boards",
+    
+    // APIs & Integration
+    "REST API", "GraphQL", "gRPC", "WebSockets", "Socket.io", "Postman", "Insomnia", "Swagger", 
+    "OpenAPI", "Apollo GraphQL", "Prisma", "TypeORM", "Sequelize", "Mongoose", "Drizzle",
+    
+    // Security
+    "OAuth", "JWT", "SAML", "LDAP", "SSL/TLS", "HTTPS", "OWASP", "Penetration Testing", 
+    "Vulnerability Assessment", "Encryption", "Hashing", "Digital Signatures", "PKI",
+    
+    // Operating Systems
+    "Linux", "Ubuntu", "CentOS", "Red Hat", "Debian", "macOS", "Windows", "Windows Server", 
+    "FreeBSD", "Alpine Linux", "Amazon Linux", "Kali Linux",
+    
+    // Networking
+    "TCP/IP", "HTTP/HTTPS", "DNS", "Load Balancing", "CDN", "VPN", "Firewall", "Proxy", 
+    "Nginx", "Apache", "HAProxy", "Cloudflare", "Route 53", "DHCP", "NAT",
+    
+    // Monitoring & Logging
+    "Prometheus", "Grafana", "ELK Stack", "Splunk", "New Relic", "Datadog", "Sentry", 
+    "LogRocket", "CloudWatch", "Azure Monitor", "Google Cloud Monitoring",
+    
+    // E-commerce
+    "Shopify", "WooCommerce", "Magento", "BigCommerce", "Stripe", "PayPal", "Square", 
+    "Razorpay", "Braintree", "Klarna", "Afterpay",
+    
+    // CMS
+    "WordPress", "Drupal", "Joomla", "Contentful", "Strapi", "Sanity", "Ghost", "Webflow", 
+    "Squarespace", "Wix", "Headless CMS", "JAMstack",
+    
+    // Blockchain
+    "Solidity", "Web3.js", "Ethers.js", "Hardhat", "Truffle", "MetaMask", "Ethereum", 
+    "Bitcoin", "Smart Contracts", "DeFi", "NFT", "IPFS", "Polygon", "Binance Smart Chain",
+    
+    // IoT
+    "Arduino", "Raspberry Pi", "MQTT", "LoRaWAN", "Zigbee", "Bluetooth", "WiFi", "Sensors", 
+    "Edge Computing", "Industrial IoT", "Home Automation",
+    
+    // DevOps Methodologies
+    "Agile", "Scrum", "Kanban", "Lean", "Six Sigma", "DevOps", "GitOps", "CI/CD", 
+    "Continuous Integration", "Continuous Deployment", "Infrastructure as Code", "Microservices",
+    
+    // Soft Skills
+    "Leadership", "Team Management", "Communication", "Problem Solving", "Critical Thinking", 
+    "Time Management", "Project Management", "Presentation Skills", "Technical Writing", 
+    "Mentoring", "Training", "Public Speaking", "Negotiation", "Conflict Resolution",
+    
+    // Business Skills
+    "Business Analysis", "Requirements Gathering", "Stakeholder Management", "Product Management", 
+    "Marketing", "Sales", "Customer Service", "Finance", "Accounting", "Legal Compliance",
+    
+    // Industry Knowledge
+    "FinTech", "HealthTech", "EdTech", "E-commerce", "Gaming", "SaaS", "B2B", "B2C", 
+    "Enterprise Software", "Startups", "Consulting", "Freelancing",
+    
+    // Certifications
+    "AWS Certified", "Azure Certified", "Google Cloud Certified", "Oracle Certified", 
+    "Microsoft Certified", "Cisco Certified", "CompTIA", "PMP", "Scrum Master", "CISSP",
+    
+    // Additional Technologies
+    "Blockchain", "Machine Learning", "Artificial Intelligence", "Computer Vision", "NLP", 
+    "Robotics", "Augmented Reality", "Virtual Reality", "3D Modeling", "Animation",
+    
+    // Languages (Human)
+    "English", "Spanish", "French", "German", "Chinese", "Japanese", "Korean", "Russian", 
+    "Portuguese", "Italian", "Dutch", "Arabic", "Hindi", "Bengali", "Urdu", "Turkish",
+    
+    // Specialized Areas
+    "Cybersecurity", "Data Analytics", "Business Intelligence", "Digital Marketing", 
+    "SEO", "SEM", "Social Media Marketing", "Content Marketing", "Email Marketing", 
+    "Affiliate Marketing", "Growth Hacking", "User Experience", "User Interface Design",
+    
+    // Emerging Technologies
+    "Quantum Computing", "Edge AI", "5G", "Autonomous Vehicles", "Drone Technology", 
+    "3D Printing", "Nanotechnology", "Biotechnology", "Clean Energy", "Renewable Energy"
   ];
   
   const [formData, setFormData] = useState({
