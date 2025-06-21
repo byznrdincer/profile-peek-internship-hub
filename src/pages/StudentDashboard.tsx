@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
+import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -23,6 +23,17 @@ const StudentDashboard = () => {
   const [profileViews, setProfileViews] = useState(0);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
+  
+  // Common skills for auto-suggest
+  const commonSkills = [
+    "React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", 
+    "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", 
+    "R", "Pandas", "Java", "C++", "Docker", "AWS", "Git", "Angular", "Django", 
+    "Flask", "PostgreSQL", "Firebase", "GraphQL", "Redux", "Express.js", 
+    "Spring Boot", "Kubernetes", "HTML5", "Bootstrap", "Sass", "jQuery", 
+    "PHP", "Laravel", "Ruby on Rails", "Go", "Rust", "Swift", "Kotlin", 
+    "Flutter", "React Native", "Unity", "Photoshop", "Illustrator", "Sketch"
+  ];
   
   const [formData, setFormData] = useState({
     name: "",
@@ -547,31 +558,13 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={currentSkill}
-                  onChange={(e) => setCurrentSkill(e.target.value)}
-                  placeholder="Add a skill..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                />
-                <Button type="button" onClick={addSkill}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {skills.map((skill, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(skill)}
-                      className="ml-1 hover:text-red-500"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+              <SearchableMultiSelect
+                options={commonSkills}
+                selected={skills}
+                onSelectionChange={setSkills}
+                placeholder="Select your skills or type to add custom ones..."
+                label="Skills"
+              />
             </CardContent>
           </Card>
 
