@@ -25,13 +25,34 @@ const SearchableMultiSelect = ({
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filteredOptions = options.filter(option =>
-    option.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selected.includes(option)
-  );
+  // Improved search function - case insensitive and partial matching
+  const filteredOptions = options.filter(option => {
+    const searchLower = searchTerm.toLowerCase();
+    const optionLower = option.toLowerCase();
+    
+    // Check if option contains search term or if search term is contained in option
+    const matches = optionLower.includes(searchLower) || 
+                   searchLower.split(' ').every(term => optionLower.includes(term));
+    
+    // Only show options that aren't already selected
+    return matches && !selected.includes(option);
+  }).sort((a, b) => {
+    // Sort by relevance - exact matches first, then starts with, then contains
+    const searchLower = searchTerm.toLowerCase();
+    const aLower = a.toLowerCase();
+    const bLower = b.toLowerCase();
+    
+    if (aLower === searchLower && bLower !== searchLower) return -1;
+    if (bLower === searchLower && aLower !== searchLower) return 1;
+    if (aLower.startsWith(searchLower) && !bLower.startsWith(searchLower)) return -1;
+    if (bLower.startsWith(searchLower) && !aLower.startsWith(searchLower)) return 1;
+    
+    return a.localeCompare(b);
+  });
 
   const handleOptionClick = (option: string) => {
     onSelectionChange([...selected, option]);
+    setSearchTerm("");
   };
 
   const handleRemoveOption = (option: string) => {
@@ -55,14 +76,24 @@ const SearchableMultiSelect = ({
       e.preventDefault();
       const trimmedSkill = searchTerm.trim();
       if (trimmedSkill && !selected.includes(trimmedSkill)) {
-        // If it's not in the predefined options, add it as a custom skill
-        if (!options.includes(trimmedSkill)) {
+        // If there's an exact match in filtered options, select it
+        const exactMatch = filteredOptions.find(option => 
+          option.toLowerCase() === trimmedSkill.toLowerCase()
+        );
+        
+        if (exactMatch) {
+          handleOptionClick(exactMatch);
+        } else if (filteredOptions.length > 0) {
+          // Select the first filtered option
+          handleOptionClick(filteredOptions[0]);
+        } else if (!options.some(option => option.toLowerCase() === trimmedSkill.toLowerCase())) {
+          // Add as custom skill if not in predefined options
           handleAddCustomSkill();
-        } else {
-          // If it exists in options, select it
-          handleOptionClick(trimmedSkill);
         }
       }
+    } else if (e.key === 'ArrowDown' && filteredOptions.length > 0) {
+      e.preventDefault();
+      // Could add keyboard navigation here in the future
     }
   };
 
@@ -77,6 +108,10 @@ const SearchableMultiSelect = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  console.log('Search term:', searchTerm);
+  console.log('Filtered options count:', filteredOptions.length);
+  console.log('First 10 filtered options:', filteredOptions.slice(0, 10));
 
   return (
     <div ref={containerRef} className="relative">
@@ -144,7 +179,8 @@ const SearchableMultiSelect = ({
               {/* Show custom skill option if search term doesn't match any existing options */}
               {searchTerm.trim() && 
                !options.some(option => option.toLowerCase() === searchTerm.toLowerCase()) && 
-               !selected.includes(searchTerm.trim()) && (
+               !selected.includes(searchTerm.trim()) && 
+               filteredOptions.length === 0 && (
                 <div
                   className="cursor-pointer rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground border-b border-gray-100 bg-blue-50 text-blue-700"
                   onClick={handleAddCustomSkill}
@@ -168,7 +204,7 @@ const SearchableMultiSelect = ({
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {filteredOptions.map(option => (
+                  {filteredOptions.slice(0, 50).map(option => (
                     <div
                       key={option}
                       className="cursor-pointer rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
@@ -177,6 +213,11 @@ const SearchableMultiSelect = ({
                       {option}
                     </div>
                   ))}
+                  {filteredOptions.length > 50 && (
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      Showing first 50 results. Keep typing to narrow down...
+                    </div>
+                  )}
                 </div>
               )}
             </div>
