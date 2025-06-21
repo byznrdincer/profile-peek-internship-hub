@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -515,11 +516,13 @@ const StudentDashboard = () => {
                     id="resume-upload"
                   />
                   <div className="flex gap-2 justify-center">
-                    <Label htmlFor="resume-upload">
-                      <Button type="button" variant="outline" className="cursor-pointer">
-                        Choose File
-                      </Button>
-                    </Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => document.getElementById('resume-upload')?.click()}
+                    >
+                      Choose File
+                    </Button>
                     {resumeFile && (
                       <Button
                         type="button"
