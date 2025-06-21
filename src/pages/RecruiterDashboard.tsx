@@ -48,9 +48,14 @@ const RecruiterDashboard = () => {
   const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const availableSkills = ["React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", "R", "Pandas", "Java", "C++", "Docker", "AWS", "Git", "Angular", "Django", "Flask", "PostgreSQL", "Firebase", "GraphQL", "Redux", "Express.js", "Spring Boot", "Kubernetes"];
+  // Dynamically generate available skills from all student profiles
+  const availableSkills = Array.from(
+    new Set(
+      students.flatMap(student => student.skills || [])
+    )
+  ).filter(Boolean).sort();
   
-  // Extract all unique project technologies from students
+  // Dynamically generate available project technologies from all student projects
   const availableProjectTechnologies = Array.from(
     new Set(
       students.flatMap(student => 
