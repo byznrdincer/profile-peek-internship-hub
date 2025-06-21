@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
+import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 
 interface StudentData {
   id: string;
@@ -41,13 +42,13 @@ const RecruiterDashboard = () => {
   const [selectedProjectTechnologies, setSelectedProjectTechnologies] = useState<string[]>([]);
   const [graduationYear, setGraduationYear] = useState("");
   const [major, setMajor] = useState("");
-  const [minProjects, setMinProjects] = useState("");
+  const [minProjects, setMinProjects] = useState("0");
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const availableSkills = ["React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", "R", "Pandas"];
+  const availableSkills = ["React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", "R", "Pandas", "Java", "C++", "Docker", "AWS", "Git", "Angular", "Django", "Flask", "PostgreSQL", "Firebase", "GraphQL", "Redux", "Express.js", "Spring Boot", "Kubernetes"];
   
   // Extract all unique project technologies from students
   const availableProjectTechnologies = Array.from(
@@ -56,7 +57,9 @@ const RecruiterDashboard = () => {
         student.projects.flatMap(project => project.technologies || [])
       )
     )
-  ).filter(Boolean);
+  ).filter(Boolean).sort();
+
+  const graduationYears = ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"];
 
   useEffect(() => {
     loadStudents();
@@ -139,7 +142,8 @@ const RecruiterDashboard = () => {
       
       const matchesMajor = !major || student.major.toLowerCase().includes(major.toLowerCase());
       
-      const matchesProjectCount = !minProjects || student.projects.length >= parseInt(minProjects);
+      const minProjectsNum = parseInt(minProjects) || 0;
+      const matchesProjectCount = student.projects.length >= minProjectsNum;
       
       const matchesProjectSearch = !projectSearchTerm || 
                                   student.projects.some(project => 
@@ -172,7 +176,7 @@ const RecruiterDashboard = () => {
     setSelectedProjectTechnologies([]);
     setGraduationYear("");
     setMajor("");
-    setMinProjects("");
+    setMinProjects("0");
     setFilteredStudents(students);
     toast({
       title: "Filters cleared",
@@ -378,7 +382,7 @@ const RecruiterDashboard = () => {
                   type="number"
                   value={minProjects}
                   onChange={(e) => setMinProjects(e.target.value)}
-                  placeholder="e.g., 2"
+                  placeholder="0"
                   min="0"
                 />
               </div>
@@ -402,46 +406,31 @@ const RecruiterDashboard = () => {
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                    <SelectItem value="2026">2026</SelectItem>
+                    {graduationYears.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Skills filter */}
-            <div>
-              <Label>Filter by Student Skills</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {availableSkills.map(skill => (
-                  <Badge
-                    key={skill}
-                    variant={selectedSkills.includes(skill) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-blue-100"
-                    onClick={() => handleSkillFilter(skill)}
-                  >
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Project technologies filter */}
-            <div>
-              <Label>Filter by Project Technologies</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {availableProjectTechnologies.map(tech => (
-                  <Badge
-                    key={tech}
-                    variant={selectedProjectTechnologies.includes(tech) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-green-100"
-                    onClick={() => handleProjectTechnologyFilter(tech)}
-                  >
-                    {tech}
-                  </Badge>
-                ))}
-              </div>
+            {/* Enhanced Skills and Technologies filters */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <SearchableMultiSelect
+                options={availableSkills}
+                selected={selectedSkills}
+                onSelectionChange={setSelectedSkills}
+                placeholder="Select student skills..."
+                label="Filter by Student Skills"
+              />
+              
+              <SearchableMultiSelect
+                options={availableProjectTechnologies}
+                selected={selectedProjectTechnologies}
+                onSelectionChange={setSelectedProjectTechnologies}
+                placeholder="Select project technologies..."
+                label="Filter by Project Technologies"
+              />
             </div>
           </CardContent>
         </Card>
