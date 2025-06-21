@@ -111,6 +111,7 @@ export type Database = {
           created_at: string
           graduation_year: string | null
           id: string
+          location: string | null
           major: string | null
           name: string | null
           phone: string | null
@@ -127,6 +128,7 @@ export type Database = {
           created_at?: string
           graduation_year?: string | null
           id?: string
+          location?: string | null
           major?: string | null
           name?: string | null
           phone?: string | null
@@ -143,6 +145,7 @@ export type Database = {
           created_at?: string
           graduation_year?: string | null
           id?: string
+          location?: string | null
           major?: string | null
           name?: string | null
           phone?: string | null

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
-import SearchableMultiSelect from "@/components/SearchableMultiSelect";
+import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
 
 interface StudentData {
   id: string;
@@ -281,7 +281,7 @@ const RecruiterDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-t-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
@@ -412,12 +412,16 @@ const RecruiterDashboard = () => {
               </div>
               <div>
                 <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, State, Country..."
-                />
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="City, State, Country..."
+                    className="pl-10"
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="graduation">Graduation Year</Label>
@@ -436,7 +440,7 @@ const RecruiterDashboard = () => {
 
             {/* Enhanced Skills and Technologies filters */}
             <div className="grid md:grid-cols-2 gap-6">
-              <SearchableMultiSelect
+              <EnhancedSearchableMultiSelect
                 options={availableSkills}
                 selected={selectedSkills}
                 onSelectionChange={setSelectedSkills}
@@ -444,7 +448,7 @@ const RecruiterDashboard = () => {
                 label="Filter by Student Skills"
               />
               
-              <SearchableMultiSelect
+              <EnhancedSearchableMultiSelect
                 options={availableProjectTechnologies}
                 selected={selectedProjectTechnologies}
                 onSelectionChange={setSelectedProjectTechnologies}
