@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Users, Eye, Download, Mail, Calendar } from "lucide-react";
+import { Search, Filter, Users, Eye, Download, Mail, Calendar, Code, FolderOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,15 +36,27 @@ const RecruiterDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [projectSearchTerm, setProjectSearchTerm] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedProjectTechnologies, setSelectedProjectTechnologies] = useState<string[]>([]);
   const [graduationYear, setGraduationYear] = useState("");
   const [major, setMajor] = useState("");
+  const [minProjects, setMinProjects] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
   const [loading, setLoading] = useState(true);
   
   const availableSkills = ["React", "Node.js", "Python", "JavaScript", "TypeScript", "MongoDB", "SQL", "Machine Learning", "TensorFlow", "Vue.js", "CSS3", "Tailwind CSS", "Figma", "R", "Pandas"];
+  
+  // Extract all unique project technologies from students
+  const availableProjectTechnologies = Array.from(
+    new Set(
+      students.flatMap(student => 
+        student.projects.flatMap(project => project.technologies || [])
+      )
+    )
+  ).filter(Boolean);
 
   useEffect(() => {
     loadStudents();
@@ -107,6 +119,14 @@ const RecruiterDashboard = () => {
     }
   };
 
+  const handleProjectTechnologyFilter = (tech: string) => {
+    if (selectedProjectTechnologies.includes(tech)) {
+      setSelectedProjectTechnologies(selectedProjectTechnologies.filter(t => t !== tech));
+    } else {
+      setSelectedProjectTechnologies([...selectedProjectTechnologies, tech]);
+    }
+  };
+
   const applyFilters = () => {
     let filtered = students.filter(student => {
       const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -119,13 +139,44 @@ const RecruiterDashboard = () => {
       
       const matchesMajor = !major || student.major.toLowerCase().includes(major.toLowerCase());
       
-      return matchesSearch && matchesSkills && matchesYear && matchesMajor;
+      const matchesProjectCount = !minProjects || student.projects.length >= parseInt(minProjects);
+      
+      const matchesProjectSearch = !projectSearchTerm || 
+                                  student.projects.some(project => 
+                                    project.title.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
+                                    project.description.toLowerCase().includes(projectSearchTerm.toLowerCase())
+                                  );
+      
+      const matchesProjectTechnologies = selectedProjectTechnologies.length === 0 ||
+                                        student.projects.some(project =>
+                                          selectedProjectTechnologies.some(tech =>
+                                            project.technologies?.includes(tech)
+                                          )
+                                        );
+      
+      return matchesSearch && matchesSkills && matchesYear && matchesMajor && 
+             matchesProjectCount && matchesProjectSearch && matchesProjectTechnologies;
     });
     
     setFilteredStudents(filtered);
     toast({
       title: "Filters applied",
       description: `Found ${filtered.length} matching profiles`,
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setProjectSearchTerm("");
+    setSelectedSkills([]);
+    setSelectedProjectTechnologies([]);
+    setGraduationYear("");
+    setMajor("");
+    setMinProjects("");
+    setFilteredStudents(students);
+    toast({
+      title: "Filters cleared",
+      description: "All filters have been reset",
     });
   };
 
@@ -190,7 +241,7 @@ const RecruiterDashboard = () => {
 
   const contactStudent = (student: StudentData) => {
     // Get student email from profiles table
-    const mailto = `mailto:?subject=Internship Opportunity&body=Hi ${student.name},%0D%0A%0D%0AI found your profile on InternUpload and would like to discuss potential internship opportunities.%0D%0A%0D%0ABest regards`;
+    const mailto = `mailto:?subject=Internship Opportunity&body=Hi ${student.name},%0D%0A%0D%0AI found your profile on InternStack and would like to discuss potential internship opportunities.%0D%0A%0D%0ABest regards`;
     window.open(mailto);
     
     toast({
@@ -224,6 +275,7 @@ const RecruiterDashboard = () => {
           <p className="text-xl text-gray-600">Discover talented students and find your next great hire</p>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -247,12 +299,12 @@ const RecruiterDashboard = () => {
           
           <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Profiles Viewed</CardTitle>
-              <Eye className="h-4 w-4 opacity-90" />
+              <CardTitle className="text-sm font-medium opacity-90">Total Projects</CardTitle>
+              <FolderOpen className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {filteredStudents.reduce((sum, student) => sum + student.profile_views, 0)}
+                {filteredStudents.reduce((sum, student) => sum + student.projects.length, 0)}
               </div>
             </CardContent>
           </Card>
@@ -270,14 +322,16 @@ const RecruiterDashboard = () => {
           </Card>
         </div>
 
+        {/* Smart Filters */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Search & Filter
+              Smart Filters
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Basic Search and Actions */}
             <div className="flex gap-4">
               <div className="flex-1">
                 <Label htmlFor="search">Search students</Label>
@@ -292,13 +346,45 @@ const RecruiterDashboard = () => {
                   />
                 </div>
               </div>
-              <div className="self-end">
+              <div className="self-end flex gap-2">
                 <Button onClick={applyFilters} className="bg-gradient-to-r from-teal-500 to-blue-500">
                   Apply Filters
+                </Button>
+                <Button onClick={clearFilters} variant="outline">
+                  Clear All
                 </Button>
               </div>
             </div>
 
+            {/* Project-specific filters */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="project-search">Search in Projects</Label>
+                <div className="relative">
+                  <Code className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="project-search"
+                    value={projectSearchTerm}
+                    onChange={(e) => setProjectSearchTerm(e.target.value)}
+                    placeholder="Search project titles and descriptions..."
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="min-projects">Minimum Projects</Label>
+                <Input
+                  id="min-projects"
+                  type="number"
+                  value={minProjects}
+                  onChange={(e) => setMinProjects(e.target.value)}
+                  placeholder="e.g., 2"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {/* Student profile filters */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="major">Major</Label>
@@ -324,8 +410,9 @@ const RecruiterDashboard = () => {
               </div>
             </div>
 
+            {/* Skills filter */}
             <div>
-              <Label>Filter by Skills</Label>
+              <Label>Filter by Student Skills</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {availableSkills.map(skill => (
                   <Badge
@@ -339,9 +426,27 @@ const RecruiterDashboard = () => {
                 ))}
               </div>
             </div>
+
+            {/* Project technologies filter */}
+            <div>
+              <Label>Filter by Project Technologies</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {availableProjectTechnologies.map(tech => (
+                  <Badge
+                    key={tech}
+                    variant={selectedProjectTechnologies.includes(tech) ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-green-100"
+                    onClick={() => handleProjectTechnologyFilter(tech)}
+                  >
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Student Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStudents.map(student => (
             <Card key={student.id} className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -385,7 +490,16 @@ const RecruiterDashboard = () => {
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Projects: {student.projects.length}</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <FolderOpen className="h-3 w-3" />
+                    Projects: {student.projects.length}
+                  </p>
+                  {student.projects.length > 0 && (
+                    <div className="text-xs text-gray-500">
+                      {student.projects.slice(0, 2).map(project => project.title).join(", ")}
+                      {student.projects.length > 2 && "..."}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2">
