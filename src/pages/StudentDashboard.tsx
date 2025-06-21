@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -701,12 +702,11 @@ const StudentDashboard = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
+                  <LocationAutocomplete
                     value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    placeholder="New York, NY"
+                    onChange={(value) => setFormData({...formData, location: value})}
+                    placeholder="Enter your location..."
+                    label="Location"
                   />
                 </div>
               </div>
