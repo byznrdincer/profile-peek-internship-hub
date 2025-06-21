@@ -24,16 +24,38 @@ const StudentDashboard = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   
-  // Comprehensive engineering skills list (2000+ skills across all engineering branches)
+  // Comprehensive skills list (2000+ skills across all engineering branches + top internship skills)
   const commonSkills = [
-    // Computer Science & Information Technology
+    // Technical Programming Skills
     "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "C", "Go", "Rust", "Swift", "Kotlin", 
     "Scala", "Ruby", "PHP", "Perl", "R", "MATLAB", "Objective-C", "Dart", "Elixir", "Haskell", 
     "Clojure", "F#", "Visual Basic", "COBOL", "Fortran", "Assembly", "Lua", "Julia", "Erlang",
+    
+    // Web Development
     "HTML5", "CSS3", "React", "Angular", "Vue.js", "Svelte", "Next.js", "Node.js", "Express.js", 
-    "Django", "Flask", "Spring Boot", "ASP.NET", "Laravel", "MongoDB", "MySQL", "PostgreSQL", 
-    "Redis", "Docker", "Kubernetes", "AWS", "Azure", "Google Cloud", "Machine Learning", 
-    "Artificial Intelligence", "Data Science", "Blockchain", "Cybersecurity", "DevOps",
+    "Django", "Flask", "Spring Boot", "ASP.NET", "Laravel", "Web Development", "Frontend Development",
+    "Backend Development", "Full Stack Development", "Responsive Design", "Progressive Web Apps",
+    
+    // Databases & Data
+    "MongoDB", "MySQL", "PostgreSQL", "Redis", "SQL", "NoSQL", "Database Design", "Data Analysis", 
+    "Data Science", "Machine Learning", "Artificial Intelligence", "Deep Learning", "Data Mining",
+    "Big Data", "Hadoop", "Spark", "ETL", "Data Visualization", "Statistics", "Predictive Analytics",
+    
+    // Cloud & DevOps
+    "Docker", "Kubernetes", "AWS", "Azure", "Google Cloud", "DevOps", "CI/CD", "Jenkins",
+    "Terraform", "Ansible", "Microservices", "Serverless", "Lambda Functions", "API Gateway",
+    
+    // Business Intelligence & Analytics
+    "Power BI", "Tableau", "Excel (Advanced)", "Google Analytics", "Business Analytics", 
+    "Financial Modeling", "Budgeting", "Forecasting", "KPI Tracking", "Dashboard Creation",
+    
+    // Cybersecurity
+    "Cybersecurity", "Network Security", "Penetration Testing", "Ethical Hacking", "CISSP",
+    "Security Auditing", "Vulnerability Assessment", "Incident Response", "Compliance",
+    
+    // Mobile Development
+    "Mobile App Development", "iOS Development", "Android Development", "React Native", 
+    "Flutter", "Xamarin", "Ionic", "PhoneGap", "Swift", "Kotlin",
 
     // Electrical & Electronics Engineering
     "Circuit Design", "PCB Design", "Analog Electronics", "Digital Electronics", "Microprocessors", 
@@ -50,7 +72,7 @@ const StudentDashboard = () => {
     "Robotics Control", "Automation", "PLC Programming", "SCADA", "HMI Design", "DCS",
     "Instrumentation", "Sensors", "Actuators", "Data Acquisition", "LabVIEW", "MATLAB Simulink",
     "Altium Designer", "KiCad", "Eagle PCB", "Proteus", "LTSpice", "PSpice", "Cadence",
-    "Xilinx Vivado", "Intel Quartus", "ModelSim", "FPGA Design", "SoC Design", "ASIC Design",
+    "Xilinx Vivado", "Intel Quartus", "ModelSIM", "FPGA Design", "SoC Design", "ASIC Design",
 
     // Mechanical Engineering
     "SolidWorks", "AutoCAD", "CATIA", "Inventor", "Fusion 360", "Creo", "NX", "Ansys", "Abaqus",
@@ -95,147 +117,145 @@ const StudentDashboard = () => {
     "Petrochemical Engineering", "Refinery Processes", "Oil and Gas Processing", "Natural Gas",
     "Polymer Engineering", "Materials Engineering", "Nanotechnology", "Biotechnology",
     "Biochemical Engineering", "Fermentation", "Bioprocessing", "Pharmaceutical Engineering",
-    "Environmental Engineering", "Pollution Control", "Waste Treatment", "Air Quality",
-    "Water Treatment", "Catalysis", "Green Chemistry", "Sustainable Engineering",
-    "Plant Design", "Equipment Design", "Piping Design", "P&ID", "Process Flow Diagrams",
-    "Cost Engineering", "Economic Analysis", "Project Engineering", "Construction",
 
-    // Aerospace Engineering
-    "Aerodynamics", "Flight Mechanics", "Aircraft Design", "Spacecraft Design", "Propulsion",
-    "Jet Engines", "Rocket Propulsion", "Gas Turbine", "Computational Fluid Dynamics",
-    "Structural Analysis", "Composite Materials", "Avionics", "Flight Control Systems",
-    "Navigation Systems", "Satellite Systems", "Orbital Mechanics", "Mission Design",
-    "MATLAB", "Simulink", "ANSYS Fluent", "SolidWorks", "CATIA V5", "NX Unigraphics",
-    "Wind Tunnel Testing", "Flight Testing", "Certification", "Airworthiness", "FAA Regulations",
-    "Aircraft Maintenance", "MRO", "Quality Assurance", "Systems Engineering", "Requirements",
-    "Verification and Validation", "Project Management", "Risk Management", "Safety Analysis",
-
-    // Biomedical Engineering
-    "Medical Device Design", "Biomaterials", "Tissue Engineering", "Biomechanics", "Biomedical Imaging",
-    "MRI", "CT Scan", "Ultrasound", "X-ray", "Medical Image Processing", "Signal Processing",
-    "Biomedical Instrumentation", "Biosensors", "Medical Electronics", "Physiological Modeling",
-    "Drug Delivery Systems", "Prosthetics", "Artificial Organs", "Rehabilitation Engineering",
-    "Clinical Engineering", "Hospital Systems", "Medical Device Testing", "FDA Regulations",
-    "ISO 13485", "Risk Management", "Design Controls", "Regulatory Affairs", "Quality Systems",
-    "Biocompatibility", "Sterilization", "Packaging", "Labeling", "Clinical Trials",
-
-    // Industrial & Manufacturing Engineering
-    "Lean Manufacturing", "Six Sigma", "Kaizen", "5S", "TPM", "Kanban", "Just-in-Time",
-    "Statistical Process Control", "Quality Management", "ISO 9001", "Production Planning",
-    "Inventory Management", "Supply Chain Management", "Logistics", "Warehouse Management",
-    "Facility Layout", "Work Study", "Time and Motion Study", "Ergonomics", "Safety Engineering",
-    "Industrial Automation", "Robotics", "PLC Programming", "HMI", "SCADA", "MES",
-    "ERP Systems", "SAP", "Oracle", "Microsoft Dynamics", "Manufacturing Execution Systems",
-    "Operations Research", "Linear Programming", "Simulation", "Arena", "Plant Simulation",
-    "Cost Engineering", "Value Engineering", "Productivity Improvement", "Continuous Improvement",
-
-    // Environmental Engineering
-    "Water Treatment", "Wastewater Treatment", "Air Pollution Control", "Solid Waste Management",
-    "Hazardous Waste", "Environmental Remediation", "Groundwater", "Surface Water", "Hydrology",
-    "Environmental Modeling", "Life Cycle Assessment", "Environmental Impact Assessment",
-    "Sustainability", "Green Engineering", "Renewable Energy", "Carbon Footprint", "Climate Change",
-    "Environmental Regulations", "EPA Standards", "RCRA", "CERCLA", "Clean Air Act", "Clean Water Act",
-    "Environmental Monitoring", "Sampling", "Laboratory Analysis", "GIS", "Remote Sensing",
-
-    // Mining Engineering
-    "Mine Planning", "Mine Design", "Rock Mechanics", "Blasting", "Drilling", "Excavation",
-    "Mineral Processing", "Metallurgy", "Extractive Metallurgy", "Hydrometallurgy", "Pyrometallurgy",
-    "Crushing", "Grinding", "Flotation", "Magnetic Separation", "Gravity Separation",
-    "Mine Safety", "Ventilation", "Ground Control", "Slope Stability", "Mine Surveying",
-    "Geostatistics", "Ore Reserve Estimation", "Mine Economics", "Mining Software", "Surpac",
-    "MineSight", "Datamine", "Vulcan", "Gemcom", "AutoCAD Mining", "Environmental Impact",
-
-    // Petroleum Engineering
-    "Reservoir Engineering", "Drilling Engineering", "Production Engineering", "Petrophysics",
-    "Well Logging", "Seismic Interpretation", "Reservoir Simulation", "Enhanced Oil Recovery",
-    "Hydraulic Fracturing", "Well Completion", "Artificial Lift", "Pipeline Engineering",
-    "Process Engineering", "Refinery Operations", "Natural Gas Processing", "LNG",
-    "Offshore Engineering", "Subsea Engineering", "Deep Water Drilling", "HSE",
-    "Reservoir Modeling", "Eclipse", "CMG", "Petrel", "Techlog", "Oil and Gas Economics",
-
-    // Nuclear Engineering
-    "Nuclear Physics", "Reactor Physics", "Neutron Transport", "Nuclear Fuel Cycle",
-    "Radiation Protection", "Health Physics", "Nuclear Safety", "Reactor Design",
-    "Nuclear Materials", "Thermal Hydraulics", "Nuclear Instrumentation", "Control Systems",
-    "Nuclear Waste Management", "Decommissioning", "Nuclear Regulations", "NRC",
-    "Monte Carlo Methods", "MCNP", "Nuclear Criticality", "Shielding Design", "Dosimetry",
-
-    // Agricultural & Food Engineering
-    "Food Processing", "Food Safety", "HACCP", "Food Packaging", "Preservation Techniques",
-    "Agricultural Machinery", "Irrigation Systems", "Soil Science", "Crop Engineering",
-    "Post-Harvest Technology", "Food Quality", "Nutritional Engineering", "Biotechnology",
-    "Precision Agriculture", "GPS", "GIS", "Remote Sensing", "Sustainable Agriculture",
-
-    // Materials Science & Engineering
-    "Materials Characterization", "X-ray Diffraction", "SEM", "TEM", "AFM", "Mechanical Testing",
-    "Thermal Analysis", "Spectroscopy", "Corrosion", "Failure Analysis", "Phase Diagrams",
-    "Crystal Structure", "Defects", "Nanomaterials", "Polymers", "Ceramics", "Composites",
-    "Metallurgy", "Heat Treatment", "Alloy Design", "Surface Engineering", "Thin Films",
-    "Materials Selection", "Design with Materials", "Smart Materials", "Biomaterials",
-
-    // Systems Engineering
-    "Requirements Engineering", "System Architecture", "Systems Integration", "V&V",
-    "Configuration Management", "Risk Management", "Reliability Engineering", "Maintainability",
-    "Availability", "RAMS", "Model-Based Systems Engineering", "SysML", "Systems Modeling",
-    "Trade Studies", "Technical Reviews", "Life Cycle Management", "Systems Thinking",
-
-    // Software & Programming (Engineering Focus)
-    "Embedded Systems", "Real-Time Systems", "Firmware Development", "Device Drivers",
-    "Linux Kernel", "RTOS", "VxWorks", "FreeRTOS", "QNX", "Embedded C", "Assembly Language",
-    "Hardware-Software Interface", "Board Support Package", "Boot Loaders", "Cross-Compilation",
-    "Debugging", "JTAG", "Oscilloscope", "Logic Analyzer", "Protocol Analyzer",
-    "CAN Bus", "SPI", "I2C", "UART", "USB", "Ethernet", "TCP/IP", "Modbus", "Profibus",
-
-    // Quality & Testing
-    "ISO Standards", "AS9100", "TS16949", "FDA Regulations", "CE Marking", "UL Standards",
-    "IEC Standards", "ASTM Standards", "Testing Procedures", "Calibration", "Measurement",
-    "Statistical Analysis", "Design of Experiments", "ANOVA", "Regression Analysis",
-    "Reliability Testing", "Life Testing", "Accelerated Testing", "FMEA", "Root Cause Analysis",
-
-    // Project Management & Leadership
-    "PMP", "Project Management", "Agile", "Scrum", "Waterfall", "Risk Management",
-    "Schedule Management", "Cost Management", "Resource Management", "Stakeholder Management",
-    "Communication", "Leadership", "Team Management", "Change Management", "Negotiation",
-
+    // Business & Management Skills (Top Internship Skills)
+    "Market Research", "Business Analytics", "Strategic Planning", "Financial Modeling", 
+    "Budgeting", "Sales Forecasting", "Operations Management", "Risk Analysis", 
+    "Project Management", "Agile", "Scrum", "Waterfall", "Resource Management",
+    "Stakeholder Management", "Change Management", "Business Development",
+    "Competitive Analysis", "SWOT Analysis", "Business Process Improvement",
+    
+    // CRM & Sales Tools
+    "Salesforce", "HubSpot", "CRM Tools", "Lead Generation", "Sales Analytics",
+    "Customer Relationship Management", "Account Management", "Pipeline Management",
+    
+    // Communication & Language Skills
+    "Verbal Communication", "Written Communication", "Presentation Skills", "Email Etiquette",
+    "Report Writing", "Active Listening", "Negotiation", "Public Speaking", "Interpersonal Skills",
+    "Technical Writing", "Proposal Writing", "Documentation", "Cross-cultural Communication",
+    "Spanish", "French", "German", "Mandarin", "Japanese", "Korean", "Hindi", "Arabic",
+    
+    // Leadership & Soft Skills
+    "Leadership", "Team Management", "Time Management", "Teamwork", "Adaptability",
+    "Problem-Solving", "Critical Thinking", "Creativity", "Innovation", "Conflict Resolution",
+    "Emotional Intelligence", "Decision-Making", "Mentoring", "Coaching", "Delegation",
+    "Performance Management", "Goal Setting", "Priority Management", "Stress Management",
+    
+    // Digital Marketing & Social Media
+    "Social Media Marketing", "SEO", "Search Engine Optimization", "SEM", "Search Engine Marketing",
+    "Content Creation", "Content Marketing", "Email Marketing", "Google Analytics", "Google Ads",
+    "Facebook Ads", "Instagram Marketing", "LinkedIn Marketing", "Twitter Marketing",
+    "Influencer Marketing", "Digital Ads", "PPC", "Pay-Per-Click", "Branding", "Copywriting",
+    "Content Strategy", "Social Media Strategy", "Online Reputation Management", "Growth Hacking",
+    
+    // Design & Creative Skills
+    "Adobe Creative Suite", "Photoshop", "Illustrator", "InDesign", "Adobe XD", "Figma", "Sketch",
+    "Canva", "UI/UX Design", "User Experience Design", "User Interface Design", "Graphic Design",
+    "Web Design", "Logo Design", "Brand Design", "Print Design", "Typography", "Color Theory",
+    "Wireframing", "Prototyping", "Design Thinking", "Visual Design", "Product Design",
+    
+    // Video & Animation
+    "Video Editing", "Adobe Premiere Pro", "Final Cut Pro", "After Effects", "Motion Graphics",
+    "Animation", "2D Animation", "3D Animation", "Blender", "Maya", "Cinema 4D",
+    "Video Production", "Cinematography", "Storyboarding", "Video Marketing",
+    
+    // Research & Analysis
+    "Research Methodology", "Quantitative Research", "Qualitative Research", "Survey Design",
+    "Statistical Analysis", "SPSS", "SAS", "Data Collection", "Literature Review",
+    "Market Analysis", "Consumer Research", "A/B Testing", "User Research", "Usability Testing",
+    
+    // Customer Service & Support
+    "Customer Service", "Customer Support", "Help Desk", "Technical Support", "Client Relations",
+    "Customer Success", "Customer Experience", "Service Desk", "Ticket Management",
+    "Live Chat Support", "Phone Support", "Email Support", "Complaint Resolution",
+    
+    // E-commerce & Retail
+    "E-commerce", "Online Retail", "Shopify", "WooCommerce", "Magento", "Amazon FBA",
+    "Digital Commerce", "Inventory Management", "Supply Chain Management", "Logistics",
+    "Warehouse Management", "Order Fulfillment", "Product Management", "Merchandising",
+    
+    // Finance & Accounting
+    "Financial Analysis", "Accounting", "Bookkeeping", "Financial Reporting", "Tax Preparation",
+    "Accounts Payable", "Accounts Receivable", "Payroll", "QuickBooks", "SAP", "Oracle",
+    "Excel Financial Functions", "Investment Analysis", "Portfolio Management", "Risk Management",
+    
+    // Human Resources
+    "Human Resources", "HR Management", "Recruitment", "Talent Acquisition", "Employee Relations",
+    "Performance Management", "Training and Development", "Compensation and Benefits",
+    "HR Analytics", "Workforce Planning", "Onboarding", "Employee Engagement",
+    
+    // Legal & Compliance
+    "Legal Research", "Contract Management", "Compliance", "Regulatory Affairs", "Intellectual Property",
+    "Patent Research", "Legal Writing", "Paralegal Skills", "Corporate Law", "Employment Law",
+    
+    // Event Management
+    "Event Planning", "Event Management", "Conference Planning", "Wedding Planning",
+    "Corporate Events", "Trade Shows", "Event Marketing", "Vendor Management", "Budget Management",
+    
+    // Healthcare & Life Sciences
+    "Healthcare Administration", "Medical Terminology", "Clinical Research", "Pharmaceutical",
+    "Biomedical Engineering", "Medical Device Design", "Healthcare IT", "HIPAA Compliance",
+    "Electronic Health Records", "Healthcare Analytics", "Public Health", "Epidemiology",
+    
+    // Education & Training
+    "Curriculum Development", "Educational Technology", "E-learning", "Training Design",
+    "Instructional Design", "Learning Management Systems", "Educational Assessment",
+    "Student Support Services", "Academic Advising", "Teaching", "Tutoring",
+    
     // Emerging Technologies
     "Internet of Things", "IoT", "Industry 4.0", "Digital Twin", "Augmented Reality", "Virtual Reality",
-    "3D Printing", "Additive Manufacturing", "Artificial Intelligence", "Machine Learning",
-    "Deep Learning", "Computer Vision", "Natural Language Processing", "Edge Computing",
-    "5G Technology", "Quantum Computing", "Nanotechnology", "Biotechnology", "Gene Engineering",
-
-    // Specialized Skills by Industry
-    "Automotive Engineering", "Engine Design", "Vehicle Dynamics", "Crash Safety", "Emissions",
-    "Electric Vehicles", "Hybrid Vehicles", "Autonomous Vehicles", "ADAS", "Powertrain",
-    "Maritime Engineering", "Ship Design", "Naval Architecture", "Marine Systems", "Offshore",
-    "Railway Engineering", "Signal Systems", "Rolling Stock", "Track Engineering", "Metro Systems",
-    "Power Generation", "Power Plant", "Boiler", "Turbine", "Generator", "Grid Integration",
-    "Energy Storage", "Battery Technology", "Fuel Cells", "Hydrogen", "Smart Grid",
-    "Building Services", "MEP", "Fire Protection", "Security Systems", "Building Automation",
-    "Data Centers", "Telecommunications", "Fiber Optics", "Network Design", "IT Infrastructure",
-
-    // Consulting & Business Skills
-    "Technical Consulting", "Business Analysis", "Market Research", "Feasibility Studies",
-    "Technology Assessment", "Due Diligence", "Intellectual Property", "Patent Analysis",
-    "Technical Writing", "Proposal Writing", "Presentation Skills", "Client Management",
-    "Sales Engineering", "Product Management", "Marketing", "Business Development",
-
-    // Specialized Software & Tools (Engineering)
-    "MATLAB", "Simulink", "LabVIEW", "Mathematica", "Maple", "MathCAD", "Octave",
-    "R", "Python", "Julia", "Fortran", "C++", "Visual Basic", "LabWindows",
-    "National Instruments", "Data Acquisition", "Signal Processing", "Control Design",
+    "Mixed Reality", "Blockchain", "Cryptocurrency", "NFT", "Metaverse", "Web3",
+    "Quantum Computing", "Edge Computing", "5G Technology", "Smart Cities", "Autonomous Vehicles",
+    
+    // No-Code/Low-Code
+    "No-Code Development", "Low-Code Platforms", "Bubble", "Webflow", "Zapier", "Microsoft Power Platform",
+    "Airtable", "Notion", "Process Automation", "Workflow Automation", "RPA",
+    
+    // Remote Work & Collaboration
+    "Remote Work", "Virtual Collaboration", "Slack", "Microsoft Teams", "Zoom", "Asana",
+    "Trello", "Monday.com", "Jira", "Confluence", "Git", "GitHub", "Version Control",
+    "Remote Team Management", "Digital Nomad Skills", "Virtual Presentation",
+    
+    // Specialized Industry Skills
+    "Automotive Engineering", "Aerospace Engineering", "Biomedical Engineering", "Mining Engineering",
+    "Petroleum Engineering", "Nuclear Engineering", "Agricultural Engineering", "Food Engineering",
+    "Textile Engineering", "Marine Engineering", "Environmental Engineering", "Materials Science",
+    
+    // Quality & Testing
+    "Quality Assurance", "Quality Control", "Software Testing", "Manual Testing", "Automated Testing",
+    "Test Planning", "Bug Tracking", "ISO Standards", "Continuous Improvement", "Process Improvement",
+    
+    // Consulting & Advisory
+    "Management Consulting", "Business Consulting", "Technical Consulting", "Strategy Consulting",
+    "Process Consulting", "Change Management", "Organizational Development", "Business Analysis",
+    
+    // Certifications & Standards
+    "PMP", "Agile Certification", "Scrum Master", "Six Sigma Black Belt", "ITIL", "ISO 9001",
+    "PE License", "FE Exam", "Professional Engineer", "Chartered Engineer", "AWS Certified",
+    "Google Certified", "Microsoft Certified", "Salesforce Certified", "CompTIA",
+    
+    // Specialized Software Tools
+    "Mathematica", "Maple", "MathCAD", "Octave", "LabWindows", "National Instruments",
     "System Identification", "Parameter Estimation", "Optimization", "Genetic Algorithms",
-
-    // Industry-Specific Certifications
-    "PE License", "EIT", "FE Exam", "Professional Engineer", "Chartered Engineer",
-    "Six Sigma Black Belt", "Green Belt", "Lean Certification", "PMP Certification",
-    "CISSP", "CCNA", "CCNP", "CCIE", "CompTIA", "Microsoft Certified", "AWS Certified",
-    "Google Cloud Certified", "Salesforce Certified", "Oracle Certified", "SAP Certified",
-
-    // Research & Development
-    "Research Methodology", "Literature Review", "Technical Publications", "Patent Filing",
-    "Grant Writing", "Prototype Development", "Proof of Concept", "Technology Transfer",
-    "Innovation", "Invention", "Product Development", "New Product Introduction",
-    "Technology Roadmap", "Strategic Planning", "Competitive Analysis", "Market Analysis"
+    "Surpac", "MineSight", "Datamine", "Vulcan", "Gemcom", "Eclipse", "CMG", "Petrel", "Techlog",
+    
+    // Interview & Career Skills
+    "Resume Writing", "Interview Preparation", "Career Development", "Professional Networking",
+    "LinkedIn Optimization", "Personal Branding", "Job Search Strategies", "Salary Negotiation",
+    
+    // Diversity & Inclusion
+    "DEI", "Diversity and Inclusion", "Cultural Competency", "Unconscious Bias Training",
+    "Inclusive Leadership", "Cross-Cultural Awareness", "Global Mindset",
+    
+    // Sustainability & Environmental
+    "Sustainability", "Environmental Management", "Carbon Footprint", "Life Cycle Assessment",
+    "Green Technology", "Renewable Energy", "Environmental Compliance", "Sustainable Design",
+    "Circular Economy", "Climate Change", "Environmental Impact Assessment",
+    
+    // Prompt Engineering & AI
+    "Prompt Engineering", "AI Tools", "ChatGPT", "Large Language Models", "AI Ethics",
+    "Machine Learning Operations", "MLOps", "Natural Language Processing", "Computer Vision",
+    "AI Product Management", "AI Strategy"
   ];
   
   const [formData, setFormData] = useState({
@@ -757,7 +777,7 @@ const StudentDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Code className="h-5 w-5" />
-                Skills
+                Skills & Competencies
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -765,8 +785,8 @@ const StudentDashboard = () => {
                 options={commonSkills}
                 selected={skills}
                 onSelectionChange={setSkills}
-                placeholder="Select your skills from all engineering fields or type to add custom ones..."
-                label="Engineering Skills"
+                placeholder="Select your skills from engineering, business, digital marketing, and all internship-relevant competencies..."
+                label="Professional Skills"
               />
             </CardContent>
           </Card>
