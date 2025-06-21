@@ -25,28 +25,45 @@ const SearchableMultiSelect = ({
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Improved search function - case insensitive and partial matching
+  // Enhanced search function with better prioritization
   const filteredOptions = options.filter(option => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase().trim();
     const optionLower = option.toLowerCase();
     
-    // Check if option contains search term or if search term is contained in option
+    if (!searchLower) return !selected.includes(option);
+    
+    // Check if option contains search term or if search term words are all in option
     const matches = optionLower.includes(searchLower) || 
-                   searchLower.split(' ').every(term => optionLower.includes(term));
+                   searchLower.split(' ').every(term => optionLower.includes(term.trim()));
     
     // Only show options that aren't already selected
     return matches && !selected.includes(option);
   }).sort((a, b) => {
-    // Sort by relevance - exact matches first, then starts with, then contains
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase().trim();
     const aLower = a.toLowerCase();
     const bLower = b.toLowerCase();
     
+    // Priority 1: Exact matches (highest priority)
     if (aLower === searchLower && bLower !== searchLower) return -1;
     if (bLower === searchLower && aLower !== searchLower) return 1;
-    if (aLower.startsWith(searchLower) && !bLower.startsWith(searchLower)) return -1;
-    if (bLower.startsWith(searchLower) && !aLower.startsWith(searchLower)) return 1;
     
+    // Priority 2: Starts with search term
+    const aStartsWith = aLower.startsWith(searchLower);
+    const bStartsWith = bLower.startsWith(searchLower);
+    if (aStartsWith && !bStartsWith) return -1;
+    if (bStartsWith && !aStartsWith) return 1;
+    
+    // Priority 3: Word boundary matches (e.g., "JS" matches "JavaScript" better than "JSX")
+    const aWordMatch = new RegExp(`\\b${searchLower}`, 'i').test(a);
+    const bWordMatch = new RegExp(`\\b${searchLower}`, 'i').test(b);
+    if (aWordMatch && !bWordMatch) return -1;
+    if (bWordMatch && !aWordMatch) return 1;
+    
+    // Priority 4: Shorter strings (more specific matches)
+    const lengthDiff = a.length - b.length;
+    if (Math.abs(lengthDiff) > 5) return lengthDiff;
+    
+    // Priority 5: Alphabetical order
     return a.localeCompare(b);
   });
 
@@ -84,7 +101,7 @@ const SearchableMultiSelect = ({
         if (exactMatch) {
           handleOptionClick(exactMatch);
         } else if (filteredOptions.length > 0) {
-          // Select the first filtered option
+          // Select the first (best matching) filtered option
           handleOptionClick(filteredOptions[0]);
         } else if (!options.some(option => option.toLowerCase() === trimmedSkill.toLowerCase())) {
           // Add as custom skill if not in predefined options
@@ -111,7 +128,7 @@ const SearchableMultiSelect = ({
 
   console.log('Search term:', searchTerm);
   console.log('Filtered options count:', filteredOptions.length);
-  console.log('First 10 filtered options:', filteredOptions.slice(0, 10));
+  console.log('Top 10 filtered options:', filteredOptions.slice(0, 10));
 
   return (
     <div ref={containerRef} className="relative">
