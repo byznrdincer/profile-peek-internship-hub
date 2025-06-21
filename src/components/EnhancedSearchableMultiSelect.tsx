@@ -61,10 +61,8 @@ const EnhancedSearchableMultiSelect = ({
       setInputValue("");
       setSearchTerm("");
       setShowDropdown(false);
-    } else if (e.key === 'Backspace' && inputValue === "" && selected.length > 0) {
-      // Remove last selected item when backspace is pressed on empty input
-      onSelectionChange(selected.slice(0, -1));
     }
+    // Remove the backspace handling that was interfering with normal text editing
   };
 
   const addOption = (option: string) => {
