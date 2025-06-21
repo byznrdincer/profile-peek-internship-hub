@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +16,8 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otpEmail, setOtpEmail] = useState("");
   const [loginData, setLoginData] = useState({ 
     email: "", 
     password: "",
@@ -153,11 +157,10 @@ const Auth = () => {
         }
       };
 
-      // Only add email confirmation for students
+      // For students, add email redirect
       if (signupData.role === 'student') {
         signupOptions.options.emailRedirectTo = `${window.location.origin}/`;
       }
-      // For recruiters, we don't add any email confirmation options
 
       const { error } = await supabase.auth.signUp(signupOptions);
 
@@ -174,9 +177,12 @@ const Auth = () => {
             description: "Please check your email to verify your account.",
           });
         } else {
+          // For recruiters, show OTP verification
+          setOtpEmail(signupData.email);
+          setShowOTPVerification(true);
           toast({
-            title: "Recruiter account created!",
-            description: "Your account has been created successfully. You can now log in immediately.",
+            title: "Verification required",
+            description: "Please check your email for a 6-digit verification code.",
           });
         }
       }
@@ -190,6 +196,141 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleOTPVerification = async (otp: string) => {
+    if (otp.length !== 6) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: otpEmail,
+        token: otp,
+        type: 'signup'
+      });
+
+      if (error) {
+        toast({
+          title: "Verification failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account verified!",
+          description: "Your recruiter account has been successfully verified. You can now log in.",
+        });
+        setShowOTPVerification(false);
+        setOtpEmail("");
+        // Reset signup form
+        setSignupData({
+          email: "",
+          password: "",
+          name: "",
+          role: "student"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Verification failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: otpEmail
+      });
+
+      if (error) {
+        toast({
+          title: "Resend failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Code resent",
+          description: "A new verification code has been sent to your email.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Resend failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+                InternStack
+              </h1>
+            </div>
+            <CardTitle>Verify Your Email</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              We've sent a 6-digit verification code to {otpEmail}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp">Verification Code</Label>
+              <div className="flex justify-center">
+                <InputOTP maxLength={6} onComplete={handleOTPVerification}>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={resendOTP}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Resending..." : "Resend Code"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowOTPVerification(false);
+                  setOtpEmail("");
+                }}
+                className="w-full"
+              >
+                Back to Sign Up
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
