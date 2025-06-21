@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
+import AISearchBar from "@/components/AISearchBar";
 
 interface StudentData {
   id: string;
@@ -133,6 +134,30 @@ const RecruiterDashboard = () => {
     } else {
       setSelectedProjectTechnologies([...selectedProjectTechnologies, tech]);
     }
+  };
+
+  const handleAISearchCriteria = (criteria: {
+    skills: string[];
+    projectTechnologies: string[];
+    major: string;
+    graduationYear: string;
+    minProjects: string;
+    searchTerm: string;
+    projectSearchTerm: string;
+  }) => {
+    // Apply AI-generated criteria to current filters
+    setSearchTerm(criteria.searchTerm);
+    setProjectSearchTerm(criteria.projectSearchTerm);
+    setSelectedSkills(criteria.skills);
+    setSelectedProjectTechnologies(criteria.projectTechnologies);
+    setGraduationYear(criteria.graduationYear);
+    setMajor(criteria.major);
+    setMinProjects(criteria.minProjects);
+    
+    // Auto-apply filters after setting criteria
+    setTimeout(() => {
+      applyFilters();
+    }, 100);
   };
 
   const applyFilters = () => {
@@ -283,6 +308,13 @@ const RecruiterDashboard = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
           <p className="text-xl text-gray-600">Discover talented students and find your next great hire</p>
         </div>
+
+        {/* AI Search Bar */}
+        <AISearchBar 
+          onSearchCriteria={handleAISearchCriteria}
+          availableSkills={availableSkills}
+          availableProjectTechnologies={availableProjectTechnologies}
+        />
 
         {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
