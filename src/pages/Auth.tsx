@@ -44,7 +44,9 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Starting Google OAuth flow...');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/`,
@@ -55,14 +57,21 @@ const Auth = () => {
         }
       });
 
+      console.log('Google OAuth response:', { data, error });
+
       if (error) {
+        console.error('Google OAuth error:', error);
         toast({
           title: "Google login failed",
           description: error.message,
           variant: "destructive",
         });
+      } else {
+        console.log('Google OAuth initiated successfully');
+        // The redirect will happen automatically
       }
     } catch (error) {
+      console.error('Unexpected Google OAuth error:', error);
       toast({
         title: "Google login failed",
         description: "An unexpected error occurred. Please try again.",
