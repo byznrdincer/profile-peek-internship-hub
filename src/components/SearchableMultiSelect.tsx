@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search, X, ChevronDown, Plus } from "lucide-react";
 
 interface SearchableMultiSelectProps {
   options: string[];
@@ -40,6 +40,30 @@ const SearchableMultiSelect = ({
 
   const handleClearAll = () => {
     onSelectionChange([]);
+  };
+
+  const handleAddCustomSkill = () => {
+    const trimmedSkill = searchTerm.trim();
+    if (trimmedSkill && !selected.includes(trimmedSkill) && !options.includes(trimmedSkill)) {
+      onSelectionChange([...selected, trimmedSkill]);
+      setSearchTerm("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const trimmedSkill = searchTerm.trim();
+      if (trimmedSkill && !selected.includes(trimmedSkill)) {
+        // If it's not in the predefined options, add it as a custom skill
+        if (!options.includes(trimmedSkill)) {
+          handleAddCustomSkill();
+        } else {
+          // If it exists in options, select it
+          handleOptionClick(trimmedSkill);
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -102,23 +126,45 @@ const SearchableMultiSelect = ({
       </div>
 
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-hidden">
+        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-hidden bg-white border shadow-lg">
           <CardContent className="p-2">
             <div className="relative mb-2">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={`Search ${label.toLowerCase()}...`}
+                placeholder={`Search or add custom ${label.toLowerCase()}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="pl-8"
                 autoFocus
               />
             </div>
             
             <div className="max-h-40 overflow-y-auto">
-              {filteredOptions.length === 0 ? (
+              {/* Show custom skill option if search term doesn't match any existing options */}
+              {searchTerm.trim() && 
+               !options.some(option => option.toLowerCase() === searchTerm.toLowerCase()) && 
+               !selected.includes(searchTerm.trim()) && (
+                <div
+                  className="cursor-pointer rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground border-b border-gray-100 bg-blue-50 text-blue-700"
+                  onClick={handleAddCustomSkill}
+                >
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-3 w-3" />
+                    <span>Add "{searchTerm.trim()}" as custom skill</span>
+                  </div>
+                </div>
+              )}
+              
+              {filteredOptions.length === 0 && !searchTerm.trim() ? (
                 <div className="text-sm text-muted-foreground text-center py-2">
-                  {searchTerm ? 'No matching options found' : 'No more options available'}
+                  No more options available
+                </div>
+              ) : filteredOptions.length === 0 && searchTerm.trim() ? (
+                <div className="text-sm text-muted-foreground text-center py-2">
+                  {!options.some(option => option.toLowerCase() === searchTerm.toLowerCase()) 
+                    ? "Press Enter or click above to add as custom skill"
+                    : "No matching options found"}
                 </div>
               ) : (
                 <div className="space-y-1">
