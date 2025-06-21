@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,7 @@ interface StudentData {
 const RecruiterDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [skillsSearchTerm, setSkillsSearchTerm] = useState("");
   const [projectSearchTerm, setProjectSearchTerm] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedProjectTechnologies, setSelectedProjectTechnologies] = useState<string[]>([]);
@@ -137,8 +138,8 @@ const RecruiterDashboard = () => {
 
   const applyFilters = () => {
     let filtered = students.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSkillsSearch = !skillsSearchTerm || 
+                                 student.skills.some(skill => skill.toLowerCase().includes(skillsSearchTerm.toLowerCase()));
       
       const matchesSkills = selectedSkills.length === 0 || 
                            selectedSkills.some(skill => student.skills.includes(skill));
@@ -163,7 +164,7 @@ const RecruiterDashboard = () => {
                                           )
                                         );
       
-      return matchesSearch && matchesSkills && matchesYear && matchesMajor && 
+      return matchesSkillsSearch && matchesSkills && matchesYear && matchesMajor && 
              matchesProjectCount && matchesProjectSearch && matchesProjectTechnologies;
     });
     
@@ -175,7 +176,7 @@ const RecruiterDashboard = () => {
   };
 
   const clearFilters = () => {
-    setSearchTerm("");
+    setSkillsSearchTerm("");
     setProjectSearchTerm("");
     setSelectedSkills([]);
     setSelectedProjectTechnologies([]);
@@ -340,17 +341,17 @@ const RecruiterDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Basic Search and Actions */}
+            {/* Skills search and Actions */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <Label htmlFor="search">Search students</Label>
+                <Label htmlFor="skills-search">Search by skills</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="search"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by name or skills..."
+                    id="skills-search"
+                    value={skillsSearchTerm}
+                    onChange={(e) => setSkillsSearchTerm(e.target.value)}
+                    placeholder="Search by skills..."
                     className="pl-10"
                   />
                 </div>
