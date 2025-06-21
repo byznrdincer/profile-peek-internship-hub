@@ -112,8 +112,10 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string
+          github_url: string | null
           graduation_year: string | null
           id: string
+          linkedin_url: string | null
           location: string | null
           major: string | null
           name: string | null
@@ -125,12 +127,15 @@ export type Database = {
           university: string | null
           updated_at: string
           user_id: string
+          website_url: string | null
         }
         Insert: {
           bio?: string | null
           created_at?: string
+          github_url?: string | null
           graduation_year?: string | null
           id?: string
+          linkedin_url?: string | null
           location?: string | null
           major?: string | null
           name?: string | null
@@ -142,12 +147,15 @@ export type Database = {
           university?: string | null
           updated_at?: string
           user_id: string
+          website_url?: string | null
         }
         Update: {
           bio?: string | null
           created_at?: string
+          github_url?: string | null
           graduation_year?: string | null
           id?: string
+          linkedin_url?: string | null
           location?: string | null
           major?: string | null
           name?: string | null
@@ -159,6 +167,7 @@ export type Database = {
           university?: string | null
           updated_at?: string
           user_id?: string
+          website_url?: string | null
         }
         Relationships: []
       }
