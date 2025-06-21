@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Users, Eye, Download, Mail, Calendar, Code, FolderOpen } from "lucide-react";
+import { Search, Filter, Users, Eye, Download, Mail, Calendar, Code, FolderOpen, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +21,7 @@ interface StudentData {
   major: string;
   graduation_year: string;
   bio: string;
+  location?: string;
   skills: string[];
   profile_views: number;
   resume_url?: string;
@@ -43,6 +43,7 @@ const RecruiterDashboard = () => {
   const [selectedProjectTechnologies, setSelectedProjectTechnologies] = useState<string[]>([]);
   const [graduationYear, setGraduationYear] = useState("");
   const [major, setMajor] = useState("");
+  const [location, setLocation] = useState("");
   const [minProjects, setMinProjects] = useState("0");
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -100,6 +101,7 @@ const RecruiterDashboard = () => {
         major: student.major || 'Not specified',
         graduation_year: student.graduation_year || 'Not specified',
         bio: student.bio || 'No bio available',
+        location: student.location || undefined,
         skills: student.skills || [],
         profile_views: student.profile_views || 0,
         resume_url: student.resume_url,
@@ -148,6 +150,8 @@ const RecruiterDashboard = () => {
       
       const matchesMajor = !major || student.major.toLowerCase().includes(major.toLowerCase());
       
+      const matchesLocation = !location || (student.location && student.location.toLowerCase().includes(location.toLowerCase()));
+      
       const minProjectsNum = parseInt(minProjects) || 0;
       const matchesProjectCount = student.projects.length >= minProjectsNum;
       
@@ -165,7 +169,7 @@ const RecruiterDashboard = () => {
                                         );
       
       return matchesSkillsSearch && matchesSkills && matchesYear && matchesMajor && 
-             matchesProjectCount && matchesProjectSearch && matchesProjectTechnologies;
+             matchesLocation && matchesProjectCount && matchesProjectSearch && matchesProjectTechnologies;
     });
     
     setFilteredStudents(filtered);
@@ -182,6 +186,7 @@ const RecruiterDashboard = () => {
     setSelectedProjectTechnologies([]);
     setGraduationYear("");
     setMajor("");
+    setLocation("");
     setMinProjects("0");
     setFilteredStudents(students);
     toast({
@@ -276,7 +281,7 @@ const RecruiterDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-t-50 via-white to-blue-50">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
@@ -395,7 +400,7 @@ const RecruiterDashboard = () => {
             </div>
 
             {/* Student profile filters */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="major">Major</Label>
                 <Input
@@ -403,6 +408,15 @@ const RecruiterDashboard = () => {
                   value={major}
                   onChange={(e) => setMajor(e.target.value)}
                   placeholder="Computer Science, Data Science..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, State, Country..."
                 />
               </div>
               <div>
@@ -451,6 +465,12 @@ const RecruiterDashboard = () => {
                     <CardTitle className="text-xl text-blue-600">{student.name}</CardTitle>
                     <p className="text-gray-600">{student.major} • {student.graduation_year}</p>
                     <p className="text-sm text-gray-500">{student.university}</p>
+                    {student.location && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {student.location}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1">
                     <Badge variant="secondary" className="flex items-center gap-1">
