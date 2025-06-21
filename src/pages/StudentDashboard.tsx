@@ -173,10 +173,20 @@ const StudentDashboard = () => {
 
       console.log('Uploading file:', fileName);
 
+      // First, delete existing resume if any
+      if (existingResumeUrl) {
+        const oldFileName = existingResumeUrl.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage
+            .from('resumes')
+            .remove([`${user.id}/${oldFileName}`]);
+        }
+      }
+
       const { error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(fileName, resumeFile, { 
-          upsert: true,
+          upsert: false,
           contentType: resumeFile.type
         });
 
@@ -237,16 +247,21 @@ const StudentDashboard = () => {
     if (!existingResumeUrl || !user) return;
 
     try {
-      // Extract filename from URL
+      // Extract the file path from the URL
       const urlParts = existingResumeUrl.split('/');
       const fileName = urlParts[urlParts.length - 1];
+      const filePath = `${user.id}/${fileName}`;
       
       const { data, error } = await supabase.storage
         .from('resumes')
-        .download(`${user.id}/${fileName}`);
+        .download(filePath);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
 
+      // Create download link
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -255,7 +270,12 @@ const StudentDashboard = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
+
+      toast({
+        title: "Resume downloaded",
+        description: "Your resume has been downloaded successfully.",
+      });
+    } catch (error: any) {
       console.error('Error downloading resume:', error);
       toast({
         title: "Download failed",

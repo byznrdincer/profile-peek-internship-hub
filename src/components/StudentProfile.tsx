@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StudentProfileProps {
   student: any;
@@ -13,14 +14,62 @@ interface StudentProfileProps {
 const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
   const { toast } = useToast();
 
-  const handleDownloadResume = () => {
-    toast({
-      title: "Resume downloaded",
-      description: `${student.name}'s resume has been downloaded`,
-    });
+  const handleDownloadResume = async () => {
+    if (!student.resume_url) {
+      toast({
+        title: "No resume available",
+        description: "This student hasn't uploaded a resume yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Extract the file path from the URL
+      const urlParts = student.resume_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `${student.user_id}/${fileName}`;
+      
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .download(filePath);
+
+      if (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = student.resume_filename || fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Resume downloaded",
+        description: `${student.name}'s resume has been downloaded`,
+      });
+    } catch (error: any) {
+      console.error('Error downloading resume:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the resume. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleContact = () => {
+    const subject = encodeURIComponent(`Regarding your profile on InternUpload`);
+    const body = encodeURIComponent(`Hi ${student.name},\n\nI found your profile on InternUpload and would like to discuss potential opportunities.\n\nBest regards`);
+    const mailtoUrl = `mailto:${student.email}?subject=${subject}&body=${body}`;
+    
+    window.open(mailtoUrl, '_blank');
+    
     toast({
       title: "Contact initiated",
       description: `Opening email to contact ${student.name}`,
@@ -56,14 +105,14 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        Class of {student.graduationYear}
+                        Class of {student.graduation_year}
                       </span>
                     </div>
                     <p className="text-lg text-gray-700 mt-2">{student.major}</p>
                   </div>
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
-                    {student.profileViews} views
+                    {student.profile_views} views
                   </Badge>
                 </div>
               </CardHeader>
@@ -75,7 +124,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">
-                      <strong>Email:</strong> {student.email}
+                      <strong>Phone:</strong> {student.phone}
                     </p>
                   </div>
                 </div>
@@ -92,7 +141,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {student.skills.map((skill: string, index: number) => (
+                  {student.skills?.map((skill: string, index: number) => (
                     <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
                       {skill}
                     </Badge>
@@ -106,16 +155,16 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="h-5 w-5" />
-                  Projects ({student.projects.length})
+                  Projects ({student.projects?.length || 0})
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {student.projects.map((project: any, index: number) => (
+                {student.projects?.map((project: any, index: number) => (
                   <div key={index} className="border-l-4 border-blue-200 pl-4">
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h4>
                     <p className="text-gray-600 mb-3 leading-relaxed">{project.description}</p>
                     <div className="flex flex-wrap gap-2">
-                      {project.tech.map((tech: string, techIndex: number) => (
+                      {project.technologies?.map((tech: string, techIndex: number) => (
                         <Badge key={techIndex} variant="outline" className="text-xs">
                           {tech}
                         </Badge>
@@ -123,6 +172,9 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                     </div>
                   </div>
                 ))}
+                {(!student.projects || student.projects.length === 0) && (
+                  <p className="text-gray-500 text-center py-4">No projects added yet.</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -138,9 +190,10 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 <Button
                   onClick={handleDownloadResume}
                   className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
+                  disabled={!student.resume_url}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Download Resume
+                  {student.resume_url ? "Download Resume" : "No Resume Available"}
                 </Button>
                 <Button
                   onClick={handleContact}
@@ -161,19 +214,23 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Profile Views</span>
-                  <span className="font-semibold">{student.profileViews}</span>
+                  <span className="font-semibold">{student.profile_views || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Skills Listed</span>
-                  <span className="font-semibold">{student.skills.length}</span>
+                  <span className="font-semibold">{student.skills?.length || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Projects</span>
-                  <span className="font-semibold">{student.projects.length}</span>
+                  <span className="font-semibold">{student.projects?.length || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Graduation</span>
-                  <span className="font-semibold">{student.graduationYear}</span>
+                  <span className="font-semibold">{student.graduation_year}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Resume</span>
+                  <span className="font-semibold">{student.resume_url ? "Available" : "Not uploaded"}</span>
                 </div>
               </CardContent>
             </Card>
