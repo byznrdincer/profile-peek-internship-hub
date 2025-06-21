@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download } from "lucide-react";
+import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download, Github, Globe, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -268,6 +268,9 @@ const StudentDashboard = () => {
     graduation_year: "",
     bio: "",
     location: "",
+    github_url: "",
+    website_url: "",
+    linkedin_url: "",
   });
 
   // Load existing profile data
@@ -301,6 +304,9 @@ const StudentDashboard = () => {
         graduation_year: profile.graduation_year || "",
         bio: profile.bio || "",
         location: profile.location || "",
+        github_url: profile.github_url || "",
+        website_url: profile.website_url || "",
+        linkedin_url: profile.linkedin_url || "",
       });
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
@@ -542,6 +548,9 @@ const StudentDashboard = () => {
           graduation_year: formData.graduation_year,
           bio: formData.bio,
           location: formData.location,
+          github_url: formData.github_url,
+          website_url: formData.website_url,
+          linkedin_url: formData.linkedin_url,
           skills: skills,
           updated_at: new Date().toISOString()
         }, {
@@ -710,6 +719,53 @@ const StudentDashboard = () => {
                   />
                 </div>
               </div>
+              
+              {/* Social Links Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mt-6">
+                  <Globe className="h-5 w-5" />
+                  Social Links & Portfolio
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="github_url" className="flex items-center gap-2">
+                      <Github className="h-4 w-4" />
+                      GitHub Profile
+                    </Label>
+                    <Input
+                      id="github_url"
+                      value={formData.github_url}
+                      onChange={(e) => setFormData({...formData, github_url: e.target.value})}
+                      placeholder="https://github.com/yourusername"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="linkedin_url" className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4" />
+                      LinkedIn Profile
+                    </Label>
+                    <Input
+                      id="linkedin_url"
+                      value={formData.linkedin_url}
+                      onChange={(e) => setFormData({...formData, linkedin_url: e.target.value})}
+                      placeholder="https://linkedin.com/in/yourusername"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="website_url" className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Personal Website/Portfolio
+                    </Label>
+                    <Input
+                      id="website_url"
+                      value={formData.website_url}
+                      onChange={(e) => setFormData({...formData, website_url: e.target.value})}
+                      placeholder="https://yourwebsite.com"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="bio">Bio</Label>
                 <Textarea
