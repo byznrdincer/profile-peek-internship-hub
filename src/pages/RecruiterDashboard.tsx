@@ -1,15 +1,17 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download } from "lucide-react";
+import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 
 const RecruiterDashboard = () => {
   const { toast } = useToast();
@@ -19,6 +21,7 @@ const RecruiterDashboard = () => {
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -43,7 +46,7 @@ const RecruiterDashboard = () => {
     }
   }, [user]);
 
-  // Filter students based on search term and skill filter
+  // Filter students based on search term, skill filter, and location filter
   useEffect(() => {
     let filtered = students;
     
@@ -63,9 +66,15 @@ const RecruiterDashboard = () => {
         )
       );
     }
+
+    if (locationFilter) {
+      filtered = filtered.filter(student =>
+        student.location?.toLowerCase().includes(locationFilter.toLowerCase())
+      );
+    }
     
     setFilteredStudents(filtered);
-  }, [students, searchTerm, skillFilter]);
+  }, [students, searchTerm, skillFilter, locationFilter]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -87,7 +96,7 @@ const RecruiterDashboard = () => {
         phone: profile.phone || "",
         company_name: profile.company_name || "",
         position: profile.position || "",
-        location: (profile as any).location || "",
+        location: profile.location || "",
       });
     }
   };
@@ -331,15 +340,12 @@ const RecruiterDashboard = () => {
                       placeholder="(555) 123-4567"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      placeholder="New York, NY"
-                    />
-                  </div>
+                  <LocationAutocomplete
+                    value={formData.location}
+                    onChange={(value) => setFormData({...formData, location: value})}
+                    placeholder="New York, NY, USA"
+                    label="Location"
+                  />
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
@@ -363,14 +369,14 @@ const RecruiterDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="search">Search Students</Label>
                     <Input
                       id="search"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search by name, university, major, or bio..."
+                      placeholder="Search by name, university, major..."
                     />
                   </div>
                   <div>
@@ -379,10 +385,36 @@ const RecruiterDashboard = () => {
                       id="skillFilter"
                       value={skillFilter}
                       onChange={(e) => setSkillFilter(e.target.value)}
-                      placeholder="e.g., React, Python, Machine Learning..."
+                      placeholder="e.g., React, Python, ML..."
                     />
                   </div>
+                  <LocationAutocomplete
+                    value={locationFilter}
+                    onChange={setLocationFilter}
+                    placeholder="Filter by location..."
+                    label="Filter by Location"
+                  />
                 </div>
+                {(searchTerm || skillFilter || locationFilter) && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Filter className="h-4 w-4" />
+                    <span>Showing {filteredStudents.length} of {students.length} students</span>
+                    {(searchTerm || skillFilter || locationFilter) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setSkillFilter("");
+                          setLocationFilter("");
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -403,6 +435,20 @@ const RecruiterDashboard = () => {
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No students found matching your criteria.</p>
+                    {(searchTerm || skillFilter || locationFilter) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setSkillFilter("");
+                          setLocationFilter("");
+                        }}
+                        className="mt-2"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -425,7 +471,15 @@ const RecruiterDashboard = () => {
                                 Class of {student.graduation_year || 'N/A'}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700 mt-1">{student.major || 'Major not specified'}</p>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                              <p>{student.major || 'Major not specified'}</p>
+                              {student.location && (
+                                <span className="flex items-center gap-1 text-green-600">
+                                  <MapPin className="h-3 w-3" />
+                                  {student.location}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="flex items-center gap-1">
