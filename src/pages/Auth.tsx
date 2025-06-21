@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,17 +142,27 @@ const Auth = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const signupOptions: any = {
         email: signupData.email,
         password: signupData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             name: signupData.name,
             role: signupData.role,
           }
         }
-      });
+      };
+
+      // Only add email redirect and confirmation for students
+      if (signupData.role === 'student') {
+        signupOptions.options.emailRedirectTo = `${window.location.origin}/`;
+      } else {
+        // For recruiters, disable email confirmation
+        signupOptions.options.emailRedirectTo = `${window.location.origin}/`;
+        signupOptions.options.confirmEmail = false;
+      }
+
+      const { error } = await supabase.auth.signUp(signupOptions);
 
       if (error) {
         toast({
@@ -162,10 +171,17 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
-        });
+        if (signupData.role === 'student') {
+          toast({
+            title: "Account created!",
+            description: "Please check your email to verify your account.",
+          });
+        } else {
+          toast({
+            title: "Account created!",
+            description: "Your recruiter account has been created successfully. You can now log in.",
+          });
+        }
       }
     } catch (error) {
       toast({
