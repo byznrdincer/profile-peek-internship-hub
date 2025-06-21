@@ -41,18 +41,6 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
-  const validateRecruiterEmail = (email: string) => {
-    // Block common personal email domains for recruiters
-    const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
-    const domain = email.split('@')[1]?.toLowerCase();
-    
-    if (personalDomains.includes(domain)) {
-      return false;
-    }
-    
-    return true;
-  };
-
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -89,17 +77,6 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Validate recruiter email
-    if (loginData.role === 'recruiter' && !validateRecruiterEmail(loginData.email)) {
-      toast({
-        title: "Invalid email domain",
-        description: "Recruiters must use a company email address. Personal email domains like Gmail are not allowed.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
@@ -133,17 +110,6 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // Validate recruiter email
-    if (signupData.role === 'recruiter' && !validateRecruiterEmail(signupData.email)) {
-      toast({
-        title: "Invalid email domain",
-        description: "Recruiters must use a company email address. Personal email domains like Gmail are not allowed.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
 
     try {
       const signupOptions: any = {
@@ -416,22 +382,15 @@ const Auth = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="login-email">
-                      {loginData.role === 'recruiter' ? 'Company Email' : 'Email'}
-                    </Label>
+                    <Label htmlFor="login-email">Email</Label>
                     <Input
                       id="login-email"
                       type="email"
                       value={loginData.email}
                       onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                      placeholder={loginData.role === 'recruiter' ? 'recruiter@company.com' : 'your@email.com'}
+                      placeholder="your@email.com"
                       required
                     />
-                    {loginData.role === 'recruiter' && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Must be a company email address (Gmail not allowed)
-                      </p>
-                    )}
                   </div>
                   <div>
                     <Label htmlFor="login-password">Password</Label>
@@ -495,20 +454,18 @@ const Auth = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-email">
-                      {signupData.role === 'recruiter' ? 'Company Email' : 'Email'}
-                    </Label>
+                    <Label htmlFor="signup-email">Email</Label>
                     <Input
                       id="signup-email"
                       type="email"
                       value={signupData.email}
                       onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                      placeholder={signupData.role === 'recruiter' ? 'recruiter@company.com' : 'your@email.com'}
+                      placeholder="your@email.com"
                       required
                     />
                     {signupData.role === 'recruiter' && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Must be a company email address (Gmail not allowed)
+                        Company email preferred but not required
                       </p>
                     )}
                   </div>
