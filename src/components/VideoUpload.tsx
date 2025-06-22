@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -180,7 +179,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
               <Video className="h-5 w-5 text-green-600" />
               <span className="text-sm text-green-700">Video uploaded successfully</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
               <Button
                 type="button"
                 variant="outline"
