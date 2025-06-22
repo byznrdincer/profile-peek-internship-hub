@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter, Activity, Video, Bookmark, BookmarkCheck, X } from "lucide-react";
+import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter, Activity, Video, Bookmark, BookmarkCheck, X, DollarSign, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,8 +27,8 @@ const RecruiterDashboard = () => {
   const [skillFilter, setSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
-  const [availabilityFilter, setAvailabilityFilter] = useState("");
-  const [completionFilter, setCompletionFilter] = useState("");
+  const [stipendFilter, setStipendFilter] = useState("");
+  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [stats, setStats] = useState({
@@ -116,20 +116,44 @@ const RecruiterDashboard = () => {
       );
     }
 
-    if (availabilityFilter) {
-      filtered = filtered.filter(student =>
-        student.availability_status === availabilityFilter
-      );
-    }
-
-    if (completionFilter) {
+    if (stipendFilter) {
       filtered = filtered.filter(student => {
-        const completion = calculateProfileCompletion(student);
-        if (completionFilter === "high") return completion >= 80;
-        if (completionFilter === "medium") return completion >= 60 && completion < 80;
-        if (completionFilter === "low") return completion < 60;
+        if (!student.stipend_expectation) return false;
+        const stipend = student.stipend_expectation.toLowerCase();
+        
+        if (stipendFilter === "negotiable") {
+          return stipend.includes("negotiable") || stipend.includes("flexible");
+        } else if (stipendFilter === "below-1000") {
+          // Check for amounts below $1000
+          const matches = stipend.match(/\$?(\d+)/);
+          if (matches) {
+            const amount = parseInt(matches[1]);
+            return amount < 1000;
+          }
+          return stipend.includes("low") || stipend.includes("minimal");
+        } else if (stipendFilter === "1000-2000") {
+          const matches = stipend.match(/\$?(\d+)/);
+          if (matches) {
+            const amount = parseInt(matches[1]);
+            return amount >= 1000 && amount <= 2000;
+          }
+          return false;
+        } else if (stipendFilter === "above-2000") {
+          const matches = stipend.match(/\$?(\d+)/);
+          if (matches) {
+            const amount = parseInt(matches[1]);
+            return amount > 2000;
+          }
+          return stipend.includes("high") || stipend.includes("competitive");
+        }
         return true;
       });
+    }
+
+    if (internshipTypeFilter) {
+      filtered = filtered.filter(student =>
+        student.internship_type_preference === internshipTypeFilter
+      );
     }
     
     // Sort by activity level, then by profile views
@@ -149,7 +173,7 @@ const RecruiterDashboard = () => {
     });
     
     setFilteredStudents(filtered);
-  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, availabilityFilter, completionFilter]);
+  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, stipendFilter, internshipTypeFilter]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -364,11 +388,11 @@ const RecruiterDashboard = () => {
     setSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter("");
-    setAvailabilityFilter("");
-    setCompletionFilter("");
+    setStipendFilter("");
+    setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || availabilityFilter || completionFilter;
+  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || stipendFilter || internshipTypeFilter;
 
   if (selectedStudent) {
     return (
@@ -546,29 +570,30 @@ const RecruiterDashboard = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="availability">Availability</Label>
-                    <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+                    <Label htmlFor="stipend">Stipend Expectation</Label>
+                    <Select value={stipendFilter} onValueChange={setStipendFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Any status" />
+                        <SelectValue placeholder="Any stipend" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Available">Available</SelectItem>
-                        <SelectItem value="Open to opportunities">Open to opportunities</SelectItem>
-                        <SelectItem value="Not available">Not available</SelectItem>
+                        <SelectItem value="negotiable">Negotiable/Flexible</SelectItem>
+                        <SelectItem value="below-1000">Below $1,000</SelectItem>
+                        <SelectItem value="1000-2000">$1,000 - $2,000</SelectItem>
+                        <SelectItem value="above-2000">Above $2,000</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div>
-                    <Label htmlFor="completion">Profile Completion</Label>
-                    <Select value={completionFilter} onValueChange={setCompletionFilter}>
+                    <Label htmlFor="internshipType">Internship Type</Label>
+                    <Select value={internshipTypeFilter} onValueChange={setInternshipTypeFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Any completion" />
+                        <SelectValue placeholder="Any type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="high">High (80%+)</SelectItem>
-                        <SelectItem value="medium">Medium (60-79%)</SelectItem>
-                        <SelectItem value="low">Low (less than 60%)</SelectItem>
+                        <SelectItem value="paid">Paid Only</SelectItem>
+                        <SelectItem value="unpaid">Unpaid Only</SelectItem>
+                        <SelectItem value="both">Both Paid & Unpaid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -667,12 +692,19 @@ const RecruiterDashboard = () => {
                                     {projectsWithVideos} Video{projectsWithVideos > 1 ? 's' : ''}
                                   </Badge>
                                 )}
-                                <Badge 
-                                  variant={profileCompletion >= 80 ? "default" : profileCompletion >= 60 ? "secondary" : "destructive"}
-                                  className="text-xs"
-                                >
-                                  {profileCompletion}% Complete
-                                </Badge>
+                                {student.stipend_expectation && (
+                                  <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-200">
+                                    <DollarSign className="h-3 w-3" />
+                                    {student.stipend_expectation}
+                                  </Badge>
+                                )}
+                                {student.internship_type_preference && (
+                                  <Badge variant="outline" className="flex items-center gap-1 text-blue-600 border-blue-200">
+                                    <Briefcase className="h-3 w-3" />
+                                    {student.internship_type_preference === 'both' ? 'Paid & Unpaid' : 
+                                     student.internship_type_preference === 'paid' ? 'Paid Only' : 'Unpaid Only'}
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                                 <span className="flex items-center gap-1">
