@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -313,33 +312,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Resume</span>
                   <span className="font-semibold">{student.resume_url ? "Available" : "Not uploaded"}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Similar Profiles */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Similar Profiles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="font-medium text-sm">John Smith</p>
-                    <p className="text-xs text-gray-600">Computer Science • Stanford</p>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs">React</Badge>
-                      <Badge variant="outline" className="text-xs">Python</Badge>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="font-medium text-sm">Lisa Wang</p>
-                    <p className="text-xs text-gray-600">Data Science • MIT</p>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs">Python</Badge>
-                      <Badge variant="outline" className="text-xs">ML</Badge>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
