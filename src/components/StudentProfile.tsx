@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play } from "lucide-react";
+import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -81,6 +81,14 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     toast({
       title: "Opening video",
       description: `Watching ${projectTitle} project video`,
+    });
+  };
+
+  const handleLinkClick = (url: string, platform: string) => {
+    window.open(url, '_blank');
+    toast({
+      title: "Opening link",
+      description: `Opening ${student.name}'s ${platform} profile`,
     });
   };
 
@@ -232,6 +240,47 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Social Links */}
+            {(student.github_url || student.linkedin_url || student.website_url) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Links & Profiles</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {student.github_url && (
+                    <Button
+                      onClick={() => handleLinkClick(student.github_url, 'GitHub')}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Github className="h-4 w-4 mr-2" />
+                      GitHub Profile
+                    </Button>
+                  )}
+                  {student.linkedin_url && (
+                    <Button
+                      onClick={() => handleLinkClick(student.linkedin_url, 'LinkedIn')}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Linkedin className="h-4 w-4 mr-2" />
+                      LinkedIn Profile
+                    </Button>
+                  )}
+                  {student.website_url && (
+                    <Button
+                      onClick={() => handleLinkClick(student.website_url, 'website')}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Personal Website
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Stats */}
             <Card>
