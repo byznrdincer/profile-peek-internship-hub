@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +56,11 @@ const RecruiterDashboard = () => {
     if (daysDiff <= 30) return 'active';
     return 'inactive';
   };
+
+  // Set document title when component mounts
+  useEffect(() => {
+    document.title = "Recruiter Dashboard - TalentHub";
+  }, []);
 
   // Load recruiter profile and students
   useEffect(() => {
