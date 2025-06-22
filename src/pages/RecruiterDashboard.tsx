@@ -63,6 +63,12 @@ const RecruiterDashboard = () => {
     return 'inactive';
   };
 
+  // Function to handle bookmark changes - this will be passed to BookmarkButton
+  const handleBookmarkChange = () => {
+    loadBookmarkedStudents();
+    loadStats(); // Refresh stats as bookmark count may have changed
+  };
+
   useEffect(() => {
     document.title = "Recruiter Dashboard - TalentHub";
   }, []);
@@ -723,7 +729,10 @@ const RecruiterDashboard = () => {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              <BookmarkButton studentId={student.user_id} />
+                              <BookmarkButton 
+                                studentId={student.user_id} 
+                                onBookmarkChange={handleBookmarkChange}
+                              />
                               <Button 
                                 size="sm" 
                                 variant="outline"

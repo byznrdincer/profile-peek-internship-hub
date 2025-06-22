@@ -9,9 +9,10 @@ import { useAuth } from "@/hooks/useAuth";
 interface BookmarkButtonProps {
   studentId: string;
   className?: string;
+  onBookmarkChange?: () => void; // Add callback prop
 }
 
-const BookmarkButton = ({ studentId, className }: BookmarkButtonProps) => {
+const BookmarkButton = ({ studentId, className, onBookmarkChange }: BookmarkButtonProps) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -88,6 +89,11 @@ const BookmarkButton = ({ studentId, className }: BookmarkButtonProps) => {
           title: "Student bookmarked",
           description: "Student added to your bookmarks",
         });
+      }
+
+      // Call the callback to refresh the parent component's bookmark list
+      if (onBookmarkChange) {
+        onBookmarkChange();
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
