@@ -354,6 +354,28 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div>
+                  <Label htmlFor="role">I am a...</Label>
+                  <Select value={signupData.role} onValueChange={(value: "student" | "recruiter") => setSignupData({ ...signupData, role: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Student
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recruiter">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Recruiter
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="signup-name">Full Name</Label>
                   <Input
                     id="signup-name"
@@ -387,28 +409,6 @@ const Auth = () => {
                     onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                     required
                   />
-                </div>
-                <div>
-                  <Label htmlFor="role">I am a...</Label>
-                  <Select value={signupData.role} onValueChange={(value: "student" | "recruiter") => setSignupData({ ...signupData, role: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4" />
-                          Student
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="recruiter">
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4" />
-                          Recruiter
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <Button 
                   type="submit" 
