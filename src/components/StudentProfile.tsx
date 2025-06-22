@@ -1,9 +1,12 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink, Clock, DollarSign, MapPinIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ProfileCompletionCard from "./ProfileCompletionCard";
+import BookmarkButton from "./BookmarkButton";
 
 interface StudentProfileProps {
   student: any;
@@ -95,13 +98,16 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Search
-          </Button>
-          <div className="h-6 w-px bg-gray-300" />
-          <h1 className="text-3xl font-bold text-gray-900">Student Profile</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
+            <div className="h-6 w-px bg-gray-300" />
+            <h1 className="text-3xl font-bold text-gray-900">Student Profile</h1>
+          </div>
+          <BookmarkButton studentId={student.user_id} />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -124,6 +130,28 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                       </span>
                     </div>
                     <p className="text-lg text-gray-700 mt-2">{student.major}</p>
+                    
+                    {/* New availability and preferences section */}
+                    <div className="flex flex-wrap gap-4 mt-4">
+                      {student.availability_status && (
+                        <Badge variant={student.availability_status === 'Available' ? 'default' : 'secondary'} className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {student.availability_status}
+                        </Badge>
+                      )}
+                      {student.preferred_location && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <MapPinIcon className="h-3 w-3" />
+                          {student.preferred_location}
+                        </Badge>
+                      )}
+                      {student.salary_expectation && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          {student.salary_expectation}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
@@ -178,17 +206,30 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   <div key={index} className="border-l-4 border-blue-200 pl-4">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-lg font-semibold text-gray-900">{project.title}</h4>
-                      {project.video_url && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleWatchVideo(project.video_url, project.title)}
-                          className="flex items-center gap-1"
-                        >
-                          <Play className="h-3 w-3" />
-                          Watch Video
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        {project.demo_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(project.demo_url, '_blank')}
+                            className="flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Demo
+                          </Button>
+                        )}
+                        {project.video_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleWatchVideo(project.video_url, project.title)}
+                            className="flex items-center gap-1"
+                          >
+                            <Play className="h-3 w-3" />
+                            Video
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-gray-600 mb-3 leading-relaxed">{project.description}</p>
                     <div className="flex flex-wrap gap-2">
@@ -203,6 +244,12 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                           Video Available
                         </Badge>
                       )}
+                      {project.demo_url && (
+                        <Badge variant="default" className="text-xs bg-purple-500 hover:bg-purple-600 flex items-center gap-1">
+                          <ExternalLink className="h-3 w-3" />
+                          Live Demo
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -215,6 +262,9 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Profile Completion */}
+            <ProfileCompletionCard student={student} />
+
             {/* Actions */}
             <Card>
               <CardHeader>

@@ -4,24 +4,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter, Activity, Video } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Users, Building, Eye, User, MapPin, Calendar, Code, Trophy, Mail, Download, Filter, Activity, Video, Bookmark, BookmarkCheck, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { calculateProfileCompletion } from "@/utils/profileUtils";
 
 const RecruiterDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [graduationYearFilter, setGraduationYearFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
+  const [completionFilter, setCompletionFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("all");
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalViews: 0,
@@ -68,12 +76,14 @@ const RecruiterDashboard = () => {
       loadProfile();
       loadStudents();
       loadStats();
+      loadBookmarkedStudents();
     }
   }, [user]);
 
   // Filter and sort students based on search term, skill filter, location filter, and activity
   useEffect(() => {
-    let filtered = students;
+    const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
+    let filtered = currentStudents;
     
     if (searchTerm) {
       filtered = filtered.filter(student =>
@@ -94,11 +104,34 @@ const RecruiterDashboard = () => {
 
     if (locationFilter) {
       filtered = filtered.filter(student =>
-        student.location?.toLowerCase().includes(locationFilter.toLowerCase())
+        student.location?.toLowerCase().includes(locationFilter.toLowerCase()) ||
+        student.preferred_location?.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
+
+    if (graduationYearFilter) {
+      filtered = filtered.filter(student =>
+        student.graduation_year?.toString() === graduationYearFilter
+      );
+    }
+
+    if (availabilityFilter) {
+      filtered = filtered.filter(student =>
+        student.availability_status === availabilityFilter
+      );
+    }
+
+    if (completionFilter) {
+      filtered = filtered.filter(student => {
+        const completion = calculateProfileCompletion(student);
+        if (completionFilter === "high") return completion >= 80;
+        if (completionFilter === "medium") return completion >= 60 && completion < 80;
+        if (completionFilter === "low") return completion < 60;
+        return true;
+      });
+    }
     
-    // Sort by activity level: very active > active > inactive
+    // Sort by activity level, then by profile views
     filtered.sort((a, b) => {
       const aActivity = getActivityStatus(a.last_login_at);
       const bActivity = getActivityStatus(b.last_login_at);
@@ -111,12 +144,11 @@ const RecruiterDashboard = () => {
         return aOrder - bOrder;
       }
       
-      // Secondary sort by profile views (descending)
       return (b.profile_views || 0) - (a.profile_views || 0);
     });
     
     setFilteredStudents(filtered);
-  }, [students, searchTerm, skillFilter, locationFilter]);
+  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, availabilityFilter, completionFilter]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -228,6 +260,53 @@ const RecruiterDashboard = () => {
     }
   };
 
+  const loadBookmarkedStudents = async () => {
+    if (!user) return;
+
+    try {
+      const { data: recruiterProfile } = await supabase
+        .from('recruiter_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (recruiterProfile) {
+        const { data: bookmarks } = await supabase
+          .from('student_bookmarks')
+          .select(`
+            student_user_id,
+            student_profiles!inner(
+              *,
+              student_projects (*)
+            )
+          `)
+          .eq('recruiter_id', recruiterProfile.id);
+
+        if (bookmarks) {
+          const bookmarkedStudentsData = await Promise.all(
+            bookmarks.map(async (bookmark: any) => {
+              const student = bookmark.student_profiles;
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('user_id', student.user_id)
+                .single();
+              
+              return {
+                ...student,
+                email: profile?.email || '',
+                projects: student.student_projects || []
+              };
+            })
+          );
+          setBookmarkedStudents(bookmarkedStudentsData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading bookmarked students:', error);
+    }
+  };
+
   const handleViewProfile = async (student: any) => {
     setSelectedStudent(student);
     
@@ -279,6 +358,17 @@ const RecruiterDashboard = () => {
     }
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setSkillFilter("");
+    setLocationFilter("");
+    setGraduationYearFilter("");
+    setAvailabilityFilter("");
+    setCompletionFilter("");
+  };
+
+  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || availabilityFilter || completionFilter;
+
   if (selectedStudent) {
     return (
       <StudentProfile
@@ -313,12 +403,12 @@ const RecruiterDashboard = () => {
           
           <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Profile Views</CardTitle>
-              <Eye className="h-4 w-4 opacity-90" />
+              <CardTitle className="text-sm font-medium opacity-90">Bookmarked</CardTitle>
+              <Bookmark className="h-4 w-4 opacity-90" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews}</div>
-              <p className="text-xs opacity-90">Total views by you</p>
+              <div className="text-2xl font-bold">{bookmarkedStudents.length}</div>
+              <p className="text-xs opacity-90">Saved candidates</p>
             </CardContent>
           </Card>
           
@@ -402,7 +492,7 @@ const RecruiterDashboard = () => {
 
           {/* Student Search and List */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Search and Filters */}
+            {/* Enhanced Search and Filters */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -411,62 +501,112 @@ const RecruiterDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="search">Search Students</Label>
                     <Input
                       id="search"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search by name, university, major..."
+                      placeholder="Name, university, major..."
                     />
                   </div>
                   <div>
-                    <Label htmlFor="skillFilter">Filter by Skill</Label>
+                    <Label htmlFor="skillFilter">Skills</Label>
                     <Input
                       id="skillFilter"
                       value={skillFilter}
                       onChange={(e) => setSkillFilter(e.target.value)}
-                      placeholder="e.g., React, Python, ML..."
+                      placeholder="React, Python, ML..."
                     />
                   </div>
                   <LocationAutocomplete
                     value={locationFilter}
                     onChange={setLocationFilter}
                     placeholder="Filter by location..."
-                    label="Filter by Location"
+                    label="Location"
                   />
                 </div>
-                {(searchTerm || skillFilter || locationFilter) && (
+                
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="graduationYear">Graduation Year</Label>
+                    <Select value={graduationYearFilter} onValueChange={setGraduationYearFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any year</SelectItem>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                        <SelectItem value="2026">2026</SelectItem>
+                        <SelectItem value="2027">2027</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="availability">Availability</Label>
+                    <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any status</SelectItem>
+                        <SelectItem value="Available">Available</SelectItem>
+                        <SelectItem value="Open to opportunities">Open to opportunities</SelectItem>
+                        <SelectItem value="Not available">Not available</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="completion">Profile Completion</Label>
+                    <Select value={completionFilter} onValueChange={setCompletionFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any completion" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any completion</SelectItem>
+                        <SelectItem value="high">High (80%+)</SelectItem>
+                        <SelectItem value="medium">Medium (60-79%)</SelectItem>
+                        <SelectItem value="low">Low (<60%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      onClick={clearAllFilters}
+                      disabled={!hasActiveFilters}
+                      className="w-full"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+                
+                {hasActiveFilters && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Filter className="h-4 w-4" />
-                    <span>Showing {filteredStudents.length} of {students.length} students</span>
-                    {(searchTerm || skillFilter || locationFilter) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setSkillFilter("");
-                          setLocationFilter("");
-                        }}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Clear filters
-                      </Button>
-                    )}
+                    <span>Showing {filteredStudents.length} of {activeTab === "bookmarks" ? bookmarkedStudents.length : students.length} students</span>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Student List */}
+            {/* Student List with Tabs */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Student Profiles ({filteredStudents.length})
-                </CardTitle>
-                <p className="text-sm text-gray-600">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="all">All Students ({students.length})</TabsTrigger>
+                    <TabsTrigger value="bookmarks">Bookmarked ({bookmarkedStudents.length})</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <p className="text-sm text-gray-600 mt-2">
                   Active users (logged in recently) are shown first
                 </p>
               </CardHeader>
@@ -480,15 +620,11 @@ const RecruiterDashboard = () => {
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No students found matching your criteria.</p>
-                    {(searchTerm || skillFilter || locationFilter) && (
+                    {hasActiveFilters && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setSkillFilter("");
-                          setLocationFilter("");
-                        }}
+                        onClick={clearAllFilters}
                         className="mt-2"
                       >
                         Clear filters
@@ -500,6 +636,7 @@ const RecruiterDashboard = () => {
                     {filteredStudents.map((student) => {
                       const activityStatus = getActivityStatus(student.last_login_at);
                       const projectsWithVideos = student.projects?.filter((p: any) => p.video_url).length || 0;
+                      const profileCompletion = calculateProfileCompletion(student);
                       return (
                         <div
                           key={student.id}
@@ -508,7 +645,7 @@ const RecruiterDashboard = () => {
                         >
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="text-lg font-semibold text-blue-600">{student.name || 'Anonymous Student'}</h3>
                                 {activityStatus === 'very-active' && (
                                   <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
@@ -528,6 +665,12 @@ const RecruiterDashboard = () => {
                                     {projectsWithVideos} Video{projectsWithVideos > 1 ? 's' : ''}
                                   </Badge>
                                 )}
+                                <Badge 
+                                  variant={profileCompletion >= 80 ? "default" : profileCompletion >= 60 ? "secondary" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  {profileCompletion}% Complete
+                                </Badge>
                               </div>
                               <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                                 <span className="flex items-center gap-1">
