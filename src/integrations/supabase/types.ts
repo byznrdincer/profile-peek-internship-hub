@@ -182,6 +182,7 @@ export type Database = {
           student_id: string
           technologies: string[] | null
           title: string
+          video_url: string | null
         }
         Insert: {
           created_at?: string
@@ -190,6 +191,7 @@ export type Database = {
           student_id: string
           technologies?: string[] | null
           title: string
+          video_url?: string | null
         }
         Update: {
           created_at?: string
@@ -198,6 +200,7 @@ export type Database = {
           student_id?: string
           technologies?: string[] | null
           title?: string
+          video_url?: string | null
         }
         Relationships: [
           {

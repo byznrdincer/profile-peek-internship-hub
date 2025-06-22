@@ -13,6 +13,7 @@ import Navigation from "@/components/Navigation";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import VideoUpload from "@/components/VideoUpload";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -21,7 +22,7 @@ const StudentDashboard = () => {
   const [uploadingResume, setUploadingResume] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
-  const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[]}>>([]);
+  const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[], video_url?: string}>>([]);
   const [profileViews, setProfileViews] = useState(0);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
@@ -334,7 +335,8 @@ const StudentDashboard = () => {
           id: p.id,
           title: p.title,
           description: p.description || "",
-          technologies: p.technologies || []
+          technologies: p.technologies || [],
+          video_url: p.video_url
         })));
       }
     }
@@ -362,6 +364,18 @@ const StudentDashboard = () => {
     } else {
       updated[index][field] = value as string;
     }
+    setProjects(updated);
+  };
+
+  const updateProjectVideo = (index: number, videoUrl: string) => {
+    const updated = [...projects];
+    updated[index].video_url = videoUrl;
+    setProjects(updated);
+  };
+
+  const removeProjectVideo = (index: number) => {
+    const updated = [...projects];
+    delete updated[index].video_url;
     setProjects(updated);
   };
 
@@ -581,7 +595,8 @@ const StudentDashboard = () => {
               student_id: studentProfile.id,
               title: project.title,
               description: project.description,
-              technologies: project.technologies
+              technologies: project.technologies,
+              video_url: project.video_url
             }));
 
           if (projectsToInsert.length > 0) {
@@ -912,6 +927,12 @@ const StudentDashboard = () => {
                         label="Technologies Used"
                       />
                     </div>
+                    <VideoUpload
+                      projectId={project.id || index}
+                      existingVideoUrl={project.video_url}
+                      onVideoUploaded={(videoUrl) => updateProjectVideo(index, videoUrl)}
+                      onVideoRemoved={() => removeProjectVideo(index)}
+                    />
                   </div>
                 </div>
               ))}
