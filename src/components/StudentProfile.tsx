@@ -1,8 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink, Clock, DollarSign, MapPinIcon } from "lucide-react";
+import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink, Clock, DollarSign, MapPinIcon, Banknote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileCompletionCard from "./ProfileCompletionCard";
@@ -94,6 +93,32 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     });
   };
 
+  const getInternshipTypeDisplay = (preference: string) => {
+    switch (preference) {
+      case 'paid':
+        return 'Paid Only';
+      case 'unpaid':
+        return 'Unpaid Only';
+      case 'both':
+        return 'Both Paid & Unpaid';
+      default:
+        return 'Not specified';
+    }
+  };
+
+  const getInternshipTypeBadgeColor = (preference: string) => {
+    switch (preference) {
+      case 'paid':
+        return 'bg-green-500 hover:bg-green-600';
+      case 'unpaid':
+        return 'bg-blue-500 hover:bg-blue-600';
+      case 'both':
+        return 'bg-purple-500 hover:bg-purple-600';
+      default:
+        return 'bg-gray-500 hover:bg-gray-600';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <div className="container mx-auto px-4 py-8">
@@ -131,7 +156,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                     </div>
                     <p className="text-lg text-gray-700 mt-2">{student.major}</p>
                     
-                    {/* New availability and preferences section */}
+                    {/* Updated availability and preferences section with new internship preferences */}
                     <div className="flex flex-wrap gap-4 mt-4">
                       {student.availability_status && (
                         <Badge variant={student.availability_status === 'Available' ? 'default' : 'secondary'} className="flex items-center gap-1">
@@ -149,6 +174,18 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                         <Badge variant="outline" className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
                           {student.salary_expectation}
+                        </Badge>
+                      )}
+                      {student.internship_type_preference && (
+                        <Badge className={`flex items-center gap-1 text-white ${getInternshipTypeBadgeColor(student.internship_type_preference)}`}>
+                          <Banknote className="h-3 w-3" />
+                          {getInternshipTypeDisplay(student.internship_type_preference)}
+                        </Badge>
+                      )}
+                      {student.stipend_expectation && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          Stipend: {student.stipend_expectation}
                         </Badge>
                       )}
                     </div>
@@ -173,6 +210,36 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* New Internship Preferences Card */}
+            {(student.internship_type_preference || student.stipend_expectation) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Banknote className="h-5 w-5" />
+                    Internship Preferences
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {student.internship_type_preference && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Internship Type</h4>
+                        <Badge className={`${getInternshipTypeBadgeColor(student.internship_type_preference)} text-white`}>
+                          {getInternshipTypeDisplay(student.internship_type_preference)}
+                        </Badge>
+                      </div>
+                    )}
+                    {student.stipend_expectation && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Stipend Expectation</h4>
+                        <p className="text-gray-600">{student.stipend_expectation}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Skills */}
             <Card>
@@ -363,6 +430,18 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   <span className="text-gray-600">Resume</span>
                   <span className="font-semibold">{student.resume_url ? "Available" : "Not uploaded"}</span>
                 </div>
+                {student.internship_type_preference && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Internship Type</span>
+                    <span className="font-semibold">{getInternshipTypeDisplay(student.internship_type_preference)}</span>
+                  </div>
+                )}
+                {student.stipend_expectation && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Stipend</span>
+                    <span className="font-semibold">{student.stipend_expectation}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

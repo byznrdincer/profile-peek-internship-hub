@@ -144,6 +144,7 @@ export type Database = {
           github_url: string | null
           graduation_year: string | null
           id: string
+          internship_type_preference: string | null
           last_login_at: string | null
           linkedin_url: string | null
           location: string | null
@@ -154,6 +155,7 @@ export type Database = {
           resume_filename: string | null
           resume_url: string | null
           skills: string[] | null
+          stipend_expectation: string | null
           university: string | null
           updated_at: string
           user_id: string
@@ -165,6 +167,7 @@ export type Database = {
           github_url?: string | null
           graduation_year?: string | null
           id?: string
+          internship_type_preference?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -175,6 +178,7 @@ export type Database = {
           resume_filename?: string | null
           resume_url?: string | null
           skills?: string[] | null
+          stipend_expectation?: string | null
           university?: string | null
           updated_at?: string
           user_id: string
@@ -186,6 +190,7 @@ export type Database = {
           github_url?: string | null
           graduation_year?: string | null
           id?: string
+          internship_type_preference?: string | null
           last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -196,6 +201,7 @@ export type Database = {
           resume_filename?: string | null
           resume_url?: string | null
           skills?: string[] | null
+          stipend_expectation?: string | null
           university?: string | null
           updated_at?: string
           user_id?: string
