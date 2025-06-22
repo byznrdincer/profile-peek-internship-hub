@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -538,7 +537,6 @@ const RecruiterDashboard = () => {
                         <SelectValue placeholder="Any year" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any year</SelectItem>
                         <SelectItem value="2024">2024</SelectItem>
                         <SelectItem value="2025">2025</SelectItem>
                         <SelectItem value="2026">2026</SelectItem>
@@ -554,7 +552,6 @@ const RecruiterDashboard = () => {
                         <SelectValue placeholder="Any status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any status</SelectItem>
                         <SelectItem value="Available">Available</SelectItem>
                         <SelectItem value="Open to opportunities">Open to opportunities</SelectItem>
                         <SelectItem value="Not available">Not available</SelectItem>
@@ -569,10 +566,9 @@ const RecruiterDashboard = () => {
                         <SelectValue placeholder="Any completion" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any completion</SelectItem>
                         <SelectItem value="high">High (80%+)</SelectItem>
                         <SelectItem value="medium">Medium (60-79%)</SelectItem>
-                        <SelectItem value="low">Low (&lt;60%)</SelectItem>
+                        <SelectItem value="low">Low (less than 60%)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

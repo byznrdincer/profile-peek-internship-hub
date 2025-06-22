@@ -108,6 +108,35 @@ export type Database = {
         }
         Relationships: []
       }
+      student_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          recruiter_id: string
+          student_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recruiter_id: string
+          student_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recruiter_id?: string
+          student_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_bookmarks_recruiter_id_fkey"
+            columns: ["recruiter_id"]
+            isOneToOne: false
+            referencedRelation: "recruiter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_profiles: {
         Row: {
           bio: string | null
