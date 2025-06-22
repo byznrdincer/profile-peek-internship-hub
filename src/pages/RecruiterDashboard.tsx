@@ -65,6 +65,7 @@ const RecruiterDashboard = () => {
 
   // Function to handle bookmark changes - this will be passed to BookmarkButton
   const handleBookmarkChange = () => {
+    console.log('handleBookmarkChange called - refreshing bookmarks');
     loadBookmarkedStudents();
     loadStats(); // Refresh stats as bookmark count may have changed
   };
@@ -253,49 +254,99 @@ const RecruiterDashboard = () => {
   };
 
   const loadBookmarkedStudents = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, cannot load bookmarks');
+      return;
+    }
 
     try {
-      const { data: recruiterProfile } = await supabase
+      console.log('Loading bookmarked students for user:', user.id);
+      
+      // Step 1: Get the recruiter profile
+      const { data: recruiterProfile, error: recruiterError } = await supabase
         .from('recruiter_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (recruiterProfile) {
-        const { data: bookmarks } = await supabase
-          .from('student_bookmarks')
-          .select(`
-            student_user_id,
-            student_profiles!inner(
-              *,
-              student_projects (*)
-            )
-          `)
-          .eq('recruiter_id', recruiterProfile.id);
-
-        if (bookmarks) {
-          const bookmarkedStudentsData = await Promise.all(
-            bookmarks.map(async (bookmark: any) => {
-              const student = bookmark.student_profiles;
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('user_id', student.user_id)
-                .single();
-              
-              return {
-                ...student,
-                email: profile?.email || '',
-                projects: student.student_projects || []
-              };
-            })
-          );
-          setBookmarkedStudents(bookmarkedStudentsData);
-        }
+      if (recruiterError) {
+        console.error('Error fetching recruiter profile:', recruiterError);
+        return;
       }
+
+      if (!recruiterProfile) {
+        console.log('No recruiter profile found');
+        return;
+      }
+
+      console.log('Recruiter profile found:', recruiterProfile.id);
+
+      // Step 2: Get bookmarks for this recruiter
+      const { data: bookmarks, error: bookmarksError } = await supabase
+        .from('student_bookmarks')
+        .select('student_user_id')
+        .eq('recruiter_id', recruiterProfile.id);
+
+      if (bookmarksError) {
+        console.error('Error fetching bookmarks:', bookmarksError);
+        return;
+      }
+
+      console.log('Bookmarks found:', bookmarks?.length || 0, bookmarks);
+
+      if (!bookmarks || bookmarks.length === 0) {
+        console.log('No bookmarks found');
+        setBookmarkedStudents([]);
+        return;
+      }
+
+      // Step 3: Get student profiles for bookmarked students
+      const studentUserIds = bookmarks.map(bookmark => bookmark.student_user_id);
+      console.log('Student user IDs to fetch:', studentUserIds);
+
+      const { data: studentProfiles, error: studentsError } = await supabase
+        .from('student_profiles')
+        .select(`
+          *,
+          student_projects (*)
+        `)
+        .in('user_id', studentUserIds);
+
+      if (studentsError) {
+        console.error('Error fetching student profiles:', studentsError);
+        return;
+      }
+
+      console.log('Student profiles found:', studentProfiles?.length || 0);
+
+      if (!studentProfiles) {
+        setBookmarkedStudents([]);
+        return;
+      }
+
+      // Step 4: Add email information
+      const studentsWithEmail = await Promise.all(
+        studentProfiles.map(async (student) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('user_id', student.user_id)
+            .single();
+          
+          return {
+            ...student,
+            email: profile?.email || '',
+            projects: student.student_projects || []
+          };
+        })
+      );
+
+      console.log('Final bookmarked students with email:', studentsWithEmail.length);
+      setBookmarkedStudents(studentsWithEmail);
+      
     } catch (error) {
       console.error('Error loading bookmarked students:', error);
+      setBookmarkedStudents([]);
     }
   };
 
