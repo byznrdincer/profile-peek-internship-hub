@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import BookmarkButton from "@/components/BookmarkButton";
 import { calculateProfileCompletion } from "@/utils/profileUtils";
 
 const RecruiterDashboard = () => {
@@ -570,7 +572,7 @@ const RecruiterDashboard = () => {
                         <SelectItem value="">Any completion</SelectItem>
                         <SelectItem value="high">High (80%+)</SelectItem>
                         <SelectItem value="medium">Medium (60-79%)</SelectItem>
-                        <SelectItem value="low">Low (<60%)</SelectItem>
+                        <SelectItem value="low">Low (&lt;60%)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -640,13 +642,17 @@ const RecruiterDashboard = () => {
                       return (
                         <div
                           key={student.id}
-                          className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                          onClick={() => handleViewProfile(student)}
+                          className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                         >
                           <div className="flex justify-between items-start mb-3">
-                            <div>
+                            <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="text-lg font-semibold text-blue-600">{student.name || 'Anonymous Student'}</h3>
+                                <h3 
+                                  className="text-lg font-semibold text-blue-600 cursor-pointer hover:underline"
+                                  onClick={() => handleViewProfile(student)}
+                                >
+                                  {student.name || 'Anonymous Student'}
+                                </h3>
                                 {activityStatus === 'very-active' && (
                                   <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
                                     <Activity className="h-3 w-3" />
@@ -743,9 +749,16 @@ const RecruiterDashboard = () => {
                                 </span>
                               )}
                             </div>
-                            <Button size="sm" variant="outline">
-                              View Profile
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <BookmarkButton studentId={student.user_id} />
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleViewProfile(student)}
+                              >
+                                View Profile
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       );
