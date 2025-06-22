@@ -23,7 +23,7 @@ const RecruiterDashboard = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [majorFilter, setMajorFilter] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
@@ -83,17 +83,14 @@ const RecruiterDashboard = () => {
     }
   }, [user]);
 
-  // Filter and sort students based on search term, skill filter, location filter, and activity
+  // Filter and sort students based on major filter, skill filter, location filter, and activity
   useEffect(() => {
     const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
     let filtered = currentStudents;
     
-    if (searchTerm) {
+    if (majorFilter) {
       filtered = filtered.filter(student =>
-        student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.university?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.major?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.bio?.toLowerCase().includes(searchTerm.toLowerCase())
+        student.major?.toLowerCase().includes(majorFilter.toLowerCase())
       );
     }
     
@@ -141,7 +138,7 @@ const RecruiterDashboard = () => {
     });
     
     setFilteredStudents(filtered);
-  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -402,14 +399,14 @@ const RecruiterDashboard = () => {
   };
 
   const clearAllFilters = () => {
-    setSearchTerm("");
+    setMajorFilter("");
     setSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter("");
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
+  const hasActiveFilters = majorFilter || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
 
   if (selectedStudent) {
     return (
@@ -545,12 +542,12 @@ const RecruiterDashboard = () => {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="search">Search Students</Label>
+                    <Label htmlFor="majorFilter">Major</Label>
                     <Input
-                      id="search"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Name, university, major..."
+                      id="majorFilter"
+                      value={majorFilter}
+                      onChange={(e) => setMajorFilter(e.target.value)}
+                      placeholder="Computer Science, Engineering..."
                     />
                   </div>
                   <div>
