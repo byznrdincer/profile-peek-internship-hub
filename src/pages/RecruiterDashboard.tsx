@@ -27,7 +27,6 @@ const RecruiterDashboard = () => {
   const [skillFilter, setSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
-  const [stipendFilter, setStipendFilter] = useState("");
   const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -45,7 +44,6 @@ const RecruiterDashboard = () => {
     location: "",
   });
 
-  // Helper function to determine if a user is active (logged in within last 30 days)
   const isActiveUser = (lastLoginAt: string | null) => {
     if (!lastLoginAt) return false;
     const thirtyDaysAgo = new Date();
@@ -53,7 +51,6 @@ const RecruiterDashboard = () => {
     return new Date(lastLoginAt) > thirtyDaysAgo;
   };
 
-  // Helper function to get activity status
   const getActivityStatus = (lastLoginAt: string | null) => {
     if (!lastLoginAt) return 'inactive';
     
@@ -66,12 +63,10 @@ const RecruiterDashboard = () => {
     return 'inactive';
   };
 
-  // Set document title when component mounts
   useEffect(() => {
     document.title = "Recruiter Dashboard - TalentHub";
   }, []);
 
-  // Load recruiter profile and students
   useEffect(() => {
     if (user) {
       loadProfile();
@@ -116,40 +111,6 @@ const RecruiterDashboard = () => {
       );
     }
 
-    if (stipendFilter) {
-      filtered = filtered.filter(student => {
-        if (!student.stipend_expectation) return false;
-        const stipend = student.stipend_expectation.toLowerCase();
-        
-        if (stipendFilter === "negotiable") {
-          return stipend.includes("negotiable") || stipend.includes("flexible");
-        } else if (stipendFilter === "below-1000") {
-          // Check for amounts below $1000
-          const matches = stipend.match(/\$?(\d+)/);
-          if (matches) {
-            const amount = parseInt(matches[1]);
-            return amount < 1000;
-          }
-          return stipend.includes("low") || stipend.includes("minimal");
-        } else if (stipendFilter === "1000-2000") {
-          const matches = stipend.match(/\$?(\d+)/);
-          if (matches) {
-            const amount = parseInt(matches[1]);
-            return amount >= 1000 && amount <= 2000;
-          }
-          return false;
-        } else if (stipendFilter === "above-2000") {
-          const matches = stipend.match(/\$?(\d+)/);
-          if (matches) {
-            const amount = parseInt(matches[1]);
-            return amount > 2000;
-          }
-          return stipend.includes("high") || stipend.includes("competitive");
-        }
-        return true;
-      });
-    }
-
     if (internshipTypeFilter) {
       filtered = filtered.filter(student =>
         student.internship_type_preference === internshipTypeFilter
@@ -173,7 +134,7 @@ const RecruiterDashboard = () => {
     });
     
     setFilteredStudents(filtered);
-  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, stipendFilter, internshipTypeFilter]);
+  }, [students, bookmarkedStudents, activeTab, searchTerm, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -388,11 +349,10 @@ const RecruiterDashboard = () => {
     setSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter("");
-    setStipendFilter("");
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || stipendFilter || internshipTypeFilter;
+  const hasActiveFilters = searchTerm || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
 
   if (selectedStudent) {
     return (
@@ -553,7 +513,7 @@ const RecruiterDashboard = () => {
                   />
                 </div>
                 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="graduationYear">Graduation Year</Label>
                     <Select value={graduationYearFilter} onValueChange={setGraduationYearFilter}>
@@ -565,21 +525,6 @@ const RecruiterDashboard = () => {
                         <SelectItem value="2025">2025</SelectItem>
                         <SelectItem value="2026">2026</SelectItem>
                         <SelectItem value="2027">2027</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="stipend">Stipend Expectation</Label>
-                    <Select value={stipendFilter} onValueChange={setStipendFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any stipend" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="negotiable">Negotiable/Flexible</SelectItem>
-                        <SelectItem value="below-1000">Below $1,000</SelectItem>
-                        <SelectItem value="1000-2000">$1,000 - $2,000</SelectItem>
-                        <SelectItem value="above-2000">Above $2,000</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
