@@ -345,7 +345,7 @@ const RecruiterDashboard = () => {
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = majorFilter || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
 
   if (selectedStudent) {
     return (
