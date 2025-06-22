@@ -495,6 +495,7 @@ const RecruiterDashboard = () => {
                   <div className="space-y-4">
                     {filteredStudents.map((student) => {
                       const activityStatus = getActivityStatus(student.last_login_at);
+                      const projectsWithVideos = student.projects?.filter((p: any) => p.video_url).length || 0;
                       return (
                         <div
                           key={student.id}
@@ -515,6 +516,12 @@ const RecruiterDashboard = () => {
                                   <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
                                     <Activity className="h-3 w-3" />
                                     Active
+                                  </Badge>
+                                )}
+                                {projectsWithVideos > 0 && (
+                                  <Badge variant="default" className="bg-purple-500 hover:bg-purple-600 flex items-center gap-1">
+                                    <Video className="h-3 w-3" />
+                                    {projectsWithVideos} Video{projectsWithVideos > 1 ? 's' : ''}
                                   </Badge>
                                 )}
                               </div>
@@ -582,6 +589,12 @@ const RecruiterDashboard = () => {
                                 <Trophy className="h-3 w-3" />
                                 {student.projects?.length || 0} projects
                               </span>
+                              {projectsWithVideos > 0 && (
+                                <span className="flex items-center gap-1 text-purple-600">
+                                  <Video className="h-3 w-3" />
+                                  {projectsWithVideos} video{projectsWithVideos > 1 ? 's' : ''}
+                                </span>
+                              )}
                             </div>
                             <Button size="sm" variant="outline">
                               View Profile

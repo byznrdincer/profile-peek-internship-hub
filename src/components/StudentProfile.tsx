@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye } from "lucide-react";
+import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -73,6 +73,14 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     toast({
       title: "Contact initiated",
       description: `Opening email to contact ${student.name}`,
+    });
+  };
+
+  const handleWatchVideo = (videoUrl: string, projectTitle: string) => {
+    window.open(videoUrl, '_blank');
+    toast({
+      title: "Opening video",
+      description: `Watching ${projectTitle} project video`,
     });
   };
 
@@ -161,7 +169,20 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               <CardContent className="space-y-6">
                 {student.projects?.map((project: any, index: number) => (
                   <div key={index} className="border-l-4 border-blue-200 pl-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="text-lg font-semibold text-gray-900">{project.title}</h4>
+                      {project.video_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleWatchVideo(project.video_url, project.title)}
+                          className="flex items-center gap-1"
+                        >
+                          <Play className="h-3 w-3" />
+                          Watch Video
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-gray-600 mb-3 leading-relaxed">{project.description}</p>
                     <div className="flex flex-wrap gap-2">
                       {project.technologies?.map((tech: string, techIndex: number) => (
@@ -169,6 +190,12 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                           {tech}
                         </Badge>
                       ))}
+                      {project.video_url && (
+                        <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-600 flex items-center gap-1">
+                          <Video className="h-3 w-3" />
+                          Video Available
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -223,6 +250,12 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Projects</span>
                   <span className="font-semibold">{student.projects?.length || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Project Videos</span>
+                  <span className="font-semibold">
+                    {student.projects?.filter((p: any) => p.video_url).length || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Graduation</span>
