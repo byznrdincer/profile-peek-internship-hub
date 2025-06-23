@@ -21,6 +21,11 @@ const Navigation = () => {
     navigate('/');
   };
 
+  const handleNavigation = (path: string) => {
+    console.log('Navigation: Navigating to', path);
+    navigate(path);
+  };
+
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -44,7 +49,7 @@ const Navigation = () => {
                       <div className="grid gap-2">
                         <Button
                           variant={location.pathname === '/' ? "default" : "ghost"}
-                          onClick={() => navigate('/')}
+                          onClick={() => handleNavigation('/')}
                           className="justify-start gap-2 h-auto p-2"
                         >
                           <Home className="h-4 w-4" />
@@ -59,7 +64,7 @@ const Navigation = () => {
                             {profile?.role === 'student' && (
                               <Button
                                 variant={location.pathname === '/student-dashboard' ? "default" : "ghost"}
-                                onClick={() => navigate('/student-dashboard')}
+                                onClick={() => handleNavigation('/student-dashboard')}
                                 className="justify-start gap-2 h-auto p-2"
                               >
                                 <User className="h-4 w-4" />
@@ -73,7 +78,7 @@ const Navigation = () => {
                             {profile?.role === 'recruiter' && (
                               <Button
                                 variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
-                                onClick={() => navigate('/recruiter-dashboard')}
+                                onClick={() => handleNavigation('/recruiter-dashboard')}
                                 className="justify-start gap-2 h-auto p-2"
                               >
                                 <Users className="h-4 w-4" />
@@ -108,7 +113,7 @@ const Navigation = () => {
           </NavigationMenu>
 
           {/* Logo */}
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => handleNavigation('/')}>
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-white" />
             </div>
@@ -122,7 +127,7 @@ const Navigation = () => {
           {!isAuthenticated && (
             <Button
               variant="default"
-              onClick={() => navigate('/auth')}
+              onClick={() => handleNavigation('/auth')}
               className="flex items-center gap-2"
             >
               <User className="h-4 w-4" />
