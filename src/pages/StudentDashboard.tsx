@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ReloadIcon } from "@radix-ui/react-icons"
+import { ReloadIcon } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ModeToggle } from '@/components/ModeToggle';
@@ -25,14 +25,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon } from "@radix-ui/react-icons"
+import { CalendarIcon } from "lucide-react"
 import FileUploader from '@/components/FileUploader';
 import { Badge } from "@/components/ui/badge"
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,7 +63,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      navigate('/auth');
       return;
     }
 
@@ -82,9 +82,11 @@ const StudentDashboard = () => {
         }
 
         if (data) {
+          // Handle the case where some fields might not exist in the database yet
+          const email = data.email || user.email || '';
           setFormData({
             name: data.name || '',
-            email: data.email || '',
+            email: email,
             phone: data.phone || '',
             university: data.university || '',
             major: data.major || '',
@@ -95,7 +97,7 @@ const StudentDashboard = () => {
             linkedin_url: data.linkedin_url || '',
             website_url: data.website_url || '',
             availability_status: data.availability_status || 'Available',
-            preferred_location: data.preferred_location || '',
+            preferred_location: data.preferred_location || data.location || '',
             salary_expectation: data.salary_expectation || '',
             internship_type_preference: data.internship_type_preference || 'paid',
             stipend_expectation: data.stipend_expectation || '',
@@ -119,7 +121,7 @@ const StudentDashboard = () => {
     };
 
     fetchProfile();
-  }, [user, router, toast]);
+  }, [user, navigate, toast]);
 
   useEffect(() => {
     // Calculate profile completion percentage
@@ -150,7 +152,6 @@ const StudentDashboard = () => {
         .upsert({
           user_id: user.id,
           name: formData.name,
-          email: formData.email,
           phone: formData.phone,
           university: formData.university,
           major: formData.major,
@@ -160,12 +161,7 @@ const StudentDashboard = () => {
           github_url: formData.github_url,
           linkedin_url: formData.linkedin_url,
           website_url: formData.website_url,
-          availability_status: formData.availability_status,
-          preferred_location: formData.preferred_location,
-          salary_expectation: formData.salary_expectation,
           internship_type_preference: formData.internship_type_preference,
-          stipend_expectation: formData.stipend_expectation,
-          is_public: isPublic,
           resume_url: formData.resume_url,
           resume_filename: formData.resume_filename,
           updated_at: new Date().toISOString()
@@ -194,7 +190,7 @@ const StudentDashboard = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.push('/login');
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
@@ -285,6 +281,8 @@ const StudentDashboard = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Your Name"
+                      pattern="[A-Za-z\s]+"
+                      title="Please enter letters and spaces only"
                       required
                     />
                   </div>
@@ -297,6 +295,7 @@ const StudentDashboard = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="Your Email"
                       required
+                      readOnly
                     />
                   </div>
                   <div>
@@ -305,9 +304,11 @@ const StudentDashboard = () => {
                       id="phone"
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => {
+                        const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, phone: numericValue });
+                      }}
                       placeholder="Your Phone"
-                      pattern="[0-9]*"
                       title="Please enter numbers only"
                     />
                   </div>
@@ -335,37 +336,21 @@ const StudentDashboard = () => {
                   </div>
                   <div>
                     <Label htmlFor="graduation_year">Graduation Year</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] justify-start text-left font-normal",
-                            !selectedDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? (
-                            format(selectedDate, "yyyy")
-                          ) : (
-                            <span>Pick a year</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                        <Calendar
-                          mode="single"
-                          date={selectedDate}
-                          onSelect={(date) => {
-                            setSelectedDate(date)
-                            if (date) {
-                              setFormData({ ...formData, graduation_year: date.getFullYear().toString() })
-                            }
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Select value={formData.graduation_year} onValueChange={(value) => setFormData({ ...formData, graduation_year: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select graduation year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 10 }, (_, i) => {
+                          const year = new Date().getFullYear() + i;
+                          return (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="bio">Bio</Label>
@@ -522,15 +507,19 @@ const StudentDashboard = () => {
                     <Label htmlFor="stipend_expectation">Stipend Expectation</Label>
                     <Input
                       id="stipend_expectation"
-                      type="text"
+                      type="tel"
                       value={formData.stipend_expectation}
-                      onChange={(e) => setFormData({ ...formData, stipend_expectation: e.target.value })}
-                      placeholder="Stipend Expectation"
+                      onChange={(e) => {
+                        const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, stipend_expectation: numericValue });
+                      }}
+                      placeholder="Stipend Expectation (numbers only)"
+                      title="Please enter numbers only"
                     />
                   </div>
                   <div>
                     <Label htmlFor="resume">Resume</Label>
-                    <FileUploader onFileUploaded={handleFileUploaded} userId={user.id} initialResumeUrl={formData.resume_url} />
+                    <FileUploader onFileUploaded={(url, filename) => setFormData({ ...formData, resume_url: url, resume_filename: filename })} userId={user.id} initialResumeUrl={formData.resume_url} />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Label htmlFor="is_public">Public Profile</Label>
