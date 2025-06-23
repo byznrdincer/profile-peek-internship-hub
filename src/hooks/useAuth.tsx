@@ -15,79 +15,103 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    console.log('useAuth: Fetching profile for user:', userId);
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('useAuth: Error fetching profile:', error);
+        return null;
+      }
+      
+      console.log('useAuth: Profile data fetched:', profileData);
+      return profileData;
+    } catch (error) {
+      console.error('useAuth: Exception fetching profile:', error);
+      return null;
+    }
+  };
+
+  const updateStudentLastLogin = async (role: string) => {
+    if (role === 'student') {
+      try {
+        await supabase.rpc('update_student_last_login');
+        console.log('useAuth: Updated student last login');
+      } catch (error) {
+        console.error('useAuth: Error updating student last login:', error);
+      }
+    }
+  };
+
   useEffect(() => {
+    console.log('useAuth: Setting up auth state listener');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('useAuth: Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-            
-            setProfile(profileData);
-            
-            // Update last login for students
-            if (profileData?.role === 'student') {
-              try {
-                await supabase.rpc('update_student_last_login');
-              } catch (error) {
-                console.error('Error updating student last login:', error);
-              }
-            }
-            
-            setLoading(false);
-          }, 0);
+          // Fetch user profile immediately without setTimeout
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
+          
+          // Update last login for students
+          if (profileData?.role) {
+            await updateStudentLastLogin(profileData.role);
+          }
         } else {
           setProfile(null);
-          setLoading(false);
         }
+        
+        setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      console.log('useAuth: Checking for existing session');
+      const { data: { session } } = await supabase.auth.getSession();
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          setProfile(profileData);
-          
-          // Update last login for students
-          if (profileData?.role === 'student') {
-            try {
-              await supabase.rpc('update_student_last_login');
-            } catch (error) {
-              console.error('Error updating student last login:', error);
-            }
-          }
-          
-          setLoading(false);
-        }, 0);
-      } else {
-        setLoading(false);
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
+        
+        // Update last login for students
+        if (profileData?.role) {
+          await updateStudentLastLogin(profileData.role);
+        }
       }
-    });
+      
+      setLoading(false);
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
+    console.log('useAuth: Signing out');
     await supabase.auth.signOut();
   };
+
+  console.log('useAuth: Current state:', { 
+    isAuthenticated: !!user, 
+    role: profile?.role, 
+    loading,
+    userId: user?.id 
+  });
 
   return {
     user,
