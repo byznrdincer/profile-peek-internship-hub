@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ReloadIcon } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ModeToggle } from '@/components/ModeToggle';
@@ -83,7 +83,7 @@ const StudentDashboard = () => {
 
         if (data) {
           // Handle the case where some fields might not exist in the database yet
-          const email = data.email || user.email || '';
+          const email = user.email || '';
           setFormData({
             name: data.name || '',
             email: email,
@@ -96,16 +96,16 @@ const StudentDashboard = () => {
             github_url: data.github_url || '',
             linkedin_url: data.linkedin_url || '',
             website_url: data.website_url || '',
-            availability_status: data.availability_status || 'Available',
-            preferred_location: data.preferred_location || data.location || '',
-            salary_expectation: data.salary_expectation || '',
+            availability_status: 'Available', // Default value since field doesn't exist
+            preferred_location: data.location || '', // Use location field instead
+            salary_expectation: '', // Default value since field doesn't exist
             internship_type_preference: data.internship_type_preference || 'paid',
             stipend_expectation: data.stipend_expectation || '',
             resume_url: data.resume_url || '',
             resume_filename: data.resume_filename || '',
           });
           setSkillsList(data.skills || []);
-          setIsPublic(data.is_public || false);
+          setIsPublic(false); // Default value since field doesn't exist
           setSelectedDate(data.graduation_year ? new Date(data.graduation_year) : undefined);
         }
       } catch (error) {
@@ -164,6 +164,8 @@ const StudentDashboard = () => {
           internship_type_preference: formData.internship_type_preference,
           resume_url: formData.resume_url,
           resume_filename: formData.resume_filename,
+          location: formData.preferred_location, // Map to existing location field
+          stipend_expectation: formData.stipend_expectation,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -531,7 +533,7 @@ const StudentDashboard = () => {
                   </div>
                   <Button disabled={saving} className="w-full bg-blue-500 text-white font-semibold rounded-md py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
                     {saving ? (
-                      <><ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                     ) : (
                       "Save Profile"
                     )}
