@@ -8,25 +8,12 @@ import Navigation from "@/components/Navigation";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, profile, loading } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
 
   const handleNavigation = (path: string) => {
     console.log('Index: Navigating to', path);
-    console.log('Index: Current auth state:', { isAuthenticated, profile, loading });
     navigate(path);
   };
-
-  // Add debugging for the current state
-  console.log('Index: Rendering with state:', { isAuthenticated, profile, loading });
-
-  if (loading) {
-    console.log('Index: Still loading auth state');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
