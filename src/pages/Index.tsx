@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight } from "lucide-react";
@@ -67,7 +66,7 @@ const Index = () => {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex justify-center">
                 <Button 
                   size="lg" 
                   onClick={() => navigate('/auth')}
@@ -75,14 +74,6 @@ const Index = () => {
                 >
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  onClick={() => navigate('/auth')}
-                  className="px-8"
-                >
-                  Sign In
                 </Button>
               </div>
             )}
