@@ -54,19 +54,15 @@ const StudentFilters = ({
             <Label htmlFor="majorFilter">Major</Label>
             <Input
               id="majorFilter"
-              type="text"
               value={majorFilter}
               onChange={(e) => setMajorFilter(e.target.value)}
               placeholder="Computer Science, Engineering..."
-              pattern="[A-Za-z\s]+"
-              title="Please enter a valid major (letters and spaces only)"
             />
           </div>
           <div>
             <Label htmlFor="skillFilter">Skills</Label>
             <Input
               id="skillFilter"
-              type="text"
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
               placeholder="React, Python, ML..."

@@ -13,17 +13,13 @@ const ProtectedRoute = ({ children, requireRole }: ProtectedRouteProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('ProtectedRoute: Auth state changed', { isAuthenticated, profile, loading, requireRole });
-    
     if (!loading) {
       if (!isAuthenticated) {
-        console.log('Not authenticated, redirecting to /auth');
         navigate('/auth');
         return;
       }
       
       if (requireRole && profile?.role !== requireRole) {
-        console.log('Wrong role, redirecting to /', { currentRole: profile?.role, requiredRole: requireRole });
         navigate('/');
         return;
       }
@@ -31,7 +27,6 @@ const ProtectedRoute = ({ children, requireRole }: ProtectedRouteProps) => {
   }, [isAuthenticated, profile, loading, requireRole, navigate]);
 
   if (loading) {
-    console.log('ProtectedRoute: Loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -40,16 +35,13 @@ const ProtectedRoute = ({ children, requireRole }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
-    console.log('ProtectedRoute: Not authenticated, showing null');
     return null;
   }
 
   if (requireRole && profile?.role !== requireRole) {
-    console.log('ProtectedRoute: Wrong role, showing null');
     return null;
   }
 
-  console.log('ProtectedRoute: Rendering children');
   return <>{children}</>;
 };
 

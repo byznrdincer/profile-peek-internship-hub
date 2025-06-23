@@ -82,19 +82,15 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
-              type="text"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               placeholder="Your Name"
-              pattern="[A-Za-z\s]+"
-              title="Please enter a valid name (letters and spaces only)"
             />
           </div>
           <div>
             <Label htmlFor="company">Company Name</Label>
             <Input
               id="company"
-              type="text"
               value={formData.company_name}
               onChange={(e) => setFormData({...formData, company_name: e.target.value})}
               placeholder="Your Company"
@@ -104,7 +100,6 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
             <Label htmlFor="position">Position</Label>
             <Input
               id="position"
-              type="text"
               value={formData.position}
               onChange={(e) => setFormData({...formData, position: e.target.value})}
               placeholder="HR Manager, Technical Recruiter, etc."
@@ -114,15 +109,9 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
             <Label htmlFor="phone">Phone</Label>
             <Input
               id="phone"
-              type="tel"
               value={formData.phone}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                setFormData({...formData, phone: value});
-              }}
-              placeholder="5551234567"
-              pattern="[0-9]*"
-              title="Please enter numbers only"
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              placeholder="(555) 123-4567"
             />
           </div>
           <LocationAutocomplete
