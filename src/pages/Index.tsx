@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight } from "lucide-react";
@@ -7,7 +8,40 @@ import Navigation from "@/components/Navigation";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, profile } = useAuth();
+  const { isAuthenticated, profile, loading } = useAuth();
+
+  const handleDashboardNavigation = () => {
+    console.log('Dashboard navigation clicked:', { isAuthenticated, profile, loading });
+    
+    if (!isAuthenticated) {
+      console.log('User not authenticated, redirecting to auth');
+      navigate('/auth');
+      return;
+    }
+
+    if (profile?.role === 'student') {
+      console.log('Navigating to student dashboard');
+      navigate('/student-dashboard');
+    } else if (profile?.role === 'recruiter') {
+      console.log('Navigating to recruiter dashboard');
+      navigate('/recruiter-dashboard');
+    } else {
+      console.log('No profile role found, redirecting to auth');
+      navigate('/auth');
+    }
+  };
+
+  // Show loading state while auth is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <Navigation />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -44,26 +78,14 @@ const Index = () => {
             
             {isAuthenticated ? (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {profile?.role === 'student' && (
-                  <Button 
-                    size="lg" 
-                    onClick={() => navigate('/student-dashboard')}
-                    className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
-                  >
-                    Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                )}
-                {profile?.role === 'recruiter' && (
-                  <Button 
-                    size="lg" 
-                    onClick={() => navigate('/recruiter-dashboard')}
-                    className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
-                  >
-                    Find Talent
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                )}
+                <Button 
+                  size="lg" 
+                  onClick={handleDashboardNavigation}
+                  className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
+                >
+                  {profile?.role === 'student' ? 'Go to Dashboard' : profile?.role === 'recruiter' ? 'Find Talent' : 'Go to Dashboard'}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
             ) : (
               <div className="flex justify-center">
