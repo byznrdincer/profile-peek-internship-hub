@@ -21,13 +21,16 @@ interface ProfileFormData {
 interface ProfileFormProps {
   initialData: ProfileFormData;
   onUpdate: (data: ProfileFormData) => void;
+  loading?: boolean;
 }
 
-const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
+const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: ProfileFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(initialData);
+
+  const isLoading = loading || externalLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +91,7 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
               placeholder="Your Name"
               pattern="[A-Za-z\s]+"
               title="Please enter a valid name (letters and spaces only)"
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -98,6 +102,7 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
               value={formData.company_name}
               onChange={(e) => setFormData({...formData, company_name: e.target.value})}
               placeholder="Your Company"
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -108,6 +113,7 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
               value={formData.position}
               onChange={(e) => setFormData({...formData, position: e.target.value})}
               placeholder="HR Manager, Technical Recruiter, etc."
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -123,6 +129,7 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
               placeholder="5551234567"
               pattern="[0-9]*"
               title="Please enter numbers only"
+              disabled={isLoading}
             />
           </div>
           <LocationAutocomplete
@@ -130,13 +137,14 @@ const ProfileForm = ({ initialData, onUpdate }: ProfileFormProps) => {
             onChange={(value) => setFormData({...formData, location: value})}
             placeholder="New York, NY, USA"
             label="Location"
+            disabled={isLoading}
           />
           <Button 
             type="submit" 
             className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? "Saving..." : "Update Profile"}
+            {isLoading ? "Loading..." : "Update Profile"}
           </Button>
         </form>
       </CardContent>
