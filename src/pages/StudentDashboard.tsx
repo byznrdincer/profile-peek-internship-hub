@@ -28,6 +28,12 @@ const StudentDashboard = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   
+  // Generate graduation year options from 2020 to 2030
+  const graduationYearOptions = Array.from({ length: 11 }, (_, i) => {
+    const year = 2020 + i;
+    return year.toString();
+  });
+  
   // Comprehensive skills list (2000+ skills across all engineering branches + top internship skills)
   const commonSkills = [
     // Technical Programming Skills
@@ -725,12 +731,21 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <Label htmlFor="graduationYear">Graduation Year</Label>
-                  <Input
-                    id="graduationYear"
+                  <Select
                     value={formData.graduation_year}
-                    onChange={(e) => setFormData({...formData, graduation_year: e.target.value})}
-                    placeholder="2024"
-                  />
+                    onValueChange={(value) => setFormData({...formData, graduation_year: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select graduation year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {graduationYearOptions.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <LocationAutocomplete
