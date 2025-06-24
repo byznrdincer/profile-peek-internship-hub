@@ -15,6 +15,7 @@ import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import VideoUpload from "@/components/VideoUpload";
+import ProfileCompletionCard from "@/components/ProfileCompletionCard";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -27,6 +28,7 @@ const StudentDashboard = () => {
   const [profileViews, setProfileViews] = useState(0);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
   
   // Generate graduation year options from 2015 to 2030
   const graduationYearOptions = Array.from({ length: 16 }, (_, i) => {
@@ -323,6 +325,7 @@ const StudentDashboard = () => {
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
       setExistingResumeUrl(profile.resume_url);
+      setStudentProfile(profile);
     }
   };
 
@@ -648,7 +651,7 @@ const StudentDashboard = () => {
           <p className="text-xl text-gray-600">Build your profile and get discovered by top recruiters</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-90">Profile Views</CardTitle>
@@ -681,6 +684,16 @@ const StudentDashboard = () => {
               <p className="text-xs opacity-90">Showcase your work</p>
             </CardContent>
           </Card>
+
+          {studentProfile && (
+            <div className="md:col-span-1">
+              <ProfileCompletionCard student={{
+                ...studentProfile,
+                skills,
+                projects
+              }} />
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
