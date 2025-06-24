@@ -397,6 +397,12 @@ const StudentDashboard = () => {
     setProjects(projects.filter((_, i) => i !== index));
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove all non-numeric characters except parentheses, spaces, and dashes
+    const value = e.target.value.replace(/[^\d\s()-]/g, '');
+    setFormData({...formData, phone: value});
+  };
+
   const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -719,9 +725,12 @@ const StudentDashboard = () => {
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
+                    type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={handlePhoneChange}
                     placeholder="(555) 123-4567"
+                    pattern="[0-9\s()-]*"
+                    inputMode="numeric"
                   />
                 </div>
                 <div>
