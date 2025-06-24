@@ -398,9 +398,17 @@ const StudentDashboard = () => {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove all non-numeric characters except parentheses, spaces, and dashes
-    const value = e.target.value.replace(/[^\d\s()-]/g, '');
-    setFormData({...formData, phone: value});
+    // Only allow digits, spaces, parentheses, and dashes
+    const inputValue = e.target.value;
+    const cleanedValue = inputValue.replace(/[^0-9\s()-]/g, '');
+    
+    // Prevent input if it contains any non-allowed characters
+    if (cleanedValue !== inputValue) {
+      // If the cleaned value is different, it means there were invalid characters
+      return;
+    }
+    
+    setFormData({...formData, phone: cleanedValue});
   };
 
   const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -728,6 +736,12 @@ const StudentDashboard = () => {
                     type="tel"
                     value={formData.phone}
                     onChange={handlePhoneChange}
+                    onKeyPress={(e) => {
+                      // Prevent typing non-numeric characters
+                      if (!/[0-9\s()-]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                        e.preventDefault();
+                      }
+                    }}
                     placeholder="(555) 123-4567"
                     pattern="[0-9\s()-]*"
                     inputMode="numeric"
