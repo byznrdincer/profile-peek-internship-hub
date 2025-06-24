@@ -9,9 +9,10 @@ interface LocationAutocompleteProps {
   onChange: (value: string) => void;
   placeholder?: string;
   label?: string;
+  disabled?: boolean;
 }
 
-const LocationAutocomplete = ({ value, onChange, placeholder = "Enter location...", label }: LocationAutocompleteProps) => {
+const LocationAutocomplete = ({ value, onChange, placeholder = "Enter location...", label, disabled }: LocationAutocompleteProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -146,10 +147,11 @@ const LocationAutocomplete = ({ value, onChange, placeholder = "Enter location..
             onFocus={handleInputFocus}
             placeholder={placeholder}
             className="pl-10"
+            disabled={disabled}
           />
         </div>
         
-        {showSuggestions && filteredSuggestions.length > 0 && (
+        {showSuggestions && filteredSuggestions.length > 0 && !disabled && (
           <Card className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto">
             <CardContent className="p-0">
               {filteredSuggestions.map((suggestion, index) => (
