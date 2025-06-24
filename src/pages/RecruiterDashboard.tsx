@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,8 +11,9 @@ import StudentList from "@/components/recruiter/StudentList";
 
 const RecruiterDashboard = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [students, setStudents] = useState<any[]>([]);
   const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
@@ -61,13 +61,14 @@ const RecruiterDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
+      console.log('User authenticated, loading recruiter data...');
       loadProfile();
       loadStudents();
       loadStats();
       loadBookmarkedStudents();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   // Filter and sort students based on major filter, skill filter, location filter, and activity
   useEffect(() => {
@@ -127,27 +128,82 @@ const RecruiterDashboard = () => {
   }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadProfile = async () => {
-    if (!user) return;
-
-    const { data: profile, error } = await supabase
-      .from('recruiter_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (error) {
-      console.error('Error loading profile:', error);
+    if (!user) {
+      console.log('No user found, cannot load profile');
+      setProfileLoading(false);
       return;
     }
 
-    if (profile) {
-      setFormData({
-        name: profile.name || "",
-        phone: profile.phone || "",
-        company_name: profile.company_name || "",
-        position: profile.position || "",
-        location: profile.location || "",
+    setProfileLoading(true);
+    console.log('Loading recruiter profile for user:', user.id);
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('recruiter_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        
+        // If no profile exists, create one
+        if (error.code === 'PGRST116') {
+          console.log('No profile found, creating new recruiter profile...');
+          const { data: newProfile, error: createError } = await supabase
+            .from('recruiter_profiles')
+            .insert([{
+              user_id: user.id,
+              name: user.user_metadata?.name || '',
+              company_name: '',
+              position: '',
+              phone: '',
+              location: ''
+            }])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            toast({
+              title: "Error creating profile",
+              description: "There was an error creating your recruiter profile.",
+              variant: "destructive",
+            });
+          } else {
+            console.log('New profile created:', newProfile);
+            setFormData({
+              name: newProfile.name || "",
+              phone: newProfile.phone || "",
+              company_name: newProfile.company_name || "",
+              position: newProfile.position || "",
+              location: newProfile.location || "",
+            });
+          }
+        }
+        setProfileLoading(false);
+        return;
+      }
+
+      console.log('Profile loaded successfully:', profile);
+      if (profile) {
+        setFormData({
+          name: profile.name || "",
+          phone: profile.phone || "",
+          company_name: profile.company_name || "",
+          position: profile.position || "",
+          location: profile.location || "",
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected error loading profile:', error);
+      toast({
+        title: "Error loading profile",
+        description: "There was an unexpected error loading your profile.",
+        variant: "destructive",
       });
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -356,6 +412,15 @@ const RecruiterDashboard = () => {
     );
   }
 
+  // Show loading spinner while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <Navigation />
@@ -372,7 +437,8 @@ const RecruiterDashboard = () => {
           <div className="space-y-6">
             <ProfileForm 
               initialData={formData} 
-              onUpdate={(data) => setFormData(data)} 
+              onUpdate={(data) => setFormData(data)}
+              loading={profileLoading}
             />
           </div>
 
