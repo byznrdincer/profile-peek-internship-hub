@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, Play, Github, Linkedin, ExternalLink, Clock, DollarSign, MapPinIcon, Banknote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import ProfileCompletionCard from "./ProfileCompletionCard";
 import BookmarkButton from "./BookmarkButton";
 
 interface StudentProfileProps {
@@ -329,9 +328,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Profile Completion */}
-            <ProfileCompletionCard student={student} />
-
             {/* Actions */}
             <Card>
               <CardHeader>
