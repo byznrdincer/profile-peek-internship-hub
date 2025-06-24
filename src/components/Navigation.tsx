@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Home, User, Users, LogOut, Menu, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -19,11 +19,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ProfileForm from "@/components/recruiter/ProfileForm";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, profile, signOut } = useAuth();
+  const { isAuthenticated, profile, signOut, user } = useAuth();
+  const { toast } = useToast();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -32,6 +35,49 @@ const Navigation = () => {
     position: "",
     location: "",
   });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (isProfileDialogOpen && user && profile?.role === 'recruiter') {
+      loadRecruiterProfile();
+    }
+  }, [isProfileDialogOpen, user, profile]);
+
+  const loadRecruiterProfile = async () => {
+    if (!user) return;
+    
+    setProfileLoading(true);
+    try {
+      const { data: recruiterProfile, error } = await supabase
+        .from('recruiter_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+        throw error;
+      }
+
+      if (recruiterProfile) {
+        setFormData({
+          name: recruiterProfile.name || "",
+          phone: recruiterProfile.phone || "",
+          company_name: recruiterProfile.company_name || "",
+          position: recruiterProfile.position || "",
+          location: recruiterProfile.location || "",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading recruiter profile:', error);
+      toast({
+        title: "Error loading profile",
+        description: "There was an error loading your profile data.",
+        variant: "destructive",
+      });
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,6 +87,10 @@ const Navigation = () => {
   const handleProfileUpdate = (data: any) => {
     setFormData(data);
     setIsProfileDialogOpen(false);
+    toast({
+      title: "Profile updated successfully!",
+      description: "Your recruiter profile has been saved.",
+    });
   };
 
   return (
@@ -126,7 +176,7 @@ const Navigation = () => {
                                     <ProfileForm
                                       initialData={formData}
                                       onUpdate={handleProfileUpdate}
-                                      loading={false}
+                                      loading={profileLoading}
                                     />
                                   </DialogContent>
                                 </Dialog>
