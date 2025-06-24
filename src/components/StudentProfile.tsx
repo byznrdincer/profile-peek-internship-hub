@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -146,7 +147,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                     <div className="flex items-center gap-4 text-gray-600">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
-                        {student.university}
+                        {student.location || 'Location not specified'}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
@@ -154,6 +155,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                       </span>
                     </div>
                     <p className="text-lg text-gray-700 mt-2">{student.major}</p>
+                    <p className="text-sm text-gray-600 mt-1">{student.university}</p>
                     
                     {/* Updated availability and preferences section with new internship preferences */}
                     <div className="flex flex-wrap gap-4 mt-4">
