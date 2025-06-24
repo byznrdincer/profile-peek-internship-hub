@@ -1,11 +1,18 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, X } from "lucide-react";
-import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { X, Filter } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface StudentFiltersProps {
   majorFilter: string;
@@ -38,95 +45,163 @@ const StudentFilters = ({
   onClearFilters,
   hasActiveFilters,
   filteredCount,
-  totalCount
+  totalCount,
 }: StudentFiltersProps) => {
+  // Generate graduation year options from 2015 to 2030
+  const graduationYearOptions = Array.from({ length: 16 }, (_, i) => {
+    const year = 2015 + i;
+    return year.toString();
+  });
+
+  const internshipTypes = [
+    "Full-time",
+    "Part-time", 
+    "Remote",
+    "On-site",
+    "Hybrid"
+  ];
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search className="h-5 w-5" />
-          Find Students
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Filter Students
+            </h3>
+          </div>
+          <div className="text-sm text-gray-600">
+            Showing {filteredCount} of {totalCount} students
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div>
-            <Label htmlFor="majorFilter">Major</Label>
+            <Label htmlFor="major">Major</Label>
             <Input
-              id="majorFilter"
-              type="text"
+              id="major"
+              placeholder="Filter by major..."
               value={majorFilter}
               onChange={(e) => setMajorFilter(e.target.value)}
-              placeholder="Computer Science, Engineering..."
-              pattern="[A-Za-z\s]+"
-              title="Please enter a valid major (letters and spaces only)"
             />
           </div>
+
           <div>
-            <Label htmlFor="skillFilter">Skills</Label>
+            <Label htmlFor="skill">Skills</Label>
             <Input
-              id="skillFilter"
-              type="text"
+              id="skill"
+              placeholder="Filter by skills..."
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
-              placeholder="React, Python, ML..."
             />
           </div>
-          <LocationAutocomplete
-            value={locationFilter}
-            onChange={setLocationFilter}
-            placeholder="Filter by location..."
-            label="Location"
-          />
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              placeholder="Filter by location..."
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+            />
+          </div>
+
           <div>
             <Label htmlFor="graduationYear">Graduation Year</Label>
-            <Select value={graduationYearFilter} onValueChange={setGraduationYearFilter}>
+            <Select
+              value={graduationYearFilter}
+              onValueChange={setGraduationYearFilter}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Any year" />
+                <SelectValue placeholder="Select year" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2025">2025</SelectItem>
-                <SelectItem value="2026">2026</SelectItem>
-                <SelectItem value="2027">2027</SelectItem>
+                {graduationYearOptions.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          
+
           <div>
             <Label htmlFor="internshipType">Internship Type</Label>
-            <Select value={internshipTypeFilter} onValueChange={setInternshipTypeFilter}>
+            <Select
+              value={internshipTypeFilter}
+              onValueChange={setInternshipTypeFilter}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Any type" />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paid">Paid Only</SelectItem>
-                <SelectItem value="unpaid">Unpaid Only</SelectItem>
-                <SelectItem value="both">Both Paid & Unpaid</SelectItem>
+                {internshipTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          
-          <div className="flex items-end">
+        </div>
+
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {majorFilter && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Major: {majorFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setMajorFilter("")}
+                />
+              </Badge>
+            )}
+            {skillFilter && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Skill: {skillFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setSkillFilter("")}
+                />
+              </Badge>
+            )}
+            {locationFilter && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Location: {locationFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setLocationFilter("")}
+                />
+              </Badge>
+            )}
+            {graduationYearFilter && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Year: {graduationYearFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setGraduationYearFilter("")}
+                />
+              </Badge>
+            )}
+            {internshipTypeFilter && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Type: {internshipTypeFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setInternshipTypeFilter("")}
+                />
+              </Badge>
+            )}
             <Button
               variant="outline"
+              size="sm"
               onClick={onClearFilters}
-              disabled={!hasActiveFilters}
-              className="w-full"
+              className="ml-auto"
             >
-              <X className="h-4 w-4 mr-2" />
-              Clear Filters
+              Clear All
             </Button>
-          </div>
-        </div>
-        
-        {hasActiveFilters && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Filter className="h-4 w-4" />
-            <span>Showing {filteredCount} of {totalCount} students</span>
           </div>
         )}
       </CardContent>

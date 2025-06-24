@@ -28,9 +28,9 @@ const StudentDashboard = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   
-  // Generate graduation year options from 2020 to 2030
-  const graduationYearOptions = Array.from({ length: 11 }, (_, i) => {
-    const year = 2020 + i;
+  // Generate graduation year options from 2015 to 2030
+  const graduationYearOptions = Array.from({ length: 16 }, (_, i) => {
+    const year = 2015 + i;
     return year.toString();
   });
   
