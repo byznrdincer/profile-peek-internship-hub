@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import StudentProfile from "@/components/StudentProfile";
 import StatsCards from "@/components/recruiter/StatsCards";
-import ProfileForm from "@/components/recruiter/ProfileForm";
 import StudentFilters from "@/components/recruiter/StudentFilters";
 import StudentList from "@/components/recruiter/StudentList";
 
@@ -13,7 +12,6 @@ const RecruiterDashboard = () => {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(true);
   const [students, setStudents] = useState<any[]>([]);
   const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
@@ -28,14 +26,6 @@ const RecruiterDashboard = () => {
     totalStudents: 0,
     totalViews: 0,
     newProfiles: 0
-  });
-  
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    company_name: "",
-    position: "",
-    location: "",
   });
 
   const getActivityStatus = (lastLoginAt: string | null) => {
@@ -63,7 +53,6 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     if (user && !authLoading) {
       console.log('User authenticated, loading recruiter data...');
-      loadProfile();
       loadStudents();
       loadStats();
       loadBookmarkedStudents();
@@ -126,86 +115,6 @@ const RecruiterDashboard = () => {
     
     setFilteredStudents(filtered);
   }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
-
-  const loadProfile = async () => {
-    if (!user) {
-      console.log('No user found, cannot load profile');
-      setProfileLoading(false);
-      return;
-    }
-
-    setProfileLoading(true);
-    console.log('Loading recruiter profile for user:', user.id);
-
-    try {
-      const { data: profile, error } = await supabase
-        .from('recruiter_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error loading profile:', error);
-        
-        // If no profile exists, create one
-        if (error.code === 'PGRST116') {
-          console.log('No profile found, creating new recruiter profile...');
-          const { data: newProfile, error: createError } = await supabase
-            .from('recruiter_profiles')
-            .insert([{
-              user_id: user.id,
-              name: user.user_metadata?.name || '',
-              company_name: '',
-              position: '',
-              phone: '',
-              location: ''
-            }])
-            .select()
-            .single();
-
-          if (createError) {
-            console.error('Error creating profile:', createError);
-            toast({
-              title: "Error creating profile",
-              description: "There was an error creating your recruiter profile.",
-              variant: "destructive",
-            });
-          } else {
-            console.log('New profile created:', newProfile);
-            setFormData({
-              name: newProfile.name || "",
-              phone: newProfile.phone || "",
-              company_name: newProfile.company_name || "",
-              position: newProfile.position || "",
-              location: newProfile.location || "",
-            });
-          }
-        }
-        setProfileLoading(false);
-        return;
-      }
-
-      console.log('Profile loaded successfully:', profile);
-      if (profile) {
-        setFormData({
-          name: profile.name || "",
-          phone: profile.phone || "",
-          company_name: profile.company_name || "",
-          position: profile.position || "",
-          location: profile.location || "",
-        });
-      }
-    } catch (error) {
-      console.error('Unexpected error loading profile:', error);
-      toast({
-        title: "Error loading profile",
-        description: "There was an unexpected error loading your profile.",
-        variant: "destructive",
-      });
-    } finally {
-      setProfileLoading(false);
-    }
-  };
 
   const loadStudents = async () => {
     setLoading(true);
@@ -433,46 +342,36 @@ const RecruiterDashboard = () => {
 
         <StatsCards stats={stats} bookmarkedCount={bookmarkedStudents.length} />
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="space-y-6">
-            <ProfileForm 
-              initialData={formData} 
-              onUpdate={(data) => setFormData(data)}
-              loading={profileLoading}
-            />
-          </div>
+        <div className="space-y-6">
+          <StudentFilters
+            majorFilter={majorFilter}
+            setMajorFilter={setMajorFilter}
+            skillFilter={skillFilter}
+            setSkillFilter={setSkillFilter}
+            locationFilter={locationFilter}
+            setLocationFilter={setLocationFilter}
+            graduationYearFilter={graduationYearFilter}
+            setGraduationYearFilter={setGraduationYearFilter}
+            internshipTypeFilter={internshipTypeFilter}
+            setInternshipTypeFilter={setInternshipTypeFilter}
+            onClearFilters={clearAllFilters}
+            hasActiveFilters={hasActiveFilters}
+            filteredCount={filteredStudents.length}
+            totalCount={activeTab === "bookmarks" ? bookmarkedStudents.length : students.length}
+          />
 
-          <div className="lg:col-span-2 space-y-6">
-            <StudentFilters
-              majorFilter={majorFilter}
-              setMajorFilter={setMajorFilter}
-              skillFilter={skillFilter}
-              setSkillFilter={setSkillFilter}
-              locationFilter={locationFilter}
-              setLocationFilter={setLocationFilter}
-              graduationYearFilter={graduationYearFilter}
-              setGraduationYearFilter={setGraduationYearFilter}
-              internshipTypeFilter={internshipTypeFilter}
-              setInternshipTypeFilter={setInternshipTypeFilter}
-              onClearFilters={clearAllFilters}
-              hasActiveFilters={hasActiveFilters}
-              filteredCount={filteredStudents.length}
-              totalCount={activeTab === "bookmarks" ? bookmarkedStudents.length : students.length}
-            />
-
-            <StudentList
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              loading={loading}
-              filteredStudents={filteredStudents}
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={clearAllFilters}
-              onViewProfile={handleViewProfile}
-              onBookmarkChange={handleBookmarkChange}
-              studentsCount={students.length}
-              bookmarkedCount={bookmarkedStudents.length}
-            />
-          </div>
+          <StudentList
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            loading={loading}
+            filteredStudents={filteredStudents}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={clearAllFilters}
+            onViewProfile={handleViewProfile}
+            onBookmarkChange={handleBookmarkChange}
+            studentsCount={students.length}
+            bookmarkedCount={bookmarkedStudents.length}
+          />
         </div>
       </div>
     </div>

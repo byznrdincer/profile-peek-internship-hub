@@ -1,6 +1,7 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Home, User, Users, LogOut, Menu } from "lucide-react";
+import { Briefcase, Home, User, Users, LogOut, Menu, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -10,15 +11,36 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import ProfileForm from "@/components/recruiter/ProfileForm";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, profile, signOut } = useAuth();
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    company_name: "",
+    position: "",
+    location: "",
+  });
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleProfileUpdate = (data: any) => {
+    setFormData(data);
+    setIsProfileDialogOpen(false);
   };
 
   return (
@@ -71,17 +93,44 @@ const Navigation = () => {
                             )}
                             
                             {profile?.role === 'recruiter' && (
-                              <Button
-                                variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
-                                onClick={() => navigate('/recruiter-dashboard')}
-                                className="justify-start gap-2 h-auto p-2"
-                              >
-                                <Users className="h-4 w-4" />
-                                <div className="text-left">
-                                  <div className="font-medium">Recruiter Dashboard</div>
-                                  <div className="text-xs text-muted-foreground">Find talented students</div>
-                                </div>
-                              </Button>
+                              <>
+                                <Button
+                                  variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
+                                  onClick={() => navigate('/recruiter-dashboard')}
+                                  className="justify-start gap-2 h-auto p-2"
+                                >
+                                  <Users className="h-4 w-4" />
+                                  <div className="text-left">
+                                    <div className="font-medium">Recruiter Dashboard</div>
+                                    <div className="text-xs text-muted-foreground">Find talented students</div>
+                                  </div>
+                                </Button>
+                                
+                                <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      className="justify-start gap-2 h-auto p-2"
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                      <div className="text-left">
+                                        <div className="font-medium">My Profile</div>
+                                        <div className="text-xs text-muted-foreground">Update recruiter profile</div>
+                                      </div>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                      <DialogTitle>Recruiter Profile</DialogTitle>
+                                    </DialogHeader>
+                                    <ProfileForm
+                                      initialData={formData}
+                                      onUpdate={handleProfileUpdate}
+                                      loading={false}
+                                    />
+                                  </DialogContent>
+                                </Dialog>
+                              </>
                             )}
                             
                             <div className="border-t pt-2">
