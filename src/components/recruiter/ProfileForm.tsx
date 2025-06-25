@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +30,11 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
   const [formData, setFormData] = useState(initialData);
 
   const isLoading = loading || externalLoading;
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    setFormData(initialData);
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
