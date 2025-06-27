@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,10 +65,23 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
   };
 
   const handleContact = () => {
+    console.log('Student data:', student);
+    console.log('Student email:', student.email);
+    
+    if (!student.email) {
+      toast({
+        title: "Email not available",
+        description: "This student's email address is not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const subject = encodeURIComponent(`Regarding your profile on InternUpload`);
     const body = encodeURIComponent(`Hi ${student.name},\n\nI found your profile on InternUpload and would like to discuss potential opportunities.\n\nBest regards`);
     const mailtoUrl = `mailto:${student.email}?subject=${subject}&body=${body}`;
     
+    console.log('Opening mailto URL:', mailtoUrl);
     window.open(mailtoUrl, '_blank');
     
     toast({
@@ -200,6 +214,11 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                     <p className="text-sm text-gray-500">
                       <strong>Phone:</strong> {student.phone}
                     </p>
+                    {student.email && (
+                      <p className="text-sm text-gray-500">
+                        <strong>Email:</strong> {student.email}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -367,9 +386,10 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   onClick={handleContact}
                   variant="outline"
                   className="w-full"
+                  disabled={!student.email}
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Contact Student
+                  {student.email ? "Contact Student" : "Email Not Available"}
                 </Button>
               </CardContent>
             </Card>
