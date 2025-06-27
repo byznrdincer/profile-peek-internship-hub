@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -447,7 +448,15 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 {student.projects?.map((project: any, index: number) => (
                   <div key={index} className="border-l-4 border-blue-200 pl-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-lg font-semibold text-gray-900">{project.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-semibold text-gray-900">{project.title}</h4>
+                        {project.video_url && (
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1">
+                            <Video className="h-3 w-3" />
+                            Video Available
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         {project.demo_url && (
                           <Button
@@ -480,12 +489,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                           {tech}
                         </Badge>
                       ))}
-                      {project.video_url && (
-                        <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-600 flex items-center gap-1">
-                          <Video className="h-3 w-3" />
-                          Video Available
-                        </Badge>
-                      )}
                       {project.demo_url && (
                         <Badge variant="default" className="text-xs bg-purple-500 hover:bg-purple-600 flex items-center gap-1">
                           <ExternalLink className="h-3 w-3" />
