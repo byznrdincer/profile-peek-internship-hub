@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download, Github, Globe, Linkedin, DollarSign } from "lucide-react";
+import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download, Github, Globe, Linkedin, DollarSign, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,7 @@ const StudentDashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
+  const [deletingResume, setDeletingResume] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
   const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[], video_url?: string}>>([]);
@@ -530,6 +531,59 @@ const StudentDashboard = () => {
     }
   };
 
+  const deleteResume = async () => {
+    if (!existingResumeUrl || !user) return;
+
+    setDeletingResume(true);
+    try {
+      // Extract the file path from the URL
+      const urlParts = existingResumeUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `${user.id}/${fileName}`;
+      
+      // Delete file from storage
+      const { error: deleteError } = await supabase.storage
+        .from('resumes')
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
+      }
+
+      // Update profile to remove resume info
+      const { error: updateError } = await supabase
+        .from('student_profiles')
+        .update({ 
+          resume_url: null,
+          resume_filename: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+
+      setExistingResumeUrl(null);
+      
+      toast({
+        title: "Resume deleted",
+        description: "Your resume has been removed successfully.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting resume:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingResume(false);
+    }
+  };
+
   const downloadResume = async () => {
     if (!existingResumeUrl || !user) return;
 
@@ -907,15 +961,28 @@ const StudentDashboard = () => {
                     <FileText className="h-5 w-5 text-green-600" />
                     <span className="text-sm text-green-700">Resume uploaded successfully</span>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={downloadResume}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadResume}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={deleteResume}
+                      disabled={deletingResume}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {deletingResume ? "Deleting..." : "Delete"}
+                    </Button>
+                  </div>
                 </div>
               )}
               
