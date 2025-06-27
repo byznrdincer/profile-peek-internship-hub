@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, MapPin, Calendar, Code, Trophy, Video, DollarSign, Briefcase, Activity } from "lucide-react";
+import { Eye, MapPin, Calendar, Code, Trophy, Video, Briefcase, Activity } from "lucide-react";
 import BookmarkButton from "@/components/BookmarkButton";
 
 interface StudentCardProps {
@@ -53,12 +53,6 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
               <Badge variant="default" className="bg-purple-500 hover:bg-purple-600 flex items-center gap-1">
                 <Video className="h-3 w-3" />
                 {projectsWithVideos} Video{projectsWithVideos > 1 ? 's' : ''}
-              </Badge>
-            )}
-            {student.stipend_expectation && (
-              <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-200">
-                <DollarSign className="h-3 w-3" />
-                {student.stipend_expectation}
               </Badge>
             )}
             {student.internship_type_preference && (
