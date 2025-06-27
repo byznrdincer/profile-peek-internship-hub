@@ -165,16 +165,16 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                           {student.availability_status}
                         </Badge>
                       )}
-                      {student.preferred_location && (
+                      {student.preferred_internship_location && (
                         <Badge variant="outline" className="flex items-center gap-1">
                           <MapPinIcon className="h-3 w-3" />
-                          {student.preferred_location}
+                          Prefers: {student.preferred_internship_location}
                         </Badge>
                       )}
-                      {student.salary_expectation && (
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          {student.salary_expectation}
+                      {student.open_to_relocate && (
+                        <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                          <MapPinIcon className="h-3 w-3" />
+                          Open to Relocate
                         </Badge>
                       )}
                       {student.internship_type_preference && (
@@ -212,31 +212,64 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               </CardContent>
             </Card>
 
-            {/* New Internship Preferences Card */}
-            {(student.internship_type_preference || student.stipend_expectation) && (
+            {/* Location & Internship Preferences Card */}
+            {(student.internship_type_preference || student.preferred_internship_location || student.open_to_relocate || student.stipend_expectation) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Banknote className="h-5 w-5" />
-                    Internship Preferences
+                    <MapPinIcon className="h-5 w-5" />
+                    Location & Internship Preferences
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {student.internship_type_preference && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Location Preferences */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900">Location Preferences</h4>
+                      
+                      {student.preferred_internship_location && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Preferred Location</p>
+                          <p className="text-gray-900">{student.preferred_internship_location}</p>
+                        </div>
+                      )}
+                      
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Internship Type</h4>
-                        <Badge className={`${getInternshipTypeBadgeColor(student.internship_type_preference)} text-white`}>
-                          {getInternshipTypeDisplay(student.internship_type_preference)}
-                        </Badge>
+                        <p className="text-sm font-medium text-gray-600">Open to Relocate</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {student.open_to_relocate ? (
+                            <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                              Yes, willing to relocate
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              Prefers current location
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    {student.stipend_expectation && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Stipend Expectation</h4>
-                        <p className="text-gray-600">{student.stipend_expectation}</p>
-                      </div>
-                    )}
+                    </div>
+
+                    {/* Internship Type & Compensation */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900">Internship Preferences</h4>
+                      
+                      {student.internship_type_preference && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Internship Type</p>
+                          <Badge className={`mt-1 ${getInternshipTypeBadgeColor(student.internship_type_preference)} text-white`}>
+                            {getInternshipTypeDisplay(student.internship_type_preference)}
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      {student.stipend_expectation && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Stipend Expectation</p>
+                          <p className="text-gray-900">{student.stipend_expectation}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -432,6 +465,18 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Internship Type</span>
                     <span className="font-semibold">{getInternshipTypeDisplay(student.internship_type_preference)}</span>
+                  </div>
+                )}
+                {student.preferred_internship_location && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Preferred Location</span>
+                    <span className="font-semibold">{student.preferred_internship_location}</span>
+                  </div>
+                )}
+                {student.open_to_relocate !== null && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Open to Relocate</span>
+                    <span className="font-semibold">{student.open_to_relocate ? "Yes" : "No"}</span>
                   </div>
                 )}
                 {student.stipend_expectation && (
