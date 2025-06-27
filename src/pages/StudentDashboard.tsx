@@ -10,6 +10,7 @@ import InternshipPreferencesSection from "@/components/student/InternshipPrefere
 import ResumeUploadSection from "@/components/student/ResumeUploadSection";
 import SkillsSection from "@/components/student/SkillsSection";
 import ProjectsSection from "@/components/student/ProjectsSection";
+import CertificationsSection from "@/components/student/CertificationsSection";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
@@ -17,6 +18,17 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[], video_url?: string}>>([]);
+  const [certifications, setCertifications] = useState<Array<{
+    id?: string;
+    certification_name: string;
+    issuing_organization: string;
+    issue_date: string;
+    expiry_date: string;
+    credential_id: string;
+    credential_url: string;
+    certificate_file_url?: string;
+    certificate_filename?: string;
+  }>>([]);
   const [profileViews, setProfileViews] = useState(0);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   const [studentProfile, setStudentProfile] = useState<any>(null);
@@ -282,6 +294,7 @@ const StudentDashboard = () => {
     if (user) {
       loadProfile();
       loadProjects();
+      loadCertifications();
     }
   }, [user]);
 
@@ -349,6 +362,37 @@ const StudentDashboard = () => {
     }
   };
 
+  const loadCertifications = async () => {
+    if (!user) return;
+
+    const { data: studentProfile } = await supabase
+      .from('student_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (studentProfile) {
+      const { data: certificationsData, error } = await supabase
+        .from('student_certifications')
+        .select('*')
+        .eq('student_id', studentProfile.id);
+
+      if (!error && certificationsData) {
+        setCertifications(certificationsData.map(cert => ({
+          id: cert.id,
+          certification_name: cert.certification_name,
+          issuing_organization: cert.issuing_organization || "",
+          issue_date: cert.issue_date || "",
+          expiry_date: cert.expiry_date || "",
+          credential_id: cert.credential_id || "",
+          credential_url: cert.credential_url || "",
+          certificate_file_url: cert.certificate_file_url,
+          certificate_filename: cert.certificate_filename
+        })));
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -381,7 +425,7 @@ const StudentDashboard = () => {
 
       if (profileError) throw profileError;
 
-      // Get student profile ID for projects
+      // Get student profile ID for projects and certifications
       const { data: studentProfile } = await supabase
         .from('student_profiles')
         .select('id')
@@ -413,6 +457,37 @@ const StudentDashboard = () => {
               .insert(projectsToInsert);
 
             if (projectsError) throw projectsError;
+          }
+        }
+
+        // Delete existing certifications
+        await supabase
+          .from('student_certifications')
+          .delete()
+          .eq('student_id', studentProfile.id);
+
+        // Insert new certifications
+        if (certifications.length > 0) {
+          const certificationsToInsert = certifications
+            .filter(cert => cert.certification_name.trim())
+            .map(certification => ({
+              student_id: studentProfile.id,
+              certification_name: certification.certification_name,
+              issuing_organization: certification.issuing_organization,
+              issue_date: certification.issue_date || null,
+              expiry_date: certification.expiry_date || null,
+              credential_id: certification.credential_id,
+              credential_url: certification.credential_url,
+              certificate_file_url: certification.certificate_file_url,
+              certificate_filename: certification.certificate_filename
+            }));
+
+          if (certificationsToInsert.length > 0) {
+            const { error: certificationsError } = await supabase
+              .from('student_certifications')
+              .insert(certificationsToInsert);
+
+            if (certificationsError) throw certificationsError;
           }
         }
       }
@@ -479,6 +554,11 @@ const StudentDashboard = () => {
             projects={projects}
             setProjects={setProjects}
             commonSkills={commonSkills}
+          />
+
+          <CertificationsSection
+            certifications={certifications}
+            setCertifications={setCertifications}
           />
 
           <div className="flex justify-end">

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +5,7 @@ import { ArrowLeft, Download, Mail, MapPin, Calendar, Code, Trophy, Eye, Video, 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import BookmarkButton from "./BookmarkButton";
+import { useState, useEffect } from "react";
 
 interface StudentProfileProps {
   student: any;
@@ -14,6 +14,37 @@ interface StudentProfileProps {
 
 const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
   const { toast } = useToast();
+  const [certifications, setCertifications] = useState<any[]>([]);
+
+  // Load certifications when component mounts
+  useEffect(() => {
+    loadCertifications();
+  }, [student]);
+
+  const loadCertifications = async () => {
+    if (!student?.user_id) return;
+
+    try {
+      const { data: studentProfile } = await supabase
+        .from('student_profiles')
+        .select('id')
+        .eq('user_id', student.user_id)
+        .single();
+
+      if (studentProfile) {
+        const { data: certificationsData, error } = await supabase
+          .from('student_certifications')
+          .select('*')
+          .eq('student_id', studentProfile.id);
+
+        if (!error && certificationsData) {
+          setCertifications(certificationsData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading certifications:', error);
+    }
+  };
 
   const handleDownloadResume = async () => {
     if (!student.resume_url) {
@@ -129,6 +160,34 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
         return 'bg-purple-500 hover:bg-purple-600';
       default:
         return 'bg-gray-500 hover:bg-gray-600';
+    }
+  };
+
+  const handleDownloadCertificate = async (certification: any) => {
+    if (!certification.certificate_file_url) return;
+
+    try {
+      const response = await fetch(certification.certificate_file_url);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = certification.certificate_filename || 'certificate';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Certificate downloaded",
+        description: "Certificate has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the certificate.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -299,6 +358,83 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
               </CardContent>
             </Card>
 
+            {/* Certifications */}
+            {certifications.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Certifications ({certifications.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {certifications.map((certification: any, index: number) => (
+                    <div key={index} className="border-l-4 border-green-200 pl-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="text-lg font-semibold text-gray-900">{certification.certification_name}</h4>
+                        <div className="flex gap-2">
+                          {certification.credential_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(certification.credential_url, '_blank')}
+                              className="flex items-center gap-1"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Verify
+                            </Button>
+                          )}
+                          {certification.certificate_file_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadCertificate(certification)}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="h-3 w-3" />
+                              Certificate
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {certification.issuing_organization && (
+                        <p className="text-gray-600 mb-2">
+                          <strong>Issued by:</strong> {certification.issuing_organization}
+                        </p>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {certification.issue_date && (
+                          <Badge variant="outline" className="text-xs">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Issued: {new Date(certification.issue_date).toLocaleDateString()}
+                          </Badge>
+                        )}
+                        {certification.expiry_date && (
+                          <Badge variant="outline" className="text-xs">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Expires: {new Date(certification.expiry_date).toLocaleDateString()}
+                          </Badge>
+                        )}
+                        {certification.credential_id && (
+                          <Badge variant="secondary" className="text-xs">
+                            ID: {certification.credential_id}
+                          </Badge>
+                        )}
+                        {certification.certificate_file_url && (
+                          <Badge variant="default" className="text-xs bg-blue-500 hover:bg-blue-600 flex items-center gap-1">
+                            <Download className="h-3 w-3" />
+                            Certificate Available
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Projects */}
             <Card>
               <CardHeader>
@@ -466,6 +602,10 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Resume</span>
                   <span className="font-semibold">{student.resume_url ? "Available" : "Not uploaded"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Certifications</span>
+                  <span className="font-semibold">{certifications.length}</span>
                 </div>
                 {student.internship_type_preference && (
                   <div className="flex justify-between items-center">

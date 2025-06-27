@@ -137,6 +137,59 @@ export type Database = {
           },
         ]
       }
+      student_certifications: {
+        Row: {
+          certificate_file_url: string | null
+          certificate_filename: string | null
+          certification_name: string
+          created_at: string
+          credential_id: string | null
+          credential_url: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_file_url?: string | null
+          certificate_filename?: string | null
+          certification_name: string
+          created_at?: string
+          credential_id?: string | null
+          credential_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_file_url?: string | null
+          certificate_filename?: string | null
+          certification_name?: string
+          created_at?: string
+          credential_id?: string | null
+          credential_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_certifications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_profiles: {
         Row: {
           bio: string | null
