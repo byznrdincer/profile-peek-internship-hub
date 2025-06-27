@@ -273,6 +273,8 @@ const StudentDashboard = () => {
     website_url: "",
     linkedin_url: "",
     internship_type_preference: "",
+    preferred_internship_location: "",
+    open_to_relocate: false,
   });
 
   // Load existing profile data
@@ -310,6 +312,8 @@ const StudentDashboard = () => {
         website_url: profile.website_url || "",
         linkedin_url: profile.linkedin_url || "",
         internship_type_preference: profile.internship_type_preference || "",
+        preferred_internship_location: profile.preferred_internship_location || "",
+        open_to_relocate: profile.open_to_relocate || false,
       });
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
@@ -367,6 +371,8 @@ const StudentDashboard = () => {
           website_url: formData.website_url,
           linkedin_url: formData.linkedin_url,
           internship_type_preference: formData.internship_type_preference,
+          preferred_internship_location: formData.preferred_internship_location,
+          open_to_relocate: formData.open_to_relocate,
           skills: skills,
           updated_at: new Date().toISOString()
         }, {

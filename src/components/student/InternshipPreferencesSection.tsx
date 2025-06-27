@@ -2,7 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { DollarSign } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { DollarSign, MapPin } from "lucide-react";
 
 interface InternshipPreferencesSectionProps {
   formData: any;
@@ -18,7 +20,7 @@ const InternshipPreferencesSection = ({ formData, setFormData }: InternshipPrefe
           Internship Preferences
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div>
           <Label htmlFor="internship_type_preference">Internship Type Preference</Label>
           <Select
@@ -35,8 +37,42 @@ const InternshipPreferencesSection = ({ formData, setFormData }: InternshipPrefe
             </SelectContent>
           </Select>
         </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Location Preferences
+          </h3>
+          
+          <div>
+            <Label htmlFor="preferred_internship_location">Preferred Internship Location</Label>
+            <Input
+              id="preferred_internship_location"
+              value={formData.preferred_internship_location || ""}
+              onChange={(e) => setFormData({...formData, preferred_internship_location: e.target.value})}
+              placeholder="e.g., San Francisco, CA or Remote"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="open_to_relocate" className="text-base">
+                Open to Relocate
+              </Label>
+              <p className="text-sm text-gray-600">
+                I'm willing to relocate for the right internship opportunity
+              </p>
+            </div>
+            <Switch
+              id="open_to_relocate"
+              checked={formData.open_to_relocate || false}
+              onCheckedChange={(checked) => setFormData({...formData, open_to_relocate: checked})}
+            />
+          </div>
+        </div>
+
         <p className="text-sm text-gray-600">
-          Help recruiters understand your internship preferences.
+          Help recruiters understand your internship and location preferences.
         </p>
       </CardContent>
     </Card>
