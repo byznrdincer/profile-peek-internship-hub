@@ -1,33 +1,23 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Plus, X, User, FileText, Code, Trophy, Eye, Download, Github, Globe, Linkedin, DollarSign, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
-import SearchableMultiSelect from "@/components/SearchableMultiSelect";
-import EnhancedSearchableMultiSelect from "@/components/EnhancedSearchableMultiSelect";
-import LocationAutocomplete from "@/components/LocationAutocomplete";
-import VideoUpload from "@/components/VideoUpload";
-import ProfileCompletionCard from "@/components/ProfileCompletionCard";
+import StatsCards from "@/components/student/StatsCards";
+import PersonalInfoSection from "@/components/student/PersonalInfoSection";
+import InternshipPreferencesSection from "@/components/student/InternshipPreferencesSection";
+import ResumeUploadSection from "@/components/student/ResumeUploadSection";
+import SkillsSection from "@/components/student/SkillsSection";
+import ProjectsSection from "@/components/student/ProjectsSection";
 
 const StudentDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [uploadingResume, setUploadingResume] = useState(false);
-  const [deletingResume, setDeletingResume] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
-  const [currentSkill, setCurrentSkill] = useState("");
   const [projects, setProjects] = useState<Array<{id?: string, title: string, description: string, technologies: string[], video_url?: string}>>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   const [studentProfile, setStudentProfile] = useState<any>(null);
   
@@ -357,275 +347,6 @@ const StudentDashboard = () => {
     }
   };
 
-  const addSkill = () => {
-    if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
-      setSkills([...skills, currentSkill.trim()]);
-      setCurrentSkill("");
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
-  };
-
-  const addProject = () => {
-    setProjects([...projects, { title: "", description: "", technologies: [] }]);
-  };
-
-  const updateProject = (index: number, field: string, value: string | string[]) => {
-    const updated = [...projects];
-    if (field === 'technologies') {
-      updated[index][field] = Array.isArray(value) ? value : value.split(',').map(t => t.trim());
-    } else {
-      updated[index][field] = value as string;
-    }
-    setProjects(updated);
-  };
-
-  const updateProjectVideo = (index: number, videoUrl: string) => {
-    const updated = [...projects];
-    updated[index].video_url = videoUrl;
-    setProjects(updated);
-  };
-
-  const removeProjectVideo = (index: number) => {
-    const updated = [...projects];
-    delete updated[index].video_url;
-    setProjects(updated);
-  };
-
-  const removeProject = (index: number) => {
-    setProjects(projects.filter((_, i) => i !== index));
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow digits, spaces, parentheses, and dashes
-    const inputValue = e.target.value;
-    const cleanedValue = inputValue.replace(/[^0-9\s()-]/g, '');
-    
-    // Prevent input if it contains any non-allowed characters
-    if (cleanedValue !== inputValue) {
-      // If the cleaned value is different, it means there were invalid characters
-      return;
-    }
-    
-    setFormData({...formData, phone: cleanedValue});
-  };
-
-  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please upload a file smaller than 10MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Check file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a PDF, DOC, or DOCX file.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setResumeFile(file);
-      toast({
-        title: "Resume selected",
-        description: `${file.name} is ready to upload.`,
-      });
-    }
-  };
-
-  const uploadResume = async () => {
-    if (!resumeFile || !user) {
-      toast({
-        title: "Upload failed",
-        description: "Please select a file first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploadingResume(true);
-    try {
-      const fileExt = resumeFile.name.split('.').pop();
-      const fileName = `${user.id}/resume_${Date.now()}.${fileExt}`;
-
-      console.log('Uploading file:', fileName);
-
-      // First, delete existing resume if any
-      if (existingResumeUrl) {
-        const oldFileName = existingResumeUrl.split('/').pop();
-        if (oldFileName) {
-          await supabase.storage
-            .from('resumes')
-            .remove([`${user.id}/${oldFileName}`]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, resumeFile, { 
-          upsert: false,
-          contentType: resumeFile.type
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
-      console.log('Public URL:', publicUrl);
-
-      // Update profile with resume info
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .upsert({ 
-          user_id: user.id,
-          resume_url: publicUrl,
-          resume_filename: resumeFile.name,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-
-      setExistingResumeUrl(publicUrl);
-      setResumeFile(null);
-      
-      // Reset file input
-      const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
-      
-      toast({
-        title: "Resume uploaded successfully!",
-        description: "Your resume has been uploaded and is now visible to recruiters.",
-      });
-    } catch (error: any) {
-      console.error('Error uploading resume:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message || "There was an error uploading your resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingResume(false);
-    }
-  };
-
-  const deleteResume = async () => {
-    if (!existingResumeUrl || !user) return;
-
-    setDeletingResume(true);
-    try {
-      // Extract the file path from the URL
-      const urlParts = existingResumeUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
-      
-      // Delete file from storage
-      const { error: deleteError } = await supabase.storage
-        .from('resumes')
-        .remove([filePath]);
-
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
-        throw deleteError;
-      }
-
-      // Update profile to remove resume info
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .update({ 
-          resume_url: null,
-          resume_filename: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-
-      setExistingResumeUrl(null);
-      
-      toast({
-        title: "Resume deleted",
-        description: "Your resume has been removed successfully.",
-      });
-    } catch (error: any) {
-      console.error('Error deleting resume:', error);
-      toast({
-        title: "Delete failed",
-        description: "There was an error deleting your resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingResume(false);
-    }
-  };
-
-  const downloadResume = async () => {
-    if (!existingResumeUrl || !user) return;
-
-    try {
-      // Extract the file path from the URL
-      const urlParts = existingResumeUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
-      
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .download(filePath);
-
-      if (error) {
-        console.error('Download error:', error);
-        throw error;
-      }
-
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Resume downloaded",
-        description: "Your resume has been downloaded successfully.",
-      });
-    } catch (error: any) {
-      console.error('Error downloading resume:', error);
-      toast({
-        title: "Download failed",
-        description: "There was an error downloading your resume.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -719,397 +440,43 @@ const StudentDashboard = () => {
           <p className="text-xl text-gray-600">Build your profile and get discovered by top recruiters</p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Profile Views</CardTitle>
-              <Eye className="h-4 w-4 opacity-90" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{profileViews}</div>
-              <p className="text-xs opacity-90">Total views</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Skills Added</CardTitle>
-              <Code className="h-4 w-4 opacity-90" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{skills.length}</div>
-              <p className="text-xs opacity-90">Keep adding more!</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">Projects</CardTitle>
-              <Trophy className="h-4 w-4 opacity-90" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{projects.length}</div>
-              <p className="text-xs opacity-90">Showcase your work</p>
-            </CardContent>
-          </Card>
-
-          {studentProfile && (
-            <div className="md:col-span-1">
-              <ProfileCompletionCard student={{
-                ...studentProfile,
-                skills,
-                projects
-              }} />
-            </div>
-          )}
-        </div>
+        <StatsCards
+          profileViews={profileViews}
+          skillsCount={skills.length}
+          projectsCount={projects.length}
+          studentProfile={studentProfile}
+          skills={skills}
+          projects={projects}
+        />
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="John Doe"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handlePhoneChange}
-                    onKeyPress={(e) => {
-                      // Prevent typing non-numeric characters
-                      if (!/[0-9\s()-]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
-                        e.preventDefault();
-                      }
-                    }}
-                    placeholder="(555) 123-4567"
-                    pattern="[0-9\s()-]*"
-                    inputMode="numeric"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="university">University</Label>
-                  <Input
-                    id="university"
-                    value={formData.university}
-                    onChange={(e) => setFormData({...formData, university: e.target.value})}
-                    placeholder="Your University"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="major">Major</Label>
-                  <Input
-                    id="major"
-                    value={formData.major}
-                    onChange={(e) => setFormData({...formData, major: e.target.value})}
-                    placeholder="Computer Science"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="graduationYear">Graduation Year</Label>
-                  <Select
-                    value={formData.graduation_year}
-                    onValueChange={(value) => setFormData({...formData, graduation_year: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select graduation year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {graduationYearOptions.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <LocationAutocomplete
-                    value={formData.location}
-                    onChange={(value) => setFormData({...formData, location: value})}
-                    placeholder="Enter your location..."
-                    label="Location"
-                  />
-                </div>
-              </div>
-              
-              {/* Social Links Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mt-6">
-                  <Globe className="h-5 w-5" />
-                  Social Links & Portfolio
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="github_url" className="flex items-center gap-2">
-                      <Github className="h-4 w-4" />
-                      GitHub Profile
-                    </Label>
-                    <Input
-                      id="github_url"
-                      value={formData.github_url}
-                      onChange={(e) => setFormData({...formData, github_url: e.target.value})}
-                      placeholder="https://github.com/yourusername"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="linkedin_url" className="flex items-center gap-2">
-                      <Linkedin className="h-4 w-4" />
-                      LinkedIn Profile
-                    </Label>
-                    <Input
-                      id="linkedin_url"
-                      value={formData.linkedin_url}
-                      onChange={(e) => setFormData({...formData, linkedin_url: e.target.value})}
-                      placeholder="https://linkedin.com/in/yourusername"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="website_url" className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      Personal Website/Portfolio
-                    </Label>
-                    <Input
-                      id="website_url"
-                      value={formData.website_url}
-                      onChange={(e) => setFormData({...formData, website_url: e.target.value})}
-                      placeholder="https://yourwebsite.com"
-                    />
-                  </div>
-                </div>
-              </div>
+          <PersonalInfoSection
+            formData={formData}
+            setFormData={setFormData}
+            graduationYearOptions={graduationYearOptions}
+          />
 
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  placeholder="Tell us about yourself, your interests, and career goals..."
-                  className="min-h-24"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <InternshipPreferencesSection
+            formData={formData}
+            setFormData={setFormData}
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Internship Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="internship_type_preference">Internship Type Preference</Label>
-                  <Select
-                    value={formData.internship_type_preference}
-                    onValueChange={(value) => setFormData({...formData, internship_type_preference: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="paid">Paid Internships Only</SelectItem>
-                      <SelectItem value="unpaid">Unpaid Internships Only</SelectItem>
-                      <SelectItem value="both">Both Paid & Unpaid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="stipend_expectation">Stipend Expectation</Label>
-                  <Input
-                    id="stipend_expectation"
-                    value={formData.stipend_expectation}
-                    onChange={(e) => setFormData({...formData, stipend_expectation: e.target.value})}
-                    placeholder="e.g., $1000/month, Negotiable, Not applicable"
-                  />
-                </div>
-              </div>
-              <p className="text-sm text-gray-600">
-                Help recruiters understand your internship preferences and expected compensation.
-              </p>
-            </CardContent>
-          </Card>
+          <ResumeUploadSection
+            existingResumeUrl={existingResumeUrl}
+            setExistingResumeUrl={setExistingResumeUrl}
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Resume Upload
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {existingResumeUrl && (
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-green-600" />
-                    <span className="text-sm text-green-700">Resume uploaded successfully</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={downloadResume}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={deleteResume}
-                      disabled={deletingResume}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {deletingResume ? "Deleting..." : "Delete"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
-                  {resumeFile ? resumeFile.name : "Upload your resume (PDF, DOC, DOCX)"}
-                </p>
-                <div className="space-y-2">
-                  <Input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleResumeUpload}
-                    className="hidden"
-                    id="resume-upload"
-                  />
-                  <div className="flex gap-2 justify-center">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => document.getElementById('resume-upload')?.click()}
-                    >
-                      Choose File
-                    </Button>
-                    {resumeFile && (
-                      <Button
-                        type="button"
-                        onClick={uploadResume}
-                        disabled={uploadingResume}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {uploadingResume ? "Uploading..." : "Upload Resume"}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SkillsSection
+            skills={skills}
+            setSkills={setSkills}
+            commonSkills={commonSkills}
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Code className="h-5 w-5" />
-                Skills & Competencies
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <SearchableMultiSelect
-                options={commonSkills}
-                selected={skills}
-                onSelectionChange={setSkills}
-                placeholder="Select your skills from engineering, business, digital marketing, and all internship-relevant competencies..."
-                label="Professional Skills"
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                Projects
-              </CardTitle>
-              <Button type="button" onClick={addProject} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Project
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {projects.map((project, index) => (
-                <div key={index} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold text-gray-900">Project {index + 1}</h4>
-                    <Button
-                      type="button"
-                      onClick={() => removeProject(index)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Project Title</Label>
-                      <Input
-                        value={project.title}
-                        onChange={(e) => updateProject(index, 'title', e.target.value)}
-                        placeholder="My Awesome Project"
-                      />
-                    </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea
-                        value={project.description}
-                        onChange={(e) => updateProject(index, 'description', e.target.value)}
-                        placeholder="Describe your project, what it does, and your role..."
-                        className="min-h-20"
-                      />
-                    </div>
-                    <div>
-                      <EnhancedSearchableMultiSelect
-                        options={commonSkills}
-                        selected={project.technologies}
-                        onSelectionChange={(technologies) => updateProject(index, 'technologies', technologies)}
-                        placeholder="Add technologies used in this project..."
-                        label="Technologies Used"
-                      />
-                    </div>
-                    <VideoUpload
-                      projectId={project.id || index}
-                      existingVideoUrl={project.video_url}
-                      onVideoUploaded={(videoUrl) => updateProjectVideo(index, videoUrl)}
-                      onVideoRemoved={() => removeProjectVideo(index)}
-                    />
-                  </div>
-                </div>
-              ))}
-              {projects.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No projects added yet. Click "Add Project" to showcase your work!</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ProjectsSection
+            projects={projects}
+            setProjects={setProjects}
+            commonSkills={commonSkills}
+          />
 
           <div className="flex justify-end">
             <Button 
