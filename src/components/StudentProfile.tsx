@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +156,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                     <p className="text-lg text-gray-700 mt-2">{student.major}</p>
                     <p className="text-sm text-gray-600 mt-1">{student.university}</p>
                     
-                    {/* Updated availability and preferences section with new internship preferences */}
+                    {/* Updated availability and preferences section */}
                     <div className="flex flex-wrap gap-4 mt-4">
                       {student.availability_status && (
                         <Badge variant={student.availability_status === 'Available' ? 'default' : 'secondary'} className="flex items-center gap-1">
@@ -181,12 +180,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                         <Badge className={`flex items-center gap-1 text-white ${getInternshipTypeBadgeColor(student.internship_type_preference)}`}>
                           <Banknote className="h-3 w-3" />
                           {getInternshipTypeDisplay(student.internship_type_preference)}
-                        </Badge>
-                      )}
-                      {student.stipend_expectation && (
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          Stipend: {student.stipend_expectation}
                         </Badge>
                       )}
                     </div>
@@ -213,7 +206,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
             </Card>
 
             {/* Location & Internship Preferences Card */}
-            {(student.internship_type_preference || student.preferred_internship_location || student.open_to_relocate || student.stipend_expectation) && (
+            {(student.internship_type_preference || student.preferred_internship_location || student.open_to_relocate) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -250,7 +243,7 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                       </div>
                     </div>
 
-                    {/* Internship Type & Compensation */}
+                    {/* Internship Type */}
                     <div className="space-y-4">
                       <h4 className="font-semibold text-gray-900">Internship Preferences</h4>
                       
@@ -260,13 +253,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                           <Badge className={`mt-1 ${getInternshipTypeBadgeColor(student.internship_type_preference)} text-white`}>
                             {getInternshipTypeDisplay(student.internship_type_preference)}
                           </Badge>
-                        </div>
-                      )}
-                      
-                      {student.stipend_expectation && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Stipend Expectation</p>
-                          <p className="text-gray-900">{student.stipend_expectation}</p>
                         </div>
                       )}
                     </div>
@@ -477,12 +463,6 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Open to Relocate</span>
                     <span className="font-semibold">{student.open_to_relocate ? "Yes" : "No"}</span>
-                  </div>
-                )}
-                {student.stipend_expectation && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Stipend</span>
-                    <span className="font-semibold">{student.stipend_expectation}</span>
                   </div>
                 )}
               </CardContent>
