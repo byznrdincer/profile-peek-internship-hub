@@ -150,7 +150,9 @@ export type Database = {
           location: string | null
           major: string | null
           name: string | null
+          open_to_relocate: boolean | null
           phone: string | null
+          preferred_internship_location: string | null
           profile_views: number | null
           resume_filename: string | null
           resume_url: string | null
@@ -173,7 +175,9 @@ export type Database = {
           location?: string | null
           major?: string | null
           name?: string | null
+          open_to_relocate?: boolean | null
           phone?: string | null
+          preferred_internship_location?: string | null
           profile_views?: number | null
           resume_filename?: string | null
           resume_url?: string | null
@@ -196,7 +200,9 @@ export type Database = {
           location?: string | null
           major?: string | null
           name?: string | null
+          open_to_relocate?: boolean | null
           phone?: string | null
+          preferred_internship_location?: string | null
           profile_views?: number | null
           resume_filename?: string | null
           resume_url?: string | null
