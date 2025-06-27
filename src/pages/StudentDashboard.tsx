@@ -272,7 +272,6 @@ const StudentDashboard = () => {
     github_url: "",
     website_url: "",
     linkedin_url: "",
-    stipend_expectation: "",
     internship_type_preference: "",
   });
 
@@ -310,7 +309,6 @@ const StudentDashboard = () => {
         github_url: profile.github_url || "",
         website_url: profile.website_url || "",
         linkedin_url: profile.linkedin_url || "",
-        stipend_expectation: profile.stipend_expectation || "",
         internship_type_preference: profile.internship_type_preference || "",
       });
       setSkills(profile.skills || []);
@@ -368,7 +366,6 @@ const StudentDashboard = () => {
           github_url: formData.github_url,
           website_url: formData.website_url,
           linkedin_url: formData.linkedin_url,
-          stipend_expectation: formData.stipend_expectation,
           internship_type_preference: formData.internship_type_preference,
           skills: skills,
           updated_at: new Date().toISOString()
