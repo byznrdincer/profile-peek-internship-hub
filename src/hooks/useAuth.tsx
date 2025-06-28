@@ -36,6 +36,7 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    console.log('useAuth: Setting up auth listener');
     let mounted = true;
 
     // Set up auth state listener
@@ -77,45 +78,66 @@ export const useAuth = () => {
 
     // Check for existing session
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const profileData = await fetchUserProfile(session.user.id);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (mounted && profileData) {
-          setProfile(profileData);
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+        
+        if (!mounted) return;
+        
+        console.log('Initial session check:', session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const profileData = await fetchUserProfile(session.user.id);
           
-          // Update last login for students
-          if (profileData.role === 'student') {
-            try {
-              await supabase.rpc('update_student_last_login');
-            } catch (error) {
-              console.error('Error updating student last login:', error);
+          if (mounted && profileData) {
+            setProfile(profileData);
+            
+            // Update last login for students
+            if (profileData.role === 'student') {
+              try {
+                await supabase.rpc('update_student_last_login');
+              } catch (error) {
+                console.error('Error updating student last login:', error);
+              }
             }
           }
         }
-      }
-      
-      if (mounted) {
-        setLoading(false);
+        
+        if (mounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in initializeAuth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     initializeAuth();
 
     return () => {
+      console.log('useAuth: Cleaning up');
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array is crucial
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return {
