@@ -156,10 +156,13 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // General skills filter - Updated to support comma-separated search terms with OR logic
+      // General skills filter - Updated to support comma and space-separated search terms with OR logic
       if (skillFilter) {
         const studentSkills = student.skills || [];
-        const searchTerms = skillFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
+        const searchTerms = skillFilter
+          .split(/[,\s]+/) // Split by comma and/or spaces
+          .map(term => term.trim().toLowerCase())
+          .filter(term => term);
         
         // Check if any search term matches any student skill
         const hasMatchingSkill = searchTerms.some(searchTerm => 
@@ -171,10 +174,13 @@ const RecruiterDashboard = () => {
         if (!hasMatchingSkill) return false;
       }
 
-      // Project search filter - Updated to support comma-separated search terms with OR logic
+      // Project search filter - Updated to support comma and space-separated search terms with OR logic
       if (projectSkillFilter) {
         const projects = student.projects || [];
-        const searchTerms = projectSkillFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
+        const searchTerms = projectSkillFilter
+          .split(/[,\s]+/) // Split by comma and/or spaces
+          .map(term => term.trim().toLowerCase())
+          .filter(term => term);
         
         // Check if any search term matches any project content
         const hasMatchingProject = searchTerms.some(searchTerm => 
@@ -200,9 +206,12 @@ const RecruiterDashboard = () => {
         if (!hasMatchingProject) return false;
       }
 
-      // Location filter - Updated to support comma-separated search terms with OR logic
+      // Location filter - Updated to support comma and space-separated search terms with OR logic
       if (locationFilter) {
-        const searchTerms = locationFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
+        const searchTerms = locationFilter
+          .split(/[,\s]+/) // Split by comma and/or spaces
+          .map(term => term.trim().toLowerCase())
+          .filter(term => term);
         
         const hasMatchingLocation = searchTerms.some(searchTerm => {
           // Check current location

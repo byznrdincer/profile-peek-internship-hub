@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,12 +96,12 @@ const StudentFilters = ({
             <Label htmlFor="skill">General Skills</Label>
             <Input
               id="skill"
-              placeholder="python, java, react (comma-separated)"
+              placeholder="python java react (space/comma separated)"
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
             />
             <p className="text-xs text-blue-600 mt-1">
-              Use commas to search multiple skills (matches any)
+              Use spaces or commas to search multiple skills (matches any)
             </p>
           </div>
 
@@ -108,7 +109,7 @@ const StudentFilters = ({
             <Label htmlFor="projectSkill">Project Search</Label>
             <Input
               id="projectSkill"
-              placeholder="react, node.js, api (comma-separated)"
+              placeholder="react node.js api (space/comma separated)"
               value={projectSkillFilter}
               onChange={(e) => setProjectSkillFilter(e.target.value)}
               className="border-purple-200 focus:border-purple-400"
@@ -123,10 +124,10 @@ const StudentFilters = ({
               label="Preferred Location"
               value={locationFilter}
               onChange={setLocationFilter}
-              placeholder="new york, california (comma-separated)"
+              placeholder="new york california (space/comma separated)"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Use commas for multiple locations (matches any)
+              Use spaces or commas for multiple locations (matches any)
             </p>
           </div>
 
