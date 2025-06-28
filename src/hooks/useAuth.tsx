@@ -36,42 +36,61 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    // Get current session
+    let mounted = true;
+
+    // Get current session first
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserProfile(session.user.id).then((profileData) => {
-          if (profileData) {
-            setProfile(profileData);
-          }
-          setLoading(false);
-        });
+        setTimeout(() => {
+          if (!mounted) return;
+          fetchUserProfile(session.user.id).then((profileData) => {
+            if (!mounted) return;
+            if (profileData) {
+              setProfile(profileData);
+            }
+            setLoading(false);
+          });
+        }, 0);
       } else {
         setLoading(false);
       }
     });
 
-    // Listen for auth changes
+    // Listen for auth changes - NO async/await in callback
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const profileData = await fetchUserProfile(session.user.id);
-          if (profileData) {
-            setProfile(profileData);
-          }
+          setTimeout(() => {
+            if (!mounted) return;
+            fetchUserProfile(session.user.id).then((profileData) => {
+              if (!mounted) return;
+              if (profileData) {
+                setProfile(profileData);
+              }
+              setLoading(false);
+            });
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
