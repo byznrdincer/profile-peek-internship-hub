@@ -242,8 +242,8 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Paid internship filter
-      if (paidInternshipFilter && paidInternshipFilter !== student.paid_internship_preference) {
+      // Paid internship filter - Updated to handle "all" value
+      if (paidInternshipFilter && paidInternshipFilter !== "all" && paidInternshipFilter !== student.paid_internship_preference) {
         return false;
       }
 
@@ -263,7 +263,7 @@ const RecruiterDashboard = () => {
     setPaidInternshipFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0 || paidInternshipFilter);
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0 || (paidInternshipFilter && paidInternshipFilter !== "all"));
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -229,7 +230,7 @@ const StudentFilters = ({
                 <SelectValue placeholder="Select payment type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="paid">Paid Only</SelectItem>
                 <SelectItem value="unpaid">Unpaid Only</SelectItem>
                 <SelectItem value="both">Both Paid & Unpaid</SelectItem>
@@ -298,7 +299,7 @@ const StudentFilters = ({
                 />
               </Badge>
             )}
-            {paidInternshipFilter && (
+            {paidInternshipFilter && paidInternshipFilter !== "all" && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 Payment: {paidInternshipFilter === 'paid' ? 'Paid Only' : paidInternshipFilter === 'unpaid' ? 'Unpaid Only' : 'Both'}
                 <X
