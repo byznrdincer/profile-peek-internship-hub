@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,36 +9,28 @@ const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, profile, loading } = useAuth();
 
-  console.log('Index page render:', { isAuthenticated, profile: !!profile, loading });
+  console.log('Index page render - loading:', loading, 'isAuthenticated:', isAuthenticated, 'profile role:', profile?.role);
 
   const handleDashboardNavigation = () => {
-    console.log('Dashboard navigation clicked:', { isAuthenticated, profile: profile?.role, loading });
-    
-    if (!isAuthenticated) {
-      console.log('User not authenticated, redirecting to auth');
+    if (!isAuthenticated || !profile) {
       navigate('/auth');
       return;
     }
 
-    if (profile?.role === 'student') {
-      console.log('Navigating to student dashboard');
+    if (profile.role === 'student') {
       navigate('/student-dashboard');
-    } else if (profile?.role === 'recruiter') {
-      console.log('Navigating to recruiter dashboard');
+    } else if (profile.role === 'recruiter') {
       navigate('/recruiter-dashboard');
     } else {
-      console.log('No profile role found, redirecting to auth');
       navigate('/auth');
     }
   };
 
   const handleGetStarted = () => {
-    console.log('Get started clicked');
     navigate('/auth');
   };
 
   if (loading) {
-    console.log('Index page: Still loading auth state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
         <Navigation />
@@ -51,8 +42,6 @@ const Index = () => {
     );
   }
 
-  console.log('Index page: Rendering main content');
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <Navigation />
@@ -61,7 +50,6 @@ const Index = () => {
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-4xl mx-auto">
-            {/* Show different content based on user role */}
             {isAuthenticated && profile?.role === 'recruiter' ? (
               <>
                 <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">

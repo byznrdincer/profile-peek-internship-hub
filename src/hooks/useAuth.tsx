@@ -14,7 +14,6 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -39,7 +38,7 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    console.log('useAuth: Initializing auth hook');
+    console.log('useAuth: Initializing');
     let mounted = true;
 
     const initializeAuth = async () => {
@@ -49,80 +48,54 @@ export const useAuth = () => {
         
         if (error) {
           console.error('Error getting session:', error);
-          if (mounted) {
-            setLoading(false);
-            setInitialized(true);
-          }
-          return;
         }
         
-        if (!mounted) return;
-        
-        console.log('useAuth: Initial session found:', !!session);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('useAuth: Fetching user profile for user:', session.user.id);
-          const profileData = await fetchUserProfile(session.user.id);
+        if (mounted) {
+          console.log('useAuth: Initial session:', !!session);
+          setSession(session);
+          setUser(session?.user ?? null);
           
-          if (mounted) {
-            if (profileData) {
-              console.log('useAuth: Profile loaded successfully:', profileData.role);
+          if (session?.user) {
+            const profileData = await fetchUserProfile(session.user.id);
+            if (mounted && profileData) {
               setProfile(profileData);
               
               // Update last login for students
               if (profileData.role === 'student') {
                 try {
                   await supabase.rpc('update_student_last_login');
-                  console.log('useAuth: Updated student last login');
                 } catch (error) {
                   console.error('Error updating student last login:', error);
                 }
               }
-            } else {
-              console.log('useAuth: No profile data found');
-              setProfile(null);
             }
           }
-        } else {
-          console.log('useAuth: No session found');
-          setProfile(null);
-        }
-        
-        if (mounted) {
-          console.log('useAuth: Initialization complete, setting loading to false');
+          
           setLoading(false);
-          setInitialized(true);
         }
       } catch (error) {
         console.error('Error in initializeAuth:', error);
         if (mounted) {
           setLoading(false);
-          setInitialized(true);
         }
       }
     };
 
     // Set up auth state listener
-    console.log('useAuth: Setting up auth listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('useAuth: Auth state changed:', event, !!session);
+        console.log('useAuth: Auth state changed:', event);
         
-        if (!mounted || !initialized) return;
+        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('useAuth: Auth state change - fetching profile for:', session.user.id);
           const profileData = await fetchUserProfile(session.user.id);
-          
           if (mounted && profileData) {
             setProfile(profileData);
             
-            // Update last login for students
             if (profileData.role === 'student') {
               try {
                 await supabase.rpc('update_student_last_login');
@@ -139,7 +112,7 @@ export const useAuth = () => {
       }
     );
 
-    // Initialize auth after setting up listener
+    // Initialize auth
     initializeAuth();
 
     return () => {
@@ -147,30 +120,19 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty dependency array to run only once
+  }, []);
 
   const signOut = async () => {
     try {
       console.log('useAuth: Signing out');
-      setLoading(true);
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setProfile(null);
-      setLoading(false);
     } catch (error) {
       console.error('Error signing out:', error);
-      setLoading(false);
     }
   };
-
-  console.log('useAuth: Current state:', { 
-    user: !!user, 
-    profile: !!profile, 
-    loading, 
-    initialized,
-    userRole: profile?.role 
-  });
 
   return {
     user,
