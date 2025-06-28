@@ -18,10 +18,31 @@ interface StudentProfileProps {
 const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
   const { toast } = useToast();
   const [certifications, setCertifications] = useState<any[]>([]);
+  const [studentData, setStudentData] = useState(student);
 
   useEffect(() => {
     loadCertifications();
+    loadCompleteStudentData();
   }, [student]);
+
+  const loadCompleteStudentData = async () => {
+    if (!student?.user_id) return;
+
+    try {
+      const { data: completeStudent, error } = await supabase
+        .from('student_profiles')
+        .select('*')
+        .eq('user_id', student.user_id)
+        .single();
+
+      if (!error && completeStudent) {
+        // Merge the complete data with the existing student data
+        setStudentData({ ...student, ...completeStudent });
+      }
+    } catch (error) {
+      console.error('Error loading complete student data:', error);
+    }
+  };
 
   const loadCertifications = async () => {
     if (!student?.user_id) return;
@@ -51,20 +72,20 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <div className="container mx-auto px-4 py-8">
-        <ProfileHeader student={student} onBack={onBack} />
+        <ProfileHeader student={studentData} onBack={onBack} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Profile */}
           <div className="lg:col-span-2 space-y-6">
-            <PersonalInfoCard student={student} />
-            <LocationPreferencesCard student={student} />
-            <SkillsCard student={student} />
+            <PersonalInfoCard student={studentData} />
+            <LocationPreferencesCard student={studentData} />
+            <SkillsCard student={studentData} />
             <CertificationsCard certifications={certifications} />
-            <ProjectsCard student={student} />
+            <ProjectsCard student={studentData} />
           </div>
 
           {/* Sidebar */}
-          <ProfileSidebar student={student} certifications={certifications} />
+          <ProfileSidebar student={studentData} certifications={certifications} />
         </div>
       </div>
     </div>

@@ -1,186 +1,80 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
-import StudentProfile from "@/components/StudentProfile";
 import StatsCards from "@/components/recruiter/StatsCards";
+import ProfileForm from "@/components/recruiter/ProfileForm";
 import StudentFilters from "@/components/recruiter/StudentFilters";
 import StudentList from "@/components/recruiter/StudentList";
+import StudentProfile from "@/components/StudentProfile";
 
 const RecruiterDashboard = () => {
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
-  const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
-  const [majorFilter, setMajorFilter] = useState("");
-  const [skillFilter, setSkillFilter] = useState("");
-  const [projectSkillFilter, setProjectSkillFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [graduationYearFilter, setGraduationYearFilter] = useState("");
-  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [studentsLoaded, setStudentsLoaded] = useState(false);
-  const [stats, setStats] = useState({
-    totalStudents: 0,
-    totalViews: 0,
-    newProfiles: 0
-  });
-
-  const getActivityStatus = (lastLoginAt: string | null) => {
-    if (!lastLoginAt) return 'inactive';
-    
-    const now = new Date();
-    const lastLogin = new Date(lastLoginAt);
-    const daysDiff = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff <= 7) return 'very-active';
-    if (daysDiff <= 30) return 'active';
-    return 'inactive';
-  };
-
-  const handleBookmarkChange = () => {
-    console.log('handleBookmarkChange called - refreshing bookmarks');
-    loadBookmarkedStudents();
-    loadStats();
-  };
+  const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
+  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
+  
+  // Filter states
+  const [majorFilter, setMajorFilter] = useState("");
+  const [skillsFilter, setSkillsFilter] = useState<string[]>([]);
+  const [locationFilter, setLocationFilter] = useState("");
+  const [graduationYearFilter, setGraduationYearFilter] = useState("");
+  const [projectTechFilter, setProjectTechFilter] = useState<string[]>([]);
 
   useEffect(() => {
-    document.title = "Recruiter Dashboard - TalentHub";
-  }, []);
-
-  useEffect(() => {
-    if (user && !authLoading) {
-      console.log('User authenticated, loading recruiter data...');
-      // Only load stats and bookmarks initially, not all students
-      loadStats();
+    if (user) {
+      console.log("User authenticated, loading recruiter data...", user);
+      loadRecruiterProfile();
       loadBookmarkedStudents();
     }
-  }, [user, authLoading]);
+  }, [user]);
 
-  // Check if any filters are active
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
-
-  // Load students only when filters are applied
   useEffect(() => {
-    if (user && !authLoading && hasActiveFilters) {
-      console.log('Filters applied, loading students...');
-      loadStudents();
-    }
-  }, [user, authLoading, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+    applyFilters();
+  }, [students, bookmarkedStudents, majorFilter, skillsFilter, locationFilter, graduationYearFilter, projectTechFilter]);
 
-  // Filter and sort students based on all filters including project skills
-  useEffect(() => {
-    const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
-    let filtered = currentStudents;
-    
-    if (majorFilter) {
-      filtered = filtered.filter(student =>
-        student.major?.toLowerCase().includes(majorFilter.toLowerCase())
-      );
-    }
-    
-    if (skillFilter) {
-      filtered = filtered.filter(student =>
-        student.skills?.some((skill: string) =>
-          skill.toLowerCase().includes(skillFilter.toLowerCase())
-        )
-      );
-    }
+  const loadRecruiterProfile = async () => {
+    if (!user) return;
 
-    if (projectSkillFilter) {
-      filtered = filtered.filter(student =>
-        student.projects?.some((project: any) => {
-          const searchTerm = projectSkillFilter.toLowerCase();
-          
-          // Check technologies
-          const matchesTechnology = project.technologies?.some((tech: string) =>
-            tech.toLowerCase().includes(searchTerm)
-          );
-          
-          // Check project title
-          const matchesTitle = project.title?.toLowerCase().includes(searchTerm);
-          
-          // Check project description
-          const matchesDescription = project.description?.toLowerCase().includes(searchTerm);
-          
-          return matchesTechnology || matchesTitle || matchesDescription;
-        })
-      );
-    }
+    const { data: profile, error } = await supabase
+      .from('recruiter_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
-    if (locationFilter) {
-      filtered = filtered.filter(student =>
-        student.location?.toLowerCase().includes(locationFilter.toLowerCase()) ||
-        student.preferred_internship_location?.toLowerCase().includes(locationFilter.toLowerCase())
-      );
+    if (!error && profile) {
+      setRecruiterProfile(profile);
     }
-
-    if (graduationYearFilter) {
-      filtered = filtered.filter(student =>
-        student.graduation_year?.toString() === graduationYearFilter
-      );
-    }
-
-    if (internshipTypeFilter) {
-      filtered = filtered.filter(student =>
-        student.internship_type_preference === internshipTypeFilter
-      );
-    }
-    
-    // Sort by activity level, then by profile views
-    filtered.sort((a, b) => {
-      const aActivity = getActivityStatus(a.last_login_at);
-      const bActivity = getActivityStatus(b.last_login_at);
-      
-      const activityOrder = { 'very-active': 0, 'active': 1, 'inactive': 2 };
-      const aOrder = activityOrder[aActivity as keyof typeof activityOrder];
-      const bOrder = activityOrder[bActivity as keyof typeof activityOrder];
-      
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder;
-      }
-      
-      return (b.profile_views || 0) - (a.profile_views || 0);
-    });
-    
-    setFilteredStudents(filtered);
-  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+  };
 
   const loadStudents = async () => {
     setLoading(true);
+    setStudentsLoaded(true);
+    
     try {
-      const { data: studentsData, error } = await supabase
+      // First get student profiles with projects
+      const { data: studentsData, error: studentsError } = await supabase
         .from('student_profiles')
         .select(`
           *,
-          student_projects (*)
+          projects:student_projects(*)
         `)
-        .order('created_at', { ascending: false });
+        .order('last_login_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (studentsError) throw studentsError;
 
-      const studentsWithEmail = await Promise.all(
-        studentsData.map(async (student) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('user_id', student.user_id)
-            .single();
-          
-          return {
-            ...student,
-            email: profile?.email || '',
-            projects: student.student_projects || []
-          };
-        })
-      );
-
-      setStudents(studentsWithEmail);
-      setStudentsLoaded(true);
+      if (studentsData) {
+        console.log("Students loaded with email field:", studentsData);
+        setStudents(studentsData);
+      }
     } catch (error) {
       console.error('Error loading students:', error);
       toast({
@@ -193,141 +87,131 @@ const RecruiterDashboard = () => {
     }
   };
 
-  const loadStats = async () => {
-    try {
-      const { count: totalStudents } = await supabase
-        .from('student_profiles')
-        .select('*', { count: 'exact', head: true });
-
-      const { data: recruiterProfile } = await supabase
-        .from('recruiter_profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      let totalViews = 0;
-      if (recruiterProfile) {
-        const { count: viewsCount } = await supabase
-          .from('profile_views')
-          .select('*', { count: 'exact', head: true })
-          .eq('recruiter_id', recruiterProfile.id);
-        totalViews = viewsCount || 0;
-      }
-
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const { count: newProfiles } = await supabase
-        .from('student_profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
-      setStats({
-        totalStudents: totalStudents || 0,
-        totalViews,
-        newProfiles: newProfiles || 0
-      });
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  };
-
   const loadBookmarkedStudents = async () => {
-    if (!user) {
-      console.log('No user found, cannot load bookmarks');
-      return;
-    }
+    if (!user) return;
 
+    console.log("Loading bookmarked students for user:", user.id);
+    
     try {
-      console.log('Loading bookmarked students for user:', user.id);
-      
-      const { data: recruiterProfile, error: recruiterError } = await supabase
+      // Get recruiter profile first
+      const { data: recruiterProfile } = await supabase
         .from('recruiter_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (recruiterError) {
-        console.error('Error fetching recruiter profile:', recruiterError);
-        return;
-      }
-
       if (!recruiterProfile) {
-        console.log('No recruiter profile found');
+        console.log("No recruiter profile found");
         return;
       }
 
-      console.log('Recruiter profile found:', recruiterProfile.id);
+      console.log("Recruiter profile found:", recruiterProfile.id);
 
+      // Get bookmarked student user IDs
       const { data: bookmarks, error: bookmarksError } = await supabase
         .from('student_bookmarks')
         .select('student_user_id')
         .eq('recruiter_id', recruiterProfile.id);
 
-      if (bookmarksError) {
-        console.error('Error fetching bookmarks:', bookmarksError);
-        return;
-      }
+      if (bookmarksError) throw bookmarksError;
 
-      console.log('Bookmarks found:', bookmarks?.length || 0, bookmarks);
+      console.log("Bookmarks found:", bookmarks?.length, bookmarks);
 
-      if (!bookmarks || bookmarks.length === 0) {
-        console.log('No bookmarks found');
+      if (bookmarks && bookmarks.length > 0) {
+        const studentUserIds = bookmarks.map(b => b.student_user_id);
+        console.log("Student user IDs to fetch:", studentUserIds);
+
+        // Get full student profiles for bookmarked students
+        const { data: studentsData, error: studentsError } = await supabase
+          .from('student_profiles')
+          .select(`
+            *,
+            projects:student_projects(*)
+          `)
+          .in('user_id', studentUserIds)
+          .order('last_login_at', { ascending: false, nullsFirst: false });
+
+        if (studentsError) throw studentsError;
+
+        console.log("Student profiles found:", studentsData?.length);
+        console.log("Final bookmarked students with email:", studentsData?.length);
+        
+        if (studentsData) {
+          setBookmarkedStudents(studentsData);
+        }
+      } else {
         setBookmarkedStudents([]);
-        return;
       }
-
-      const studentUserIds = bookmarks.map(bookmark => bookmark.student_user_id);
-      console.log('Student user IDs to fetch:', studentUserIds);
-
-      const { data: studentProfiles, error: studentsError } = await supabase
-        .from('student_profiles')
-        .select(`
-          *,
-          student_projects (*)
-        `)
-        .in('user_id', studentUserIds);
-
-      if (studentsError) {
-        console.error('Error fetching student profiles:', studentsError);
-        return;
-      }
-
-      console.log('Student profiles found:', studentProfiles?.length || 0);
-
-      if (!studentProfiles) {
-        setBookmarkedStudents([]);
-        return;
-      }
-
-      const studentsWithEmail = await Promise.all(
-        studentProfiles.map(async (student) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('user_id', student.user_id)
-            .single();
-          
-          return {
-            ...student,
-            email: profile?.email || '',
-            projects: student.student_projects || []
-          };
-        })
-      );
-
-      console.log('Final bookmarked students with email:', studentsWithEmail.length);
-      setBookmarkedStudents(studentsWithEmail);
-      
     } catch (error) {
       console.error('Error loading bookmarked students:', error);
-      setBookmarkedStudents([]);
     }
   };
 
-  const handleViewProfile = async (student: any) => {
-    setSelectedStudent(student);
+  const applyFilters = () => {
+    const currentStudents = activeTab === "all" ? students : bookmarkedStudents;
     
+    let filtered = currentStudents.filter(student => {
+      // Major filter
+      if (majorFilter && !student.major?.toLowerCase().includes(majorFilter.toLowerCase())) {
+        return false;
+      }
+
+      // Skills filter
+      if (skillsFilter.length > 0) {
+        const studentSkills = student.skills || [];
+        const hasMatchingSkill = skillsFilter.some(skill => 
+          studentSkills.some((studentSkill: string) => 
+            studentSkill.toLowerCase().includes(skill.toLowerCase())
+          )
+        );
+        if (!hasMatchingSkill) return false;
+      }
+
+      // Location filter
+      if (locationFilter && !student.location?.toLowerCase().includes(locationFilter.toLowerCase())) {
+        return false;
+      }
+
+      // Graduation year filter
+      if (graduationYearFilter && student.graduation_year !== graduationYearFilter) {
+        return false;
+      }
+
+      // Project technology filter
+      if (projectTechFilter.length > 0) {
+        const projectTechnologies = student.projects?.reduce((acc: string[], project: any) => {
+          if (project.technologies) {
+            return [...acc, ...project.technologies];
+          }
+          return acc;
+        }, []) || [];
+        
+        const hasMatchingTech = projectTechFilter.some(tech => 
+          projectTechnologies.some((projectTech: string) => 
+            projectTech.toLowerCase().includes(tech.toLowerCase())
+          )
+        );
+        if (!hasMatchingTech) return false;
+      }
+
+      return true;
+    });
+
+    setFilteredStudents(filtered);
+  };
+
+  const clearFilters = () => {
+    setMajorFilter("");
+    setSkillsFilter([]);
+    setLocationFilter("");
+    setGraduationYearFilter("");
+    setProjectTechFilter([]);
+  };
+
+  const hasActiveFilters = majorFilter || skillsFilter.length > 0 || locationFilter || graduationYearFilter || projectTechFilter.length > 0;
+
+  const handleViewProfile = async (student: any) => {
+    // Increment profile view count
     try {
       await supabase.rpc('increment_profile_view', {
         student_user_id: student.user_id
@@ -335,40 +219,20 @@ const RecruiterDashboard = () => {
     } catch (error) {
       console.error('Error incrementing profile view:', error);
     }
+    
+    setSelectedStudent(student);
   };
 
-  const clearAllFilters = () => {
-    setMajorFilter("");
-    setSkillFilter("");
-    setProjectSkillFilter("");
-    setLocationFilter("");
-    setGraduationYearFilter("");
-    setInternshipTypeFilter("");
-    // Clear students when filters are cleared
-    setStudents([]);
-    setStudentsLoaded(false);
-  };
-
-  const handleLoadAllStudents = () => {
-    console.log('Loading all students explicitly...');
-    loadStudents();
+  const handleBookmarkChange = () => {
+    loadBookmarkedStudents();
   };
 
   if (selectedStudent) {
     return (
-      <StudentProfile
-        student={selectedStudent}
-        onBack={() => setSelectedStudent(null)}
+      <StudentProfile 
+        student={selectedStudent} 
+        onBack={() => setSelectedStudent(null)} 
       />
-    );
-  }
-
-  // Show loading spinner while auth is loading
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
     );
   }
 
@@ -379,45 +243,55 @@ const RecruiterDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
-          <p className="text-xl text-gray-600">Discover and connect with talented students</p>
+          <p className="text-xl text-gray-600">Find and connect with talented students</p>
         </div>
 
-        <StatsCards stats={stats} bookmarkedCount={bookmarkedStudents.length} />
+        <StatsCards 
+          studentsCount={students.length}
+          bookmarkedCount={bookmarkedStudents.length}
+        />
 
-        <div className="space-y-6">
-          <StudentFilters
-            majorFilter={majorFilter}
-            setMajorFilter={setMajorFilter}
-            skillFilter={skillFilter}
-            setSkillFilter={setSkillFilter}
-            projectSkillFilter={projectSkillFilter}
-            setProjectSkillFilter={setProjectSkillFilter}
-            locationFilter={locationFilter}
-            setLocationFilter={setLocationFilter}
-            graduationYearFilter={graduationYearFilter}
-            setGraduationYearFilter={setGraduationYearFilter}
-            internshipTypeFilter={internshipTypeFilter}
-            setInternshipTypeFilter={setInternshipTypeFilter}
-            onClearFilters={clearAllFilters}
-            hasActiveFilters={hasActiveFilters}
-            filteredCount={filteredStudents.length}
-            totalCount={activeTab === "bookmarks" ? bookmarkedStudents.length : students.length}
-          />
+        {!recruiterProfile?.name && (
+          <div className="mb-8">
+            <ProfileForm />
+          </div>
+        )}
 
-          <StudentList
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            loading={loading}
-            filteredStudents={filteredStudents}
-            hasActiveFilters={hasActiveFilters}
-            onClearFilters={clearAllFilters}
-            onViewProfile={handleViewProfile}
-            onBookmarkChange={handleBookmarkChange}
-            studentsCount={students.length}
-            bookmarkedCount={bookmarkedStudents.length}
-            studentsLoaded={studentsLoaded}
-            onLoadAllStudents={handleLoadAllStudents}
-          />
+        <div className="grid lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-1">
+            <StudentFilters
+              majorFilter={majorFilter}
+              setMajorFilter={setMajorFilter}
+              skillsFilter={skillsFilter}
+              setSkillsFilter={setSkillsFilter}
+              locationFilter={locationFilter}
+              setLocationFilter={setLocationFilter}
+              graduationYearFilter={graduationYearFilter}
+              setGraduationYearFilter={setGraduationYearFilter}
+              projectTechFilter={projectTechFilter}
+              setProjectTechFilter={setProjectTechFilter}
+              onClearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+              onLoadStudents={loadStudents}
+            />
+          </div>
+
+          <div className="lg:col-span-3">
+            <StudentList
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              loading={loading}
+              filteredStudents={filteredStudents}
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
+              onViewProfile={handleViewProfile}
+              onBookmarkChange={handleBookmarkChange}
+              studentsCount={students.length}
+              bookmarkedCount={bookmarkedStudents.length}
+              studentsLoaded={studentsLoaded}
+              onLoadAllStudents={loadStudents}
+            />
+          </div>
         </div>
       </div>
     </div>
