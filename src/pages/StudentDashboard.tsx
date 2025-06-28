@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -276,6 +277,7 @@ const StudentDashboard = () => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     university: "",
     major: "",
     graduation_year: "",
@@ -317,6 +319,7 @@ const StudentDashboard = () => {
       setFormData({
         name: profile.name || "",
         phone: profile.phone || "",
+        email: profile.email || "",
         university: profile.university || "",
         major: profile.major || "",
         graduation_year: profile.graduation_year || "",
@@ -408,6 +411,7 @@ const StudentDashboard = () => {
           user_id: user.id,
           name: formData.name,
           phone: formData.phone,
+          email: formData.email,
           university: formData.university,
           major: formData.major,
           graduation_year: formData.graduation_year,
