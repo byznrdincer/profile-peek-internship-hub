@@ -5,7 +5,6 @@ import SkillsSection from "./SkillsSection";
 import ProjectsSection from "./ProjectsSection";
 import CertificationsSection from "./CertificationsSection";
 import InternshipPreferencesSection from "./InternshipPreferencesSection";
-import ResumeUploadSection from "./ResumeUploadSection";
 import { StudentProfile } from "@/hooks/useStudentProfile";
 
 interface DashboardContentProps {
@@ -43,13 +42,12 @@ const DashboardContent = ({
 
   return (
     <Tabs defaultValue="personal" className="w-full">
-      <TabsList className="grid w-full grid-cols-6">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="personal">Personal</TabsTrigger>
         <TabsTrigger value="skills">Skills</TabsTrigger>
         <TabsTrigger value="projects">Projects</TabsTrigger>
         <TabsTrigger value="certifications">Certifications</TabsTrigger>
         <TabsTrigger value="internships">Internships</TabsTrigger>
-        <TabsTrigger value="resume">Resume</TabsTrigger>
       </TabsList>
 
       <TabsContent value="personal" className="space-y-4">
@@ -109,13 +107,6 @@ const DashboardContent = ({
             open_to_relocate: profile.open_to_relocate || false,
           }}
           setFormData={(data) => onUpdateProfile(data)}
-        />
-      </TabsContent>
-
-      <TabsContent value="resume" className="space-y-4">
-        <ResumeUploadSection
-          existingResumeUrl={profile.resume_url}
-          setExistingResumeUrl={(url) => onUpdateProfile({ resume_url: url })}
         />
       </TabsContent>
     </Tabs>
