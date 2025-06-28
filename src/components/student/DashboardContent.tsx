@@ -25,46 +25,21 @@ const DashboardContent = ({
   onRefreshProjects,
   onRefreshCertifications
 }: DashboardContentProps) => {
-  const handlePersonalInfoUpdate = (data: any) => {
-    const updates = {
-      name: data.name,
-      email: data.email,
-      major: data.major,
-      graduation_year: data.graduation_year,
-      gpa: data.gpa,
-      location: data.location,
-      phone: data.phone,
-      bio: data.bio,
-      github_url: data.github_url,
-      website_url: data.website_url,
-      linkedin_url: data.linkedin_url,
-      internship_type_preference: data.internship_type_preference,
-      paid_internship_preference: (profile as any).paid_internship_preference || "",
-      preferred_internship_location: data.preferred_internship_location,
-      preferred_locations: data.preferred_locations,
-      open_to_relocate: data.open_to_relocate,
-    };
-    onUpdateProfile(updates);
-  };
+  // Common skills for the projects section
+  const commonSkills = [
+    "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "PHP", "Ruby", "Go", "Rust",
+    "React", "Vue.js", "Angular", "Node.js", "Express", "Django", "Flask", "Spring", "Laravel",
+    "HTML", "CSS", "SCSS", "Tailwind CSS", "Bootstrap", "Material-UI", "Styled Components",
+    "MongoDB", "PostgreSQL", "MySQL", "SQLite", "Redis", "Firebase", "Supabase",
+    "AWS", "Azure", "Google Cloud", "Docker", "Kubernetes", "CI/CD", "Git", "GitHub Actions",
+    "Machine Learning", "Data Science", "AI", "TensorFlow", "PyTorch", "Pandas", "NumPy"
+  ];
 
-  const handleSkillsUpdate = (skills: string[]) => {
-    onUpdateProfile({ skills });
-  };
-
-  const handleInternshipPreferencesUpdate = (data: any) => {
-    const updates = {
-      internship_type_preference: data.internship_type_preference,
-      paid_internship_preference: data.paid_internship_preference,
-      preferred_internship_location: data.preferred_internship_location,
-      preferred_locations: data.preferred_locations,
-      open_to_relocate: data.open_to_relocate,
-    };
-    onUpdateProfile(updates);
-  };
-
-  const handleResumeUpdate = (resumeUrl: string) => {
-    onUpdateProfile({ resume_url: resumeUrl });
-  };
+  // Generate graduation year options
+  const graduationYearOptions = Array.from({ length: 16 }, (_, i) => {
+    const year = 2015 + i;
+    return year.toString();
+  });
 
   return (
     <Tabs defaultValue="personal" className="w-full">
@@ -79,61 +54,69 @@ const DashboardContent = ({
 
       <TabsContent value="personal" className="space-y-4">
         <PersonalInfoSection
-          initialData={{
+          formData={{
             name: profile.name || "",
             email: profile.email || "",
+            university: profile.university || "",
             major: profile.major || "",
             graduation_year: profile.graduation_year || "",
-            gpa: profile.gpa || "",
             location: profile.location || "",
             phone: profile.phone || "",
             bio: profile.bio || "",
             github_url: profile.github_url || "",
             website_url: profile.website_url || "",
             linkedin_url: profile.linkedin_url || "",
+            internship_type_preference: profile.internship_type_preference || "",
+            preferred_internship_location: profile.preferred_internship_location || "",
+            preferred_locations: profile.preferred_locations || [],
+            open_to_relocate: profile.open_to_relocate || false,
+            multiple_website_urls: profile.multiple_website_urls || [],
           }}
-          onUpdate={handlePersonalInfoUpdate}
+          setFormData={(data) => onUpdateProfile(data)}
+          graduationYearOptions={graduationYearOptions}
         />
       </TabsContent>
 
       <TabsContent value="skills" className="space-y-4">
         <SkillsSection
-          initialSkills={profile.skills || []}
-          onUpdate={handleSkillsUpdate}
+          skills={profile.skills || []}
+          setSkills={(skills) => onUpdateProfile({ skills })}
+          commonSkills={commonSkills}
         />
       </TabsContent>
 
       <TabsContent value="projects" className="space-y-4">
         <ProjectsSection
           projects={projects}
-          onRefresh={onRefreshProjects}
+          setProjects={() => onRefreshProjects()}
+          commonSkills={commonSkills}
         />
       </TabsContent>
 
       <TabsContent value="certifications" className="space-y-4">
         <CertificationsSection
           certifications={certifications}
-          onRefresh={onRefreshCertifications}
+          setCertifications={() => onRefreshCertifications()}
         />
       </TabsContent>
 
       <TabsContent value="internships" className="space-y-4">
         <InternshipPreferencesSection
-          initialData={{
+          formData={{
             internship_type_preference: profile.internship_type_preference || "",
-            paid_internship_preference: (profile as any).paid_internship_preference || "",
+            paid_internship_preference: profile.paid_internship_preference || "",
             preferred_internship_location: profile.preferred_internship_location || "",
             preferred_locations: profile.preferred_locations || [],
             open_to_relocate: profile.open_to_relocate || false,
           }}
-          onUpdate={handleInternshipPreferencesUpdate}
+          setFormData={(data) => onUpdateProfile(data)}
         />
       </TabsContent>
 
       <TabsContent value="resume" className="space-y-4">
         <ResumeUploadSection
-          currentResumeUrl={profile.resume_url}
-          onUpdate={handleResumeUpdate}
+          resumeUrl={profile.resume_url}
+          onResumeUpdate={(resumeUrl) => onUpdateProfile({ resume_url: resumeUrl })}
         />
       </TabsContent>
     </Tabs>
