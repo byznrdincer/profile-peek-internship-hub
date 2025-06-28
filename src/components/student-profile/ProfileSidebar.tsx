@@ -2,8 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Github, Linkedin, Globe, Award, MapPin, Calendar, GraduationCap, Building } from "lucide-react";
+import { Github, Linkedin, Globe, Award, MapPin, Calendar, GraduationCap, Building, FileText } from "lucide-react";
 import BookmarkButton from "../BookmarkButton";
+import { generateStudentProfilePDF } from "@/utils/pdfGenerator";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileSidebarProps {
   student: any;
@@ -11,8 +13,25 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
+  const { toast } = useToast();
   const hasMultipleWebsites = student.multiple_website_urls && student.multiple_website_urls.length > 0;
   const hasLegacyWebsite = student.website_url;
+
+  const handleGeneratePDF = () => {
+    try {
+      generateStudentProfilePDF(student, certifications);
+      toast({
+        title: "PDF Generated",
+        description: "Student profile summary has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -23,6 +42,14 @@ const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           <BookmarkButton studentId={student.user_id} />
+          <Button 
+            variant="outline" 
+            className="w-full justify-start"
+            onClick={handleGeneratePDF}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Generate PDF Summary
+          </Button>
         </CardContent>
       </Card>
 

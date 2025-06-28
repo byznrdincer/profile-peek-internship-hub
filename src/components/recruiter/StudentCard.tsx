@@ -1,8 +1,10 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, MapPin, Calendar, Code, Trophy, Video, Briefcase, Activity } from "lucide-react";
+import { Eye, MapPin, Calendar, Code, Trophy, Video, Briefcase, Activity, FileText } from "lucide-react";
 import BookmarkButton from "@/components/BookmarkButton";
+import { generateStudentProfilePDF } from "@/utils/pdfGenerator";
+import { useToast } from "@/hooks/use-toast";
 
 interface StudentCardProps {
   student: any;
@@ -11,6 +13,8 @@ interface StudentCardProps {
 }
 
 const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardProps) => {
+  const { toast } = useToast();
+  
   const getActivityStatus = (lastLoginAt: string | null) => {
     if (!lastLoginAt) return 'inactive';
     
@@ -21,6 +25,23 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
     if (daysDiff <= 7) return 'very-active';
     if (daysDiff <= 30) return 'active';
     return 'inactive';
+  };
+
+  const handleGeneratePDF = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      generateStudentProfilePDF(student, []);
+      toast({
+        title: "PDF Generated",
+        description: `${student.name}'s profile summary has been downloaded.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const activityStatus = getActivityStatus(student.last_login_at);
@@ -183,6 +204,15 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
               studentId={student.user_id} 
               onBookmarkChange={onBookmarkChange}
             />
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={handleGeneratePDF}
+              className="flex items-center gap-1"
+            >
+              <FileText className="h-3 w-3" />
+              PDF
+            </Button>
             <Button 
               size="sm" 
               variant="outline"
