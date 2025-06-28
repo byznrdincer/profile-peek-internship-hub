@@ -188,15 +188,23 @@ const RecruiterDashboard = () => {
         if (!hasMatchingProject) return false;
       }
 
-      // Location filter (checks both single and multiple preferred locations)
+      // Location filter - Updated to properly check preferred_locations array
       if (locationFilter) {
-        const singleLocation = student.location?.toLowerCase().includes(locationFilter.toLowerCase());
-        const multipleLocations = student.preferred_locations?.some((loc: string) => 
-          loc.toLowerCase().includes(locationFilter.toLowerCase())
-        );
-        const preferredInternshipLocation = student.preferred_internship_location?.toLowerCase().includes(locationFilter.toLowerCase());
+        const filterLower = locationFilter.toLowerCase();
         
-        if (!singleLocation && !multipleLocations && !preferredInternshipLocation) {
+        // Check current location
+        const currentLocationMatch = student.location?.toLowerCase().includes(filterLower);
+        
+        // Check preferred_locations array (new field)
+        const preferredLocationsMatch = student.preferred_locations?.some((loc: string) => 
+          loc.toLowerCase().includes(filterLower)
+        );
+        
+        // Check single preferred_internship_location (legacy field)
+        const singlePreferredLocationMatch = student.preferred_internship_location?.toLowerCase().includes(filterLower);
+        
+        // Return true if any location field matches
+        if (!currentLocationMatch && !preferredLocationsMatch && !singlePreferredLocationMatch) {
           return false;
         }
       }
