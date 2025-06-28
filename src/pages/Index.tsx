@@ -9,8 +9,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, profile, loading } = useAuth();
 
-  console.log('Index page render - loading:', loading, 'isAuthenticated:', isAuthenticated, 'profile role:', profile?.role);
-
   const handleDashboardNavigation = () => {
     if (!isAuthenticated || !profile) {
       navigate('/auth');
@@ -50,29 +48,14 @@ const Index = () => {
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-4xl mx-auto">
-            {isAuthenticated && profile?.role === 'recruiter' ? (
-              <>
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                  Find Top Talent,
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Build Great Teams</span>
-                </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Discover skilled students ready to make an impact. Browse profiles, view projects, 
-                  and connect with the next generation of talent for your team.
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                  Upload Your Skills, 
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Discovered</span>
-                </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Simply showcase your skills and projects. Recruiters will find you based on what you can do, 
-                  not just where you studied. Let your abilities speak for themselves.
-                </p>
-              </>
-            )}
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Upload Your Skills, 
+              <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Discovered</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Simply showcase your skills and projects. Recruiters will find you based on what you can do, 
+              not just where you studied. Let your abilities speak for themselves.
+            </p>
             
             {isAuthenticated ? (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -81,7 +64,7 @@ const Index = () => {
                   onClick={handleDashboardNavigation}
                   className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
                 >
-                  {profile?.role === 'student' ? 'Go to Dashboard' : profile?.role === 'recruiter' ? 'Find Talent' : 'Go to Dashboard'}
+                  Go to Dashboard
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
