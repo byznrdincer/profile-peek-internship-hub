@@ -198,6 +198,20 @@ const Navigation = () => {
                             </div>
                           </>
                         )}
+                        
+                        <div className="border-t pt-2">
+                          <Button
+                            variant="ghost"
+                            onClick={() => navigate('/terms')}
+                            className="justify-start gap-2 h-auto p-2 w-full"
+                          >
+                            <Settings className="h-4 w-4" />
+                            <div className="text-left">
+                              <div className="font-medium">Terms & Conditions</div>
+                              <div className="text-xs text-muted-foreground">Legal information</div>
+                            </div>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
