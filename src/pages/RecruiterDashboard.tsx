@@ -23,10 +23,11 @@ const RecruiterDashboard = () => {
   
   // Filter states
   const [majorFilter, setMajorFilter] = useState("");
-  const [skillsFilter, setSkillsFilter] = useState<string[]>([]);
+  const [skillFilter, setSkillFilter] = useState("");
+  const [projectSkillFilter, setProjectSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
-  const [projectTechFilter, setProjectTechFilter] = useState<string[]>([]);
+  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -38,7 +39,7 @@ const RecruiterDashboard = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [students, bookmarkedStudents, majorFilter, skillsFilter, locationFilter, graduationYearFilter, projectTechFilter]);
+  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadRecruiterProfile = async () => {
     if (!user) return;
@@ -155,20 +156,49 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Skills filter
-      if (skillsFilter.length > 0) {
+      // General skills filter
+      if (skillFilter) {
         const studentSkills = student.skills || [];
-        const hasMatchingSkill = skillsFilter.some(skill => 
-          studentSkills.some((studentSkill: string) => 
-            studentSkill.toLowerCase().includes(skill.toLowerCase())
-          )
+        const hasMatchingSkill = studentSkills.some((studentSkill: string) => 
+          studentSkill.toLowerCase().includes(skillFilter.toLowerCase())
         );
         if (!hasMatchingSkill) return false;
       }
 
-      // Location filter
-      if (locationFilter && !student.location?.toLowerCase().includes(locationFilter.toLowerCase())) {
-        return false;
+      // Project search filter (searches through project technologies, titles, and descriptions)
+      if (projectSkillFilter) {
+        const projects = student.projects || [];
+        const hasMatchingProject = projects.some((project: any) => {
+          // Check project title
+          if (project.title?.toLowerCase().includes(projectSkillFilter.toLowerCase())) {
+            return true;
+          }
+          // Check project description
+          if (project.description?.toLowerCase().includes(projectSkillFilter.toLowerCase())) {
+            return true;
+          }
+          // Check project technologies
+          if (project.technologies?.some((tech: string) => 
+            tech.toLowerCase().includes(projectSkillFilter.toLowerCase())
+          )) {
+            return true;
+          }
+          return false;
+        });
+        if (!hasMatchingProject) return false;
+      }
+
+      // Location filter (checks both single and multiple preferred locations)
+      if (locationFilter) {
+        const singleLocation = student.location?.toLowerCase().includes(locationFilter.toLowerCase());
+        const multipleLocations = student.preferred_locations?.some((loc: string) => 
+          loc.toLowerCase().includes(locationFilter.toLowerCase())
+        );
+        const preferredInternshipLocation = student.preferred_internship_location?.toLowerCase().includes(locationFilter.toLowerCase());
+        
+        if (!singleLocation && !multipleLocations && !preferredInternshipLocation) {
+          return false;
+        }
       }
 
       // Graduation year filter
@@ -176,21 +206,9 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Project technology filter
-      if (projectTechFilter.length > 0) {
-        const projectTechnologies = student.projects?.reduce((acc: string[], project: any) => {
-          if (project.technologies) {
-            return [...acc, ...project.technologies];
-          }
-          return acc;
-        }, []) || [];
-        
-        const hasMatchingTech = projectTechFilter.some(tech => 
-          projectTechnologies.some((projectTech: string) => 
-            projectTech.toLowerCase().includes(tech.toLowerCase())
-          )
-        );
-        if (!hasMatchingTech) return false;
+      // Internship type filter
+      if (internshipTypeFilter && student.internship_type_preference !== internshipTypeFilter) {
+        return false;
       }
 
       return true;
@@ -201,13 +219,14 @@ const RecruiterDashboard = () => {
 
   const clearFilters = () => {
     setMajorFilter("");
-    setSkillsFilter([]);
+    setSkillFilter("");
+    setProjectSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter("");
-    setProjectTechFilter([]);
+    setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = majorFilter || skillsFilter.length > 0 || locationFilter || graduationYearFilter || projectTechFilter.length > 0;
+  const hasActiveFilters = majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count
@@ -278,17 +297,20 @@ const RecruiterDashboard = () => {
             <StudentFilters
               majorFilter={majorFilter}
               setMajorFilter={setMajorFilter}
-              skillsFilter={skillsFilter}
-              setSkillsFilter={setSkillsFilter}
+              skillFilter={skillFilter}
+              setSkillFilter={setSkillFilter}
+              projectSkillFilter={projectSkillFilter}
+              setProjectSkillFilter={setProjectSkillFilter}
               locationFilter={locationFilter}
               setLocationFilter={setLocationFilter}
               graduationYearFilter={graduationYearFilter}
               setGraduationYearFilter={setGraduationYearFilter}
-              projectTechFilter={projectTechFilter}
-              setProjectTechFilter={setProjectTechFilter}
+              internshipTypeFilter={internshipTypeFilter}
+              setInternshipTypeFilter={setInternshipTypeFilter}
               onClearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
-              onLoadStudents={loadStudents}
+              filteredCount={filteredStudents.length}
+              totalCount={students.length}
             />
           </div>
 
