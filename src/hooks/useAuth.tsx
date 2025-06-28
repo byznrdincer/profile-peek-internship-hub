@@ -36,13 +36,64 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    console.log('useAuth: Setting up auth listener');
+    console.log('useAuth: Initializing auth hook');
     let mounted = true;
 
+    const initializeAuth = async () => {
+      try {
+        console.log('useAuth: Getting initial session');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+        
+        if (!mounted) return;
+        
+        console.log('useAuth: Initial session:', session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('useAuth: Fetching user profile');
+          const profileData = await fetchUserProfile(session.user.id);
+          
+          if (mounted && profileData) {
+            console.log('useAuth: Profile loaded:', profileData.role);
+            setProfile(profileData);
+            
+            // Update last login for students
+            if (profileData.role === 'student') {
+              try {
+                await supabase.rpc('update_student_last_login');
+              } catch (error) {
+                console.error('Error updating student last login:', error);
+              }
+            }
+          }
+        }
+        
+        if (mounted) {
+          console.log('useAuth: Setting loading to false');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in initializeAuth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     // Set up auth state listener
+    console.log('useAuth: Setting up auth listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('useAuth: Auth state changed:', event, session?.user?.id);
         
         if (!mounted) return;
         
@@ -69,60 +120,10 @@ export const useAuth = () => {
             setProfile(null);
           }
         }
-        
-        if (mounted) {
-          setLoading(false);
-        }
       }
     );
 
-    // Check for existing session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
-            setLoading(false);
-          }
-          return;
-        }
-        
-        if (!mounted) return;
-        
-        console.log('Initial session check:', session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const profileData = await fetchUserProfile(session.user.id);
-          
-          if (mounted && profileData) {
-            setProfile(profileData);
-            
-            // Update last login for students
-            if (profileData.role === 'student') {
-              try {
-                await supabase.rpc('update_student_last_login');
-              } catch (error) {
-                console.error('Error updating student last login:', error);
-              }
-            }
-          }
-        }
-        
-        if (mounted) {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error in initializeAuth:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
+    // Initialize auth after setting up listener
     initializeAuth();
 
     return () => {
@@ -130,10 +131,11 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty dependency array is crucial
+  }, []);
 
   const signOut = async () => {
     try {
+      console.log('useAuth: Signing out');
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
