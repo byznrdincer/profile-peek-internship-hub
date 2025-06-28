@@ -28,7 +28,7 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
@@ -39,7 +39,38 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+        return;
+      }
+
+      if (data.user) {
+        // Check user's actual role in the database
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (profileError) {
+          toast({
+            title: "Login failed",
+            description: "Unable to verify user role. Please try again.",
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+          return;
+        }
+
+        // Verify that the selected role matches the user's actual role
+        if (profileData.role !== loginData.role) {
+          toast({
+            title: "Invalid login attempt",
+            description: `You cannot login as a ${loginData.role}. Your account is registered as a ${profileData.role}.`,
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+          return;
+        }
+
         toast({
           title: `Welcome back, ${loginData.role}!`,
           description: "You have been logged in successfully.",
@@ -52,6 +83,7 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      await supabase.auth.signOut();
     } finally {
       setLoading(false);
     }

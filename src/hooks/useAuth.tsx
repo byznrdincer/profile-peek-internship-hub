@@ -15,30 +15,49 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      return profileData;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           // Fetch user profile
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
+            const profileData = await fetchUserProfile(session.user.id);
             
-            setProfile(profileData);
-            
-            // Update last login for students
-            if (profileData?.role === 'student') {
-              try {
-                await supabase.rpc('update_student_last_login');
-              } catch (error) {
-                console.error('Error updating student last login:', error);
+            if (profileData) {
+              setProfile(profileData);
+              
+              // Update last login for students
+              if (profileData.role === 'student') {
+                try {
+                  await supabase.rpc('update_student_last_login');
+                } catch (error) {
+                  console.error('Error updating student last login:', error);
+                }
               }
             }
             
@@ -58,20 +77,18 @@ export const useAuth = () => {
       
       if (session?.user) {
         setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
+          const profileData = await fetchUserProfile(session.user.id);
           
-          setProfile(profileData);
-          
-          // Update last login for students
-          if (profileData?.role === 'student') {
-            try {
-              await supabase.rpc('update_student_last_login');
-            } catch (error) {
-              console.error('Error updating student last login:', error);
+          if (profileData) {
+            setProfile(profileData);
+            
+            // Update last login for students
+            if (profileData.role === 'student') {
+              try {
+                await supabase.rpc('update_student_last_login');
+              } catch (error) {
+                console.error('Error updating student last login:', error);
+              }
             }
           }
           
