@@ -226,7 +226,7 @@ const RecruiterDashboard = () => {
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter;
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count
