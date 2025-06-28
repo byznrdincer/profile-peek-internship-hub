@@ -27,7 +27,7 @@ const RecruiterDashboard = () => {
   const [projectSkillFilter, setProjectSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState<string[]>([]);
-  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
+  const [internshipTypeFilter, setInternshipTypeFilter] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -236,8 +236,8 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Internship type filter
-      if (internshipTypeFilter && student.internship_type_preference !== internshipTypeFilter) {
+      // Internship type filter - Updated to support multiple types with OR logic
+      if (internshipTypeFilter.length > 0 && !internshipTypeFilter.includes(student.internship_type_preference)) {
         return false;
       }
 
@@ -253,10 +253,10 @@ const RecruiterDashboard = () => {
     setProjectSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter([]);
-    setInternshipTypeFilter("");
+    setInternshipTypeFilter([]);
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter);
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0);
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count

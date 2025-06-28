@@ -26,8 +26,8 @@ interface StudentFiltersProps {
   setLocationFilter: (value: string) => void;
   graduationYearFilter: string[];
   setGraduationYearFilter: (value: string[]) => void;
-  internshipTypeFilter: string;
-  setInternshipTypeFilter: (value: string) => void;
+  internshipTypeFilter: string[];
+  setInternshipTypeFilter: (value: string[]) => void;
   onClearFilters: () => void;
   hasActiveFilters: boolean;
   filteredCount: number;
@@ -74,6 +74,16 @@ const StudentFilters = ({
 
   const handleRemoveGraduationYear = (yearToRemove: string) => {
     setGraduationYearFilter(graduationYearFilter.filter(year => year !== yearToRemove));
+  };
+
+  const handleInternshipTypeSelect = (type: string) => {
+    if (!internshipTypeFilter.includes(type)) {
+      setInternshipTypeFilter([...internshipTypeFilter, type]);
+    }
+  };
+
+  const handleRemoveInternshipType = (typeToRemove: string) => {
+    setInternshipTypeFilter(internshipTypeFilter.filter(type => type !== typeToRemove));
   };
 
   return (
@@ -177,21 +187,36 @@ const StudentFilters = ({
 
           <div>
             <Label htmlFor="internshipType">Internship Type</Label>
-            <Select
-              value={internshipTypeFilter}
-              onValueChange={setInternshipTypeFilter}
-            >
+            <Select onValueChange={handleInternshipTypeSelect}>
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="Select types" />
               </SelectTrigger>
               <SelectContent>
-                {internshipTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
+                {internshipTypes
+                  .filter(type => !internshipTypeFilter.includes(type))
+                  .map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
+            {internshipTypeFilter.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {internshipTypeFilter.map((type) => (
+                  <Badge key={type} variant="secondary" className="flex items-center gap-1">
+                    {type}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => handleRemoveInternshipType(type)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Select multiple types (matches any)
+            </p>
           </div>
         </div>
 
@@ -243,12 +268,12 @@ const StudentFilters = ({
                 />
               </Badge>
             )}
-            {internshipTypeFilter && (
+            {internshipTypeFilter.length > 0 && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Type: {internshipTypeFilter}
+                Types: {internshipTypeFilter.join(', ')}
                 <X
                   className="h-3 w-3 cursor-pointer"
-                  onClick={() => setInternshipTypeFilter("")}
+                  onClick={() => setInternshipTypeFilter([])}
                 />
               </Badge>
             )}
