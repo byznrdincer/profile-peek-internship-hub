@@ -51,15 +51,20 @@ export const useStudentProfile = () => {
     if (!user) return;
 
     try {
+      console.log('Loading student profile for user:', user.id);
       const { data, error } = await supabase
         .from('student_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading profile:', error);
+        throw error;
+      }
 
       if (data) {
+        console.log('Profile data loaded:', data);
         // Map database fields to interface, handling missing fields
         const profileData: StudentProfile = {
           id: data.id,
@@ -146,17 +151,38 @@ export const useStudentProfile = () => {
   };
 
   const updateProfile = async (updates: Partial<StudentProfile>) => {
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      console.error('Cannot update profile: user or profile not found');
+      return;
+    }
 
     try {
+      console.log('Updating profile with:', updates);
+      
+      // Clean the updates object to remove any undefined values
+      const cleanUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+
+      console.log('Clean updates:', cleanUpdates);
+
       const { error } = await supabase
         .from('student_profiles')
-        .update(updates)
+        .update(cleanUpdates)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
+      // Update local state
       setProfile({ ...profile, ...updates });
+      
+      console.log('Profile updated successfully');
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -165,7 +191,7 @@ export const useStudentProfile = () => {
       console.error('Error updating profile:', error);
       toast({
         title: "Error updating profile",
-        description: "There was an error updating your profile.",
+        description: "There was an error updating your profile. Please try again.",
         variant: "destructive",
       });
     }
