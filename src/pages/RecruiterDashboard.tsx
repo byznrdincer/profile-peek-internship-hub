@@ -17,6 +17,7 @@ const RecruiterDashboard = () => {
   const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
   const [majorFilter, setMajorFilter] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
+  const [projectSkillFilter, setProjectSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
   const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
@@ -59,7 +60,7 @@ const RecruiterDashboard = () => {
     }
   }, [user, authLoading]);
 
-  // Filter and sort students based on major filter, skill filter, location filter, and activity
+  // Filter and sort students based on all filters including project skills
   useEffect(() => {
     const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
     let filtered = currentStudents;
@@ -74,6 +75,16 @@ const RecruiterDashboard = () => {
       filtered = filtered.filter(student =>
         student.skills?.some((skill: string) =>
           skill.toLowerCase().includes(skillFilter.toLowerCase())
+        )
+      );
+    }
+
+    if (projectSkillFilter) {
+      filtered = filtered.filter(student =>
+        student.projects?.some((project: any) =>
+          project.technologies?.some((tech: string) =>
+            tech.toLowerCase().includes(projectSkillFilter.toLowerCase())
+          )
         )
       );
     }
@@ -114,7 +125,7 @@ const RecruiterDashboard = () => {
     });
     
     setFilteredStudents(filtered);
-  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadStudents = async () => {
     setLoading(true);
@@ -305,12 +316,13 @@ const RecruiterDashboard = () => {
   const clearAllFilters = () => {
     setMajorFilter("");
     setSkillFilter("");
+    setProjectSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter("");
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
 
   if (selectedStudent) {
     return (
@@ -348,6 +360,8 @@ const RecruiterDashboard = () => {
             setMajorFilter={setMajorFilter}
             skillFilter={skillFilter}
             setSkillFilter={setSkillFilter}
+            projectSkillFilter={projectSkillFilter}
+            setProjectSkillFilter={setProjectSkillFilter}
             locationFilter={locationFilter}
             setLocationFilter={setLocationFilter}
             graduationYearFilter={graduationYearFilter}

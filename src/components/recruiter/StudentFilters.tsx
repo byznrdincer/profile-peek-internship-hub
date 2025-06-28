@@ -20,6 +20,8 @@ interface StudentFiltersProps {
   setMajorFilter: (value: string) => void;
   skillFilter: string;
   setSkillFilter: (value: string) => void;
+  projectSkillFilter: string;
+  setProjectSkillFilter: (value: string) => void;
   locationFilter: string;
   setLocationFilter: (value: string) => void;
   graduationYearFilter: string;
@@ -37,6 +39,8 @@ const StudentFilters = ({
   setMajorFilter,
   skillFilter,
   setSkillFilter,
+  projectSkillFilter,
+  setProjectSkillFilter,
   locationFilter,
   setLocationFilter,
   graduationYearFilter,
@@ -89,12 +93,23 @@ const StudentFilters = ({
           </div>
 
           <div>
-            <Label htmlFor="skill">Skills</Label>
+            <Label htmlFor="skill">General Skills</Label>
             <Input
               id="skill"
-              placeholder="Filter by skills..."
+              placeholder="Filter by general skills..."
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="projectSkill">Project Technologies</Label>
+            <Input
+              id="projectSkill"
+              placeholder="Filter by project tech (React, Python, etc.)..."
+              value={projectSkillFilter}
+              onChange={(e) => setProjectSkillFilter(e.target.value)}
+              className="border-purple-200 focus:border-purple-400"
             />
           </div>
 
@@ -164,6 +179,15 @@ const StudentFilters = ({
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => setSkillFilter("")}
+                />
+              </Badge>
+            )}
+            {projectSkillFilter && (
+              <Badge variant="default" className="flex items-center gap-1 bg-purple-500 hover:bg-purple-600">
+                Project Tech: {projectSkillFilter}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setProjectSkillFilter("")}
                 />
               </Badge>
             )}

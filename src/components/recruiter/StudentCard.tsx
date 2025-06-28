@@ -25,6 +25,16 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
 
   const activityStatus = getActivityStatus(student.last_login_at);
   const projectsWithVideos = student.projects?.filter((p: any) => p.video_url).length || 0;
+  
+  // Get all unique project technologies
+  const allProjectTechnologies = student.projects?.reduce((acc: string[], project: any) => {
+    if (project.technologies) {
+      return [...acc, ...project.technologies];
+    }
+    return acc;
+  }, []) || [];
+  
+  const uniqueProjectTechnologies = [...new Set(allProjectTechnologies)];
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -111,19 +121,41 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
           </p>
         )}
         
-        {/* Skills */}
+        {/* Project Technologies Showcase */}
+        {uniqueProjectTechnologies.length > 0 && (
+          <div className="border-l-4 border-purple-200 pl-3">
+            <p className="text-xs font-medium text-purple-700 mb-2">Project Technologies:</p>
+            <div className="flex flex-wrap gap-1">
+              {uniqueProjectTechnologies.slice(0, 8).map((tech: string, index: number) => (
+                <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  {tech}
+                </Badge>
+              ))}
+              {uniqueProjectTechnologies.length > 8 && (
+                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  +{uniqueProjectTechnologies.length - 8} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* General Skills */}
         {student.skills && student.skills.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {student.skills.slice(0, 5).map((skill: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
-            {student.skills.length > 5 && (
-              <Badge variant="outline" className="text-xs">
-                +{student.skills.length - 5} more
-              </Badge>
-            )}
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1">General Skills:</p>
+            <div className="flex flex-wrap gap-1">
+              {student.skills.slice(0, 5).map((skill: string, index: number) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {skill}
+                </Badge>
+              ))}
+              {student.skills.length > 5 && (
+                <Badge variant="outline" className="text-xs">
+                  +{student.skills.length - 5} more
+                </Badge>
+              )}
+            </div>
           </div>
         )}
         
@@ -142,6 +174,12 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
               <span className="flex items-center gap-1 text-purple-600">
                 <Video className="h-3 w-3" />
                 {projectsWithVideos} video{projectsWithVideos > 1 ? 's' : ''}
+              </span>
+            )}
+            {uniqueProjectTechnologies.length > 0 && (
+              <span className="flex items-center gap-1 text-purple-600 font-medium">
+                <Code className="h-3 w-3" />
+                {uniqueProjectTechnologies.length} tech stacks
               </span>
             )}
           </div>
