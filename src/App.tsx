@@ -11,50 +11,40 @@ import RecruiterDashboard from "./pages/RecruiterDashboard";
 import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
-import ErrorBoundary from "./components/ErrorBoundary";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route 
-              path="/student-dashboard" 
-              element={
-                <ProtectedRoute requireRole="student">
-                  <StudentDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/recruiter-dashboard" 
-              element={
-                <ProtectedRoute requireRole="recruiter">
-                  <RecruiterDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route 
+            path="/student-dashboard" 
+            element={
+              <ProtectedRoute requireRole="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/recruiter-dashboard" 
+            element={
+              <ProtectedRoute requireRole="recruiter">
+                <RecruiterDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
