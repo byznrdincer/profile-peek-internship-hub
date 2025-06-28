@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showOTPVerification, setShowOTPVerification] = useState(false);
   const [otpEmail, setOtpEmail] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loginData, setLoginData] = useState({ 
     email: "", 
     password: "",
@@ -77,6 +79,16 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      toast({
+        title: "Terms and Conditions required",
+        description: "Please accept the terms and conditions to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -410,10 +422,34 @@ const Auth = () => {
                     required
                   />
                 </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label 
+                      htmlFor="terms"
+                      className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      I agree to the{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate('/terms')}
+                        className="text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Terms and Conditions
+                      </button>
+                    </Label>
+                  </div>
+                </div>
+                
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-blue-500 to-teal-500"
-                  disabled={loading}
+                  disabled={loading || !acceptTerms}
                 >
                   {loading ? "Creating account..." : `Sign Up as ${signupData.role === 'student' ? 'Student' : 'Recruiter'}`}
                 </Button>
