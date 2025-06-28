@@ -15,95 +15,110 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-      }
-
-      return profileData;
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
+    console.log('useAuth: Setting up authentication');
+    let mounted = true;
+
+    const loadProfile = async (userId: string) => {
+      try {
+        console.log('useAuth: Loading profile for user:', userId);
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('useAuth: Error loading profile:', error);
+          return;
+        }
+
+        if (mounted) {
+          if (profileData) {
+            console.log('useAuth: Profile loaded:', profileData);
+            setProfile(profileData);
+          } else {
+            console.log('useAuth: No profile found for user');
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('useAuth: Exception loading profile:', error);
+      }
+    };
+    
+    // Get initial session
+    const getSession = async () => {
+      try {
+        console.log('useAuth: Getting initial session');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('useAuth: Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('useAuth: Initial session:', session);
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+
+          if (session?.user) {
+            await loadProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+          
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('useAuth: Exception getting session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        if (!mounted) return;
+        
+        console.log('useAuth: Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            const profileData = await fetchUserProfile(session.user.id);
-            
-            if (profileData) {
-              setProfile(profileData);
-              
-              // Update last login for students
-              if (profileData.role === 'student') {
-                try {
-                  await supabase.rpc('update_student_last_login');
-                } catch (error) {
-                  console.error('Error updating student last login:', error);
-                }
-              }
-            }
-            
-            setLoading(false);
-          }, 0);
+          await loadProfile(session.user.id);
         } else {
           setProfile(null);
-          setLoading(false);
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(async () => {
-          const profileData = await fetchUserProfile(session.user.id);
-          
-          if (profileData) {
-            setProfile(profileData);
-            
-            // Update last login for students
-            if (profileData.role === 'student') {
-              try {
-                await supabase.rpc('update_student_last_login');
-              } catch (error) {
-                console.error('Error updating student last login:', error);
-              }
-            }
-          }
-          
-          setLoading(false);
-        }, 0);
-      } else {
-        setLoading(false);
-      }
-    });
+    getSession();
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      console.log('useAuth: Cleaning up subscription');
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Empty dependency array to prevent infinite loops
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      console.log('useAuth: Signing out');
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+    } catch (error) {
+      console.error('useAuth: Error signing out:', error);
+    }
   };
 
   return {

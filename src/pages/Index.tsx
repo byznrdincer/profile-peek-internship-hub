@@ -1,47 +1,53 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 
 const Index = () => {
+  console.log('Index: Component rendering');
+  
   const navigate = useNavigate();
   const { isAuthenticated, profile, loading } = useAuth();
 
+  console.log('Index: Auth state:', { isAuthenticated, profile, loading });
+
   const handleDashboardNavigation = () => {
-    console.log('Dashboard navigation clicked:', { isAuthenticated, profile, loading });
-    
-    if (!isAuthenticated) {
-      console.log('User not authenticated, redirecting to auth');
+    console.log('Index: Navigating to dashboard');
+    if (!isAuthenticated || !profile) {
       navigate('/auth');
       return;
     }
 
-    if (profile?.role === 'student') {
-      console.log('Navigating to student dashboard');
+    if (profile.role === 'student') {
       navigate('/student-dashboard');
-    } else if (profile?.role === 'recruiter') {
-      console.log('Navigating to recruiter dashboard');
+    } else if (profile.role === 'recruiter') {
       navigate('/recruiter-dashboard');
     } else {
-      console.log('No profile role found, redirecting to auth');
       navigate('/auth');
     }
   };
 
-  // Show loading state while auth is being determined
+  const handleGetStarted = () => {
+    console.log('Index: Navigating to auth');
+    navigate('/auth');
+  };
+
   if (loading) {
+    console.log('Index: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
         <Navigation />
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
+
+  console.log('Index: Rendering main content');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -51,30 +57,14 @@ const Index = () => {
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-4xl mx-auto">
-            {/* Show different content based on user role */}
-            {isAuthenticated && profile?.role === 'recruiter' ? (
-              <>
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                  Find Top Talent,
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Build Great Teams</span>
-                </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Discover skilled students ready to make an impact. Browse profiles, view projects, 
-                  and connect with the next generation of talent for your team.
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                  Upload Your Skills, 
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Discovered</span>
-                </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Simply showcase your skills and projects. Recruiters will find you based on what you can do, 
-                  not just where you studied. Let your abilities speak for themselves.
-                </p>
-              </>
-            )}
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Upload Your Skills, 
+              <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Discovered</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Simply showcase your skills and projects. Recruiters will find you based on what you can do, 
+              not just where you studied. Let your abilities speak for themselves.
+            </p>
             
             {isAuthenticated ? (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -83,7 +73,7 @@ const Index = () => {
                   onClick={handleDashboardNavigation}
                   className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
                 >
-                  {profile?.role === 'student' ? 'Go to Dashboard' : profile?.role === 'recruiter' ? 'Find Talent' : 'Go to Dashboard'}
+                  Go to Dashboard
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
@@ -91,7 +81,7 @@ const Index = () => {
               <div className="flex justify-center">
                 <Button 
                   size="lg" 
-                  onClick={() => navigate('/auth')}
+                  onClick={handleGetStarted}
                   className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
                 >
                   Get Started

@@ -56,12 +56,14 @@ const InternshipPreferencesSection = ({ formData, setFormData }: InternshipPrefe
             onValueChange={(value) => setFormData({...formData, internship_type_preference: value})}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select preference" />
+              <SelectValue placeholder="Select type preference" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="paid">Paid Internships Only</SelectItem>
-              <SelectItem value="unpaid">Unpaid Internships Only</SelectItem>
-              <SelectItem value="both">Both Paid & Unpaid</SelectItem>
+              <SelectItem value="Full-time">Full-time</SelectItem>
+              <SelectItem value="Part-time">Part-time</SelectItem>
+              <SelectItem value="Remote">Remote</SelectItem>
+              <SelectItem value="On-site">On-site</SelectItem>
+              <SelectItem value="Hybrid">Hybrid</SelectItem>
             </SelectContent>
           </Select>
         </div>
