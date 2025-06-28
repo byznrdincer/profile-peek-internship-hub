@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, MapPinIcon, Banknote, Mail, Phone } from "lucide-react";
+import { MapPin, Calendar, Clock, MapPinIcon, Banknote, Mail, Phone, Globe } from "lucide-react";
 
 interface PersonalInfoCardProps {
   student: any;
@@ -36,6 +36,8 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
 
   const hasPreferredLocations = student.preferred_locations && student.preferred_locations.length > 0;
   const hasSingleLocation = student.preferred_internship_location;
+  const hasMultipleWebsites = student.multiple_website_urls && student.multiple_website_urls.length > 0;
+  const hasLegacyWebsite = student.website_url;
 
   return (
     <Card>
@@ -135,6 +137,49 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
               )}
             </div>
           </div>
+
+          {/* Website Links Section */}
+          {(hasMultipleWebsites || hasLegacyWebsite) && (
+            <div className="border-t pt-4">
+              <h4 className="font-semibold text-gray-900 mb-3">Website Links</h4>
+              <div className="space-y-2">
+                {hasMultipleWebsites && (
+                  <div className="space-y-2">
+                    {student.multiple_website_urls
+                      .filter((url: string) => url && url.trim())
+                      .map((url: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                          <Globe className="h-4 w-4 text-purple-500" />
+                          <span className="font-medium">Website {index + 1}:</span>
+                          <a 
+                            href={url.startsWith('http') ? url : `https://${url}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-purple-600 hover:underline break-all"
+                          >
+                            {url}
+                          </a>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {hasLegacyWebsite && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Globe className="h-4 w-4 text-purple-500" />
+                    <span className="font-medium">Portfolio:</span>
+                    <a 
+                      href={student.website_url.startsWith('http') ? student.website_url : `https://${student.website_url}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:underline break-all"
+                    >
+                      {student.website_url}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -289,6 +289,7 @@ const StudentDashboard = () => {
     preferred_internship_location: "",
     preferred_locations: [] as string[],
     open_to_relocate: false,
+    multiple_website_urls: [] as string[],
   });
 
   // Load existing profile data
@@ -331,6 +332,7 @@ const StudentDashboard = () => {
         preferred_internship_location: profile.preferred_internship_location || "",
         preferred_locations: profile.preferred_locations || [],
         open_to_relocate: profile.open_to_relocate || false,
+        multiple_website_urls: profile.multiple_website_urls || [],
       });
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
@@ -423,6 +425,7 @@ const StudentDashboard = () => {
           preferred_internship_location: formData.preferred_internship_location,
           preferred_locations: formData.preferred_locations,
           open_to_relocate: formData.open_to_relocate,
+          multiple_website_urls: formData.multiple_website_urls,
           skills: skills,
           updated_at: new Date().toISOString()
         }, {

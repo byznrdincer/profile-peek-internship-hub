@@ -203,6 +203,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           major: string | null
+          multiple_website_urls: string[] | null
           name: string | null
           open_to_relocate: boolean | null
           phone: string | null
@@ -230,6 +231,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          multiple_website_urls?: string[] | null
           name?: string | null
           open_to_relocate?: boolean | null
           phone?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           major?: string | null
+          multiple_website_urls?: string[] | null
           name?: string | null
           open_to_relocate?: boolean | null
           phone?: string | null
