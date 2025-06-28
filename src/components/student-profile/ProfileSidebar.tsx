@@ -22,7 +22,7 @@ const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
           <CardTitle className="text-lg">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <BookmarkButton studentUserId={student.user_id} />
+          <BookmarkButton studentId={student.user_id} />
           {student.resume_url && (
             <Button variant="outline" className="w-full" asChild>
               <a href={student.resume_url} target="_blank" rel="noopener noreferrer">
