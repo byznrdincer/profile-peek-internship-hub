@@ -23,6 +23,7 @@ const RecruiterDashboard = () => {
   const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalViews: 0,
@@ -54,11 +55,25 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     if (user && !authLoading) {
       console.log('User authenticated, loading recruiter data...');
-      loadStudents();
+      // Only load stats and bookmarks initially, not all students
       loadStats();
       loadBookmarkedStudents();
     }
   }, [user, authLoading]);
+
+  // Check if any filters are active
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
+
+  // Load students when filters are applied or when switching to all students tab
+  useEffect(() => {
+    if (user && !authLoading) {
+      if (hasActiveFilters || (activeTab === "all" && !studentsLoaded)) {
+        if (!studentsLoaded) {
+          loadStudents();
+        }
+      }
+    }
+  }, [user, authLoading, hasActiveFilters, activeTab, studentsLoaded]);
 
   // Filter and sort students based on all filters including project skills
   useEffect(() => {
@@ -168,6 +183,7 @@ const RecruiterDashboard = () => {
       );
 
       setStudents(studentsWithEmail);
+      setStudentsLoaded(true);
     } catch (error) {
       console.error('Error loading students:', error);
       toast({
@@ -333,7 +349,11 @@ const RecruiterDashboard = () => {
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
+  const handleLoadAllStudents = () => {
+    if (!studentsLoaded) {
+      loadStudents();
+    }
+  };
 
   if (selectedStudent) {
     return (
@@ -396,6 +416,8 @@ const RecruiterDashboard = () => {
             onBookmarkChange={handleBookmarkChange}
             studentsCount={students.length}
             bookmarkedCount={bookmarkedStudents.length}
+            studentsLoaded={studentsLoaded}
+            onLoadAllStudents={handleLoadAllStudents}
           />
         </div>
       </div>
