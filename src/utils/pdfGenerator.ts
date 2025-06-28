@@ -58,7 +58,7 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
       try {
         if (!text || typeof text !== 'string') return;
         doc.setFontSize(fontSize);
-        doc.text(String(text).substring(0, 100), x, y); // Limit text length
+        doc.text(String(text).substring(0, 100), x, y);
       } catch (error) {
         console.error('Error adding text:', error, 'Text:', text);
       }
@@ -81,14 +81,14 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
 
     console.log('Helper functions defined');
 
-    // Header
+    // Header - Fixed the rect method call
     try {
       doc.setFillColor(59, 130, 246);
-      doc.rect(0, 0, pageWidth, 30, 'filled');
+      doc.rect(0, 0, pageWidth, 30, 'F'); // 'F' for filled rectangle
       
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Student Profile Summary', 20, 20);
       
       yPosition = 45;
@@ -102,12 +102,12 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
     // Student Name and Basic Info
     try {
       doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       safeAddText(student.name || 'Student Name', 20, yPosition, 18);
       yPosition += 10;
 
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       const basicInfo = `${student.major || 'Major not specified'} | ${student.university || 'University not specified'} | Class of ${student.graduation_year || 'N/A'}`;
       safeAddText(basicInfo, 20, yPosition, 12);
       yPosition += 8;
@@ -128,12 +128,12 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
     try {
       if (student.email || student.phone) {
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Contact Information', 20, yPosition);
         yPosition += 8;
 
         doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         if (student.email) {
           safeAddText(`Email: ${student.email}`, 20, yPosition, 10);
           yPosition += 5;
@@ -153,11 +153,11 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
     try {
       if (student.bio) {
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('About', 20, yPosition);
         yPosition += 8;
 
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         yPosition = addWrappedText(student.bio, 20, yPosition, pageWidth - 40, 10);
         yPosition += 5;
       }
@@ -170,12 +170,12 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
     try {
       if (student.skills && Array.isArray(student.skills) && student.skills.length > 0) {
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Skills & Technologies', 20, yPosition);
         yPosition += 8;
 
         doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'normal');
         const skillsText = student.skills.filter(skill => skill && typeof skill === 'string').join(', ');
         if (skillsText) {
           yPosition = addWrappedText(skillsText, 20, yPosition, pageWidth - 40, 10);
@@ -191,7 +191,7 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
     try {
       if (student.projects && Array.isArray(student.projects) && student.projects.length > 0) {
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Projects', 20, yPosition);
         yPosition += 8;
 
@@ -205,18 +205,18 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
           }
 
           doc.setFontSize(12);
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
           safeAddText(`${index + 1}. ${project.title || 'Untitled Project'}`, 20, yPosition, 12);
           yPosition += 6;
 
           doc.setFontSize(10);
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
           if (project.description) {
             yPosition = addWrappedText(project.description, 25, yPosition, pageWidth - 50, 10);
           }
 
           if (project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0) {
-            doc.setFont(undefined, 'italic');
+            doc.setFont('helvetica', 'italic');
             const techText = project.technologies.filter(tech => tech && typeof tech === 'string').join(', ');
             if (techText) {
               safeAddText(`Technologies: ${techText}`, 25, yPosition, 10);
@@ -231,6 +231,49 @@ export const generateStudentProfilePDF = (student: StudentData, certifications: 
       console.log('Projects added successfully');
     } catch (error) {
       console.error('Error adding projects:', error);
+    }
+
+    // Certifications
+    try {
+      if (certifications && Array.isArray(certifications) && certifications.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Certifications', 20, yPosition);
+        yPosition += 8;
+
+        certifications.forEach((cert, index) => {
+          if (!cert || typeof cert !== 'object') return;
+          
+          // Check if we need a new page
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          safeAddText(`${index + 1}. ${cert.certification_name || 'Certification'}`, 20, yPosition, 12);
+          yPosition += 6;
+
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          if (cert.issuing_organization) {
+            safeAddText(`Issued by: ${cert.issuing_organization}`, 25, yPosition, 10);
+            yPosition += 5;
+          }
+
+          if (cert.issue_date) {
+            safeAddText(`Issue Date: ${cert.issue_date}`, 25, yPosition, 10);
+            yPosition += 5;
+          }
+
+          yPosition += 3;
+        });
+        yPosition += 5;
+      }
+      console.log('Certifications added successfully');
+    } catch (error) {
+      console.error('Error adding certifications:', error);
     }
 
     // Footer
