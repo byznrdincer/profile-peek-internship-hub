@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Clock, MapPinIcon, Banknote } from "lucide-react";
@@ -34,6 +33,9 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
     }
   };
 
+  const hasPreferredLocations = student.preferred_locations && student.preferred_locations.length > 0;
+  const hasSingleLocation = student.preferred_internship_location;
+
   return (
     <Card>
       <CardHeader>
@@ -60,7 +62,23 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
                   {student.availability_status}
                 </Badge>
               )}
-              {student.preferred_internship_location && (
+              {hasPreferredLocations && (
+                <div className="flex flex-wrap gap-2">
+                  {student.preferred_locations.slice(0, 2).map((location: string, index: number) => (
+                    <Badge key={index} variant="outline" className="flex items-center gap-1">
+                      <MapPinIcon className="h-3 w-3" />
+                      {location}
+                    </Badge>
+                  ))}
+                  {student.preferred_locations.length > 2 && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <MapPinIcon className="h-3 w-3" />
+                      +{student.preferred_locations.length - 2} more
+                    </Badge>
+                  )}
+                </div>
+              )}
+              {hasSingleLocation && !hasPreferredLocations && (
                 <Badge variant="outline" className="flex items-center gap-1">
                   <MapPinIcon className="h-3 w-3" />
                   Prefers: {student.preferred_internship_location}

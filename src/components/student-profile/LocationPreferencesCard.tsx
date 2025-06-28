@@ -34,7 +34,10 @@ const LocationPreferencesCard = ({ student }: LocationPreferencesCardProps) => {
     }
   };
 
-  if (!student.internship_type_preference && !student.preferred_internship_location && !student.open_to_relocate) {
+  const hasPreferredLocations = student.preferred_locations && student.preferred_locations.length > 0;
+  const hasSingleLocation = student.preferred_internship_location;
+
+  if (!student.internship_type_preference && !hasPreferredLocations && !hasSingleLocation && !student.open_to_relocate) {
     return null;
   }
 
@@ -51,7 +54,20 @@ const LocationPreferencesCard = ({ student }: LocationPreferencesCardProps) => {
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-900">Location Preferences</h4>
             
-            {student.preferred_internship_location && (
+            {hasPreferredLocations && (
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-2">Preferred Locations</p>
+                <div className="flex flex-wrap gap-2">
+                  {student.preferred_locations.map((location: string, index: number) => (
+                    <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      {location}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasSingleLocation && !hasPreferredLocations && (
               <div>
                 <p className="text-sm font-medium text-gray-600">Preferred Location</p>
                 <p className="text-gray-900">{student.preferred_internship_location}</p>

@@ -286,6 +286,7 @@ const StudentDashboard = () => {
     linkedin_url: "",
     internship_type_preference: "",
     preferred_internship_location: "",
+    preferred_locations: [] as string[],
     open_to_relocate: false,
   });
 
@@ -326,6 +327,7 @@ const StudentDashboard = () => {
         linkedin_url: profile.linkedin_url || "",
         internship_type_preference: profile.internship_type_preference || "",
         preferred_internship_location: profile.preferred_internship_location || "",
+        preferred_locations: profile.preferred_locations || [],
         open_to_relocate: profile.open_to_relocate || false,
       });
       setSkills(profile.skills || []);
@@ -416,6 +418,7 @@ const StudentDashboard = () => {
           linkedin_url: formData.linkedin_url,
           internship_type_preference: formData.internship_type_preference,
           preferred_internship_location: formData.preferred_internship_location,
+          preferred_locations: formData.preferred_locations,
           open_to_relocate: formData.open_to_relocate,
           skills: skills,
           updated_at: new Date().toISOString()

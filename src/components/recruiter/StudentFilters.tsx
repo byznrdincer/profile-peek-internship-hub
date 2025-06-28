@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,6 +122,9 @@ const StudentFilters = ({
               onChange={setLocationFilter}
               placeholder="Filter by preferred location..."
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Searches both single and multiple preferred locations
+            </p>
           </div>
 
           <div>

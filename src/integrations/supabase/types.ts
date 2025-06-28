@@ -206,6 +206,7 @@ export type Database = {
           open_to_relocate: boolean | null
           phone: string | null
           preferred_internship_location: string | null
+          preferred_locations: string[] | null
           profile_views: number | null
           resume_filename: string | null
           resume_url: string | null
@@ -231,6 +232,7 @@ export type Database = {
           open_to_relocate?: boolean | null
           phone?: string | null
           preferred_internship_location?: string | null
+          preferred_locations?: string[] | null
           profile_views?: number | null
           resume_filename?: string | null
           resume_url?: string | null
@@ -256,6 +258,7 @@ export type Database = {
           open_to_relocate?: boolean | null
           phone?: string | null
           preferred_internship_location?: string | null
+          preferred_locations?: string[] | null
           profile_views?: number | null
           resume_filename?: string | null
           resume_url?: string | null
