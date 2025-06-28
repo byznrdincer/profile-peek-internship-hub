@@ -12,7 +12,6 @@ export interface StudentProfile {
   university: string;
   major: string;
   graduation_year: string;
-  gpa: string;
   location: string;
   phone: string;
   bio: string;
@@ -22,7 +21,6 @@ export interface StudentProfile {
   website_url: string;
   multiple_website_urls: string[];
   internship_type_preference: string;
-  paid_internship_preference: string;
   preferred_internship_location: string;
   preferred_locations: string[];
   open_to_relocate: boolean;
@@ -71,7 +69,6 @@ export const useStudentProfile = () => {
           university: data.university || "",
           major: data.major || "",
           graduation_year: data.graduation_year || "",
-          gpa: data.gpa || "",
           location: data.location || "",
           phone: data.phone || "",
           bio: data.bio || "",
@@ -81,7 +78,6 @@ export const useStudentProfile = () => {
           website_url: data.website_url || "",
           multiple_website_urls: data.multiple_website_urls || [],
           internship_type_preference: data.internship_type_preference || "",
-          paid_internship_preference: data.paid_internship_preference || "",
           preferred_internship_location: data.preferred_internship_location || "",
           preferred_locations: data.preferred_locations || [],
           open_to_relocate: data.open_to_relocate || false,

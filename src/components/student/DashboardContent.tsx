@@ -104,7 +104,6 @@ const DashboardContent = ({
         <InternshipPreferencesSection
           formData={{
             internship_type_preference: profile.internship_type_preference || "",
-            paid_internship_preference: profile.paid_internship_preference || "",
             preferred_internship_location: profile.preferred_internship_location || "",
             preferred_locations: profile.preferred_locations || [],
             open_to_relocate: profile.open_to_relocate || false,
@@ -115,8 +114,8 @@ const DashboardContent = ({
 
       <TabsContent value="resume" className="space-y-4">
         <ResumeUploadSection
-          resumeUrl={profile.resume_url}
-          onResumeUpdate={(resumeUrl) => onUpdateProfile({ resume_url: resumeUrl })}
+          existingResumeUrl={profile.resume_url}
+          setExistingResumeUrl={(url) => onUpdateProfile({ resume_url: url })}
         />
       </TabsContent>
     </Tabs>
