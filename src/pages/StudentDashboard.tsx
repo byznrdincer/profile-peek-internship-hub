@@ -328,7 +328,7 @@ const StudentDashboard = () => {
         website_url: profile.website_url || "",
         linkedin_url: profile.linkedin_url || "",
         internship_type_preference: profile.internship_type_preference || "",
-        paid_internship_preference: profile.paid_internship_preference || "",
+        paid_internship_preference: (profile as any).paid_internship_preference || "",
         preferred_internship_location: profile.preferred_internship_location || "",
         preferred_locations: profile.preferred_locations || [],
         open_to_relocate: profile.open_to_relocate || false,
