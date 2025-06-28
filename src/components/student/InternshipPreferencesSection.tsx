@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { DollarSign, MapPin } from "lucide-react";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 
 interface InternshipPreferencesSectionProps {
   formData: any;
@@ -45,11 +45,10 @@ const InternshipPreferencesSection = ({ formData, setFormData }: InternshipPrefe
           </h3>
           
           <div>
-            <Label htmlFor="preferred_internship_location">Preferred Internship Location</Label>
-            <Input
-              id="preferred_internship_location"
+            <LocationAutocomplete
+              label="Preferred Internship Location"
               value={formData.preferred_internship_location || ""}
-              onChange={(e) => setFormData({...formData, preferred_internship_location: e.target.value})}
+              onChange={(value) => setFormData({...formData, preferred_internship_location: value})}
               placeholder="e.g., San Francisco, CA or Remote"
             />
           </div>

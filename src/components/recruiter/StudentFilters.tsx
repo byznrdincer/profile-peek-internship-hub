@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 
 interface StudentFiltersProps {
   majorFilter: string;
@@ -98,12 +99,11 @@ const StudentFilters = ({
           </div>
 
           <div>
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              placeholder="Filter by location..."
+            <LocationAutocomplete
+              label="Preferred Location"
               value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
+              onChange={setLocationFilter}
+              placeholder="Filter by preferred location..."
             />
           </div>
 

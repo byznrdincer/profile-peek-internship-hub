@@ -81,7 +81,7 @@ const RecruiterDashboard = () => {
     if (locationFilter) {
       filtered = filtered.filter(student =>
         student.location?.toLowerCase().includes(locationFilter.toLowerCase()) ||
-        student.preferred_location?.toLowerCase().includes(locationFilter.toLowerCase())
+        student.preferred_internship_location?.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
 
