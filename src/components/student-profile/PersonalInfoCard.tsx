@@ -1,6 +1,7 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, MapPinIcon, Banknote } from "lucide-react";
+import { MapPin, Calendar, Clock, MapPinIcon, Banknote, Mail, Phone } from "lucide-react";
 
 interface PersonalInfoCardProps {
   student: any;
@@ -106,15 +107,33 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
             <h3 className="font-semibold text-gray-900 mb-2">About</h3>
             <p className="text-gray-600 leading-relaxed">{student.bio}</p>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">
-              <strong>Phone:</strong> {student.phone}
-            </p>
-            {student.email && (
-              <p className="text-sm text-gray-500">
-                <strong>Email:</strong> {student.email}
-              </p>
-            )}
+          
+          {/* Contact Information Section */}
+          <div className="border-t pt-4">
+            <h4 className="font-semibold text-gray-900 mb-3">Contact Information</h4>
+            <div className="space-y-2">
+              {student.email && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Mail className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium">Email:</span>
+                  <a href={`mailto:${student.email}`} className="text-blue-600 hover:underline">
+                    {student.email}
+                  </a>
+                </div>
+              )}
+              {student.phone && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Phone className="h-4 w-4 text-green-500" />
+                  <span className="font-medium">Phone:</span>
+                  <a href={`tel:${student.phone}`} className="text-green-600 hover:underline">
+                    {student.phone}
+                  </a>
+                </div>
+              )}
+              {!student.email && !student.phone && (
+                <p className="text-sm text-gray-500 italic">Contact information not provided</p>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

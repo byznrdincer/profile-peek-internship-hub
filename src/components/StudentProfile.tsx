@@ -29,14 +29,34 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     if (!student?.user_id) return;
 
     try {
-      const { data: completeStudent, error } = await supabase
+      // Get complete student profile data
+      const { data: completeStudent, error: studentError } = await supabase
         .from('student_profiles')
         .select('*')
         .eq('user_id', student.user_id)
         .single();
 
-      if (!error && completeStudent) {
-        // Merge the complete data with the existing student data
+      if (studentError) {
+        console.error('Error loading complete student data:', studentError);
+        return;
+      }
+
+      // Get user email from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('user_id', student.user_id)
+        .single();
+
+      if (!profileError && profileData) {
+        // Merge all data including email from profiles table
+        setStudentData({ 
+          ...student, 
+          ...completeStudent,
+          email: profileData.email 
+        });
+      } else {
+        // Just merge student profile data if profiles fetch fails
         setStudentData({ ...student, ...completeStudent });
       }
     } catch (error) {
