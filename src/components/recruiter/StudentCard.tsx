@@ -54,11 +54,6 @@ const StudentCard = ({ student, onViewProfile, onBookmarkChange }: StudentCardPr
               <Eye className="h-3 w-3" />
               {student.profile_views || 0}
             </Badge>
-            {student.resume_url && (
-              <Badge variant="outline" className="text-green-600">
-                Resume
-              </Badge>
-            )}
           </div>
         </div>
 

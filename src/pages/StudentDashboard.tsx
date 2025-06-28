@@ -7,7 +7,6 @@ import Navigation from "@/components/Navigation";
 import StatsCards from "@/components/student/StatsCards";
 import PersonalInfoSection from "@/components/student/PersonalInfoSection";
 import InternshipPreferencesSection from "@/components/student/InternshipPreferencesSection";
-import ResumeUploadSection from "@/components/student/ResumeUploadSection";
 import SkillsSection from "@/components/student/SkillsSection";
 import ProjectsSection from "@/components/student/ProjectsSection";
 import CertificationsSection from "@/components/student/CertificationsSection";
@@ -30,7 +29,6 @@ const StudentDashboard = () => {
     certificate_filename?: string;
   }>>([]);
   const [profileViews, setProfileViews] = useState(0);
-  const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
   const [studentProfile, setStudentProfile] = useState<any>(null);
   
   // Generate graduation year options from 2015 to 2030
@@ -336,7 +334,6 @@ const StudentDashboard = () => {
       });
       setSkills(profile.skills || []);
       setProfileViews(profile.profile_views || 0);
-      setExistingResumeUrl(profile.resume_url);
       setStudentProfile(profile);
     }
   };
@@ -546,11 +543,6 @@ const StudentDashboard = () => {
           <InternshipPreferencesSection
             formData={formData}
             setFormData={setFormData}
-          />
-
-          <ResumeUploadSection
-            existingResumeUrl={existingResumeUrl}
-            setExistingResumeUrl={setExistingResumeUrl}
           />
 
           <SkillsSection

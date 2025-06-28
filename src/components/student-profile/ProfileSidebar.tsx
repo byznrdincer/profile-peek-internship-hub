@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Github, Linkedin, Globe, Award, MapPin, Calendar, GraduationCap, Building } from "lucide-react";
+import { Github, Linkedin, Globe, Award, MapPin, Calendar, GraduationCap, Building } from "lucide-react";
 import BookmarkButton from "../BookmarkButton";
 
 interface ProfileSidebarProps {
@@ -23,14 +23,6 @@ const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           <BookmarkButton studentId={student.user_id} />
-          {student.resume_url && (
-            <Button variant="outline" className="w-full" asChild>
-              <a href={student.resume_url} target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-2" />
-                Download Resume
-              </a>
-            </Button>
-          )}
         </CardContent>
       </Card>
 
