@@ -36,50 +36,22 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            const profileData = await fetchUserProfile(session.user.id);
-            
-            if (profileData) {
-              setProfile(profileData);
-              
-              // Update last login for students
-              if (profileData.role === 'student') {
-                try {
-                  await supabase.rpc('update_student_last_login');
-                } catch (error) {
-                  console.error('Error updating student last login:', error);
-                }
-              }
-            }
-            
-            setLoading(false);
-          }, 0);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(async () => {
           const profileData = await fetchUserProfile(session.user.id);
           
-          if (profileData) {
+          if (mounted && profileData) {
             setProfile(profileData);
             
             // Update last login for students
@@ -91,15 +63,55 @@ export const useAuth = () => {
               }
             }
           }
-          
+        } else {
+          if (mounted) {
+            setProfile(null);
+          }
+        }
+        
+        if (mounted) {
           setLoading(false);
-        }, 0);
-      } else {
+        }
+      }
+    );
+
+    // Check for existing session
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const profileData = await fetchUserProfile(session.user.id);
+        
+        if (mounted && profileData) {
+          setProfile(profileData);
+          
+          // Update last login for students
+          if (profileData.role === 'student') {
+            try {
+              await supabase.rpc('update_student_last_login');
+            } catch (error) {
+              console.error('Error updating student last login:', error);
+            }
+          }
+        }
+      }
+      
+      if (mounted) {
         setLoading(false);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
