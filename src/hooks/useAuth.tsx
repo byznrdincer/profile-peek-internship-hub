@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,36 +15,37 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Memoize the loadProfile function to prevent infinite re-renders
-  const loadProfile = useCallback(async (userId: string) => {
-    try {
-      console.log('useAuth: Loading profile for user:', userId);
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle(); // Use maybeSingle to avoid errors when no profile exists
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('useAuth: Error loading profile:', error);
-        return;
-      }
-
-      if (profileData) {
-        console.log('useAuth: Profile loaded:', profileData);
-        setProfile(profileData);
-      } else {
-        console.log('useAuth: No profile found for user');
-        setProfile(null);
-      }
-    } catch (error) {
-      console.error('useAuth: Exception loading profile:', error);
-    }
-  }, []);
-
   useEffect(() => {
     console.log('useAuth: Setting up authentication');
     let mounted = true;
+
+    const loadProfile = async (userId: string) => {
+      try {
+        console.log('useAuth: Loading profile for user:', userId);
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('useAuth: Error loading profile:', error);
+          return;
+        }
+
+        if (mounted) {
+          if (profileData) {
+            console.log('useAuth: Profile loaded:', profileData);
+            setProfile(profileData);
+          } else {
+            console.log('useAuth: No profile found for user');
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('useAuth: Exception loading profile:', error);
+      }
+    };
     
     // Get initial session
     const getSession = async () => {
@@ -106,7 +107,7 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadProfile]); // Add loadProfile to dependencies since it's memoized
+  }, []); // Empty dependency array to prevent infinite loops
 
   const signOut = async () => {
     try {
