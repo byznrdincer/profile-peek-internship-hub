@@ -6,10 +6,15 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 
 const Index = () => {
+  console.log('Index: Component rendering');
+  
   const navigate = useNavigate();
   const { isAuthenticated, profile, loading } = useAuth();
 
+  console.log('Index: Auth state:', { isAuthenticated, profile, loading });
+
   const handleDashboardNavigation = () => {
+    console.log('Index: Navigating to dashboard');
     if (!isAuthenticated || !profile) {
       navigate('/auth');
       return;
@@ -25,10 +30,12 @@ const Index = () => {
   };
 
   const handleGetStarted = () => {
+    console.log('Index: Navigating to auth');
     navigate('/auth');
   };
 
   if (loading) {
+    console.log('Index: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
         <Navigation />
@@ -39,6 +46,8 @@ const Index = () => {
       </div>
     );
   }
+
+  console.log('Index: Rendering main content');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
