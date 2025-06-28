@@ -95,23 +95,26 @@ const StudentFilters = ({
             <Label htmlFor="skill">General Skills</Label>
             <Input
               id="skill"
-              placeholder="Filter by general skills..."
+              placeholder="python, java, react (comma-separated)"
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
             />
+            <p className="text-xs text-blue-600 mt-1">
+              Use commas to search multiple skills (matches any)
+            </p>
           </div>
 
           <div>
             <Label htmlFor="projectSkill">Project Search</Label>
             <Input
               id="projectSkill"
-              placeholder="Search projects (tech, title, description)..."
+              placeholder="react, node.js, api (comma-separated)"
               value={projectSkillFilter}
               onChange={(e) => setProjectSkillFilter(e.target.value)}
               className="border-purple-200 focus:border-purple-400"
             />
             <p className="text-xs text-purple-600 mt-1">
-              Searches through technologies, project titles, and descriptions
+              Searches technologies, titles, descriptions (matches any term)
             </p>
           </div>
 
@@ -120,10 +123,10 @@ const StudentFilters = ({
               label="Preferred Location"
               value={locationFilter}
               onChange={setLocationFilter}
-              placeholder="Filter by preferred location..."
+              placeholder="new york, california (comma-separated)"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Searches both single and multiple preferred locations
+              Use commas for multiple locations (matches any)
             </p>
           </div>
 

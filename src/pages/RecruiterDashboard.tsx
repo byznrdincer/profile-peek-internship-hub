@@ -156,57 +156,70 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // General skills filter
+      // General skills filter - Updated to support comma-separated search terms with OR logic
       if (skillFilter) {
         const studentSkills = student.skills || [];
-        const hasMatchingSkill = studentSkills.some((studentSkill: string) => 
-          studentSkill.toLowerCase().includes(skillFilter.toLowerCase())
+        const searchTerms = skillFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
+        
+        // Check if any search term matches any student skill
+        const hasMatchingSkill = searchTerms.some(searchTerm => 
+          studentSkills.some((studentSkill: string) => 
+            studentSkill.toLowerCase().includes(searchTerm)
+          )
         );
+        
         if (!hasMatchingSkill) return false;
       }
 
-      // Project search filter (searches through project technologies, titles, and descriptions)
+      // Project search filter - Updated to support comma-separated search terms with OR logic
       if (projectSkillFilter) {
         const projects = student.projects || [];
-        const hasMatchingProject = projects.some((project: any) => {
-          // Check project title
-          if (project.title?.toLowerCase().includes(projectSkillFilter.toLowerCase())) {
-            return true;
-          }
-          // Check project description
-          if (project.description?.toLowerCase().includes(projectSkillFilter.toLowerCase())) {
-            return true;
-          }
-          // Check project technologies
-          if (project.technologies?.some((tech: string) => 
-            tech.toLowerCase().includes(projectSkillFilter.toLowerCase())
-          )) {
-            return true;
-          }
-          return false;
-        });
+        const searchTerms = projectSkillFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
+        
+        // Check if any search term matches any project content
+        const hasMatchingProject = searchTerms.some(searchTerm => 
+          projects.some((project: any) => {
+            // Check project title
+            if (project.title?.toLowerCase().includes(searchTerm)) {
+              return true;
+            }
+            // Check project description
+            if (project.description?.toLowerCase().includes(searchTerm)) {
+              return true;
+            }
+            // Check project technologies
+            if (project.technologies?.some((tech: string) => 
+              tech.toLowerCase().includes(searchTerm)
+            )) {
+              return true;
+            }
+            return false;
+          })
+        );
+        
         if (!hasMatchingProject) return false;
       }
 
-      // Location filter - Updated to properly check preferred_locations array
+      // Location filter - Updated to support comma-separated search terms with OR logic
       if (locationFilter) {
-        const filterLower = locationFilter.toLowerCase();
+        const searchTerms = locationFilter.split(',').map(term => term.trim().toLowerCase()).filter(term => term);
         
-        // Check current location
-        const currentLocationMatch = student.location?.toLowerCase().includes(filterLower);
+        const hasMatchingLocation = searchTerms.some(searchTerm => {
+          // Check current location
+          const currentLocationMatch = student.location?.toLowerCase().includes(searchTerm);
+          
+          // Check preferred_locations array
+          const preferredLocationsMatch = student.preferred_locations?.some((loc: string) => 
+            loc.toLowerCase().includes(searchTerm)
+          );
+          
+          // Check single preferred_internship_location
+          const singlePreferredLocationMatch = student.preferred_internship_location?.toLowerCase().includes(searchTerm);
+          
+          return currentLocationMatch || preferredLocationsMatch || singlePreferredLocationMatch;
+        });
         
-        // Check preferred_locations array (new field)
-        const preferredLocationsMatch = student.preferred_locations?.some((loc: string) => 
-          loc.toLowerCase().includes(filterLower)
-        );
-        
-        // Check single preferred_internship_location (legacy field)
-        const singlePreferredLocationMatch = student.preferred_internship_location?.toLowerCase().includes(filterLower);
-        
-        // Return true if any location field matches
-        if (!currentLocationMatch && !preferredLocationsMatch && !singlePreferredLocationMatch) {
-          return false;
-        }
+        if (!hasMatchingLocation) return false;
       }
 
       // Graduation year filter
