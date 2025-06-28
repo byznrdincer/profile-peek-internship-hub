@@ -68,23 +68,6 @@ const InternshipPreferencesSection = ({ formData, setFormData }: InternshipPrefe
           </Select>
         </div>
 
-        <div>
-          <Label htmlFor="paid_internship_preference">Paid Internship Preference</Label>
-          <Select
-            value={formData.paid_internship_preference}
-            onValueChange={(value) => setFormData({...formData, paid_internship_preference: value})}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select payment preference" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="paid">Paid Internships Only</SelectItem>
-              <SelectItem value="unpaid">Unpaid Internships Only</SelectItem>
-              <SelectItem value="both">Both Paid & Unpaid</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
