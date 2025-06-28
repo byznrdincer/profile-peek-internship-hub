@@ -28,6 +28,7 @@ const RecruiterDashboard = () => {
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState<string[]>([]);
   const [internshipTypeFilter, setInternshipTypeFilter] = useState<string[]>([]);
+  const [paidInternshipFilter, setPaidInternshipFilter] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -39,7 +40,7 @@ const RecruiterDashboard = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter, paidInternshipFilter]);
 
   const loadRecruiterProfile = async () => {
     if (!user) return;
@@ -241,6 +242,11 @@ const RecruiterDashboard = () => {
         return false;
       }
 
+      // Paid internship filter
+      if (paidInternshipFilter && paidInternshipFilter !== student.paid_internship_preference) {
+        return false;
+      }
+
       return true;
     });
 
@@ -254,9 +260,10 @@ const RecruiterDashboard = () => {
     setLocationFilter("");
     setGraduationYearFilter([]);
     setInternshipTypeFilter([]);
+    setPaidInternshipFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0);
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0 || paidInternshipFilter);
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count
@@ -337,6 +344,8 @@ const RecruiterDashboard = () => {
               setGraduationYearFilter={setGraduationYearFilter}
               internshipTypeFilter={internshipTypeFilter}
               setInternshipTypeFilter={setInternshipTypeFilter}
+              paidInternshipFilter={paidInternshipFilter}
+              setPaidInternshipFilter={setPaidInternshipFilter}
               onClearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
               filteredCount={filteredStudents.length}
