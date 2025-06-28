@@ -26,7 +26,7 @@ const RecruiterDashboard = () => {
   const [skillFilter, setSkillFilter] = useState("");
   const [projectSkillFilter, setProjectSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [graduationYearFilter, setGraduationYearFilter] = useState("");
+  const [graduationYearFilter, setGraduationYearFilter] = useState<string[]>([]);
   const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
 
   useEffect(() => {
@@ -231,8 +231,8 @@ const RecruiterDashboard = () => {
         if (!hasMatchingLocation) return false;
       }
 
-      // Graduation year filter
-      if (graduationYearFilter && student.graduation_year !== graduationYearFilter) {
+      // Graduation year filter - Updated to support multiple years with OR logic
+      if (graduationYearFilter.length > 0 && !graduationYearFilter.includes(student.graduation_year)) {
         return false;
       }
 
@@ -252,11 +252,11 @@ const RecruiterDashboard = () => {
     setSkillFilter("");
     setProjectSkillFilter("");
     setLocationFilter("");
-    setGraduationYearFilter("");
+    setGraduationYearFilter([]);
     setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter);
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count

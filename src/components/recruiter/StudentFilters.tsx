@@ -24,8 +24,8 @@ interface StudentFiltersProps {
   setProjectSkillFilter: (value: string) => void;
   locationFilter: string;
   setLocationFilter: (value: string) => void;
-  graduationYearFilter: string;
-  setGraduationYearFilter: (value: string) => void;
+  graduationYearFilter: string[];
+  setGraduationYearFilter: (value: string[]) => void;
   internshipTypeFilter: string;
   setInternshipTypeFilter: (value: string) => void;
   onClearFilters: () => void;
@@ -65,6 +65,16 @@ const StudentFilters = ({
     "On-site",
     "Hybrid"
   ];
+
+  const handleGraduationYearSelect = (year: string) => {
+    if (!graduationYearFilter.includes(year)) {
+      setGraduationYearFilter([...graduationYearFilter, year]);
+    }
+  };
+
+  const handleRemoveGraduationYear = (yearToRemove: string) => {
+    setGraduationYearFilter(graduationYearFilter.filter(year => year !== yearToRemove));
+  };
 
   return (
     <Card>
@@ -133,21 +143,36 @@ const StudentFilters = ({
 
           <div>
             <Label htmlFor="graduationYear">Graduation Year</Label>
-            <Select
-              value={graduationYearFilter}
-              onValueChange={setGraduationYearFilter}
-            >
+            <Select onValueChange={handleGraduationYearSelect}>
               <SelectTrigger>
-                <SelectValue placeholder="Select year" />
+                <SelectValue placeholder="Select years" />
               </SelectTrigger>
               <SelectContent>
-                {graduationYearOptions.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
+                {graduationYearOptions
+                  .filter(year => !graduationYearFilter.includes(year))
+                  .map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
+            {graduationYearFilter.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {graduationYearFilter.map((year) => (
+                  <Badge key={year} variant="secondary" className="flex items-center gap-1">
+                    {year}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => handleRemoveGraduationYear(year)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Select multiple years (matches any)
+            </p>
           </div>
 
           <div>
@@ -209,12 +234,12 @@ const StudentFilters = ({
                 />
               </Badge>
             )}
-            {graduationYearFilter && (
+            {graduationYearFilter.length > 0 && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Year: {graduationYearFilter}
+                Years: {graduationYearFilter.join(', ')}
                 <X
                   className="h-3 w-3 cursor-pointer"
-                  onClick={() => setGraduationYearFilter("")}
+                  onClick={() => setGraduationYearFilter([])}
                 />
               </Badge>
             )}
