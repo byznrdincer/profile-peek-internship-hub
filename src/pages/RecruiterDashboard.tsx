@@ -27,8 +27,7 @@ const RecruiterDashboard = () => {
   const [projectSkillFilter, setProjectSkillFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [graduationYearFilter, setGraduationYearFilter] = useState<string[]>([]);
-  const [internshipTypeFilter, setInternshipTypeFilter] = useState<string[]>([]);
-  const [paidInternshipFilter, setPaidInternshipFilter] = useState("");
+  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -40,7 +39,7 @@ const RecruiterDashboard = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter, paidInternshipFilter]);
+  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadRecruiterProfile = async () => {
     if (!user) return;
@@ -237,13 +236,8 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Internship type filter - Updated to support multiple types with OR logic
-      if (internshipTypeFilter.length > 0 && !internshipTypeFilter.includes(student.internship_type_preference)) {
-        return false;
-      }
-
-      // Paid internship filter - Updated to handle "all" value
-      if (paidInternshipFilter && paidInternshipFilter !== "all" && paidInternshipFilter !== student.paid_internship_preference) {
+      // Internship type filter
+      if (internshipTypeFilter && student.internship_type_preference !== internshipTypeFilter) {
         return false;
       }
 
@@ -259,11 +253,10 @@ const RecruiterDashboard = () => {
     setProjectSkillFilter("");
     setLocationFilter("");
     setGraduationYearFilter([]);
-    setInternshipTypeFilter([]);
-    setPaidInternshipFilter("");
+    setInternshipTypeFilter("");
   };
 
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter.length > 0 || (paidInternshipFilter && paidInternshipFilter !== "all"));
+  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter);
 
   const handleViewProfile = async (student: any) => {
     // Increment profile view count
@@ -344,8 +337,6 @@ const RecruiterDashboard = () => {
               setGraduationYearFilter={setGraduationYearFilter}
               internshipTypeFilter={internshipTypeFilter}
               setInternshipTypeFilter={setInternshipTypeFilter}
-              paidInternshipFilter={paidInternshipFilter}
-              setPaidInternshipFilter={setPaidInternshipFilter}
               onClearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
               filteredCount={filteredStudents.length}

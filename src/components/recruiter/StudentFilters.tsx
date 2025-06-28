@@ -26,10 +26,8 @@ interface StudentFiltersProps {
   setLocationFilter: (value: string) => void;
   graduationYearFilter: string[];
   setGraduationYearFilter: (value: string[]) => void;
-  internshipTypeFilter: string[];
-  setInternshipTypeFilter: (value: string[]) => void;
-  paidInternshipFilter: string;
-  setPaidInternshipFilter: (value: string) => void;
+  internshipTypeFilter: string;
+  setInternshipTypeFilter: (value: string) => void;
   onClearFilters: () => void;
   hasActiveFilters: boolean;
   filteredCount: number;
@@ -49,8 +47,6 @@ const StudentFilters = ({
   setGraduationYearFilter,
   internshipTypeFilter,
   setInternshipTypeFilter,
-  paidInternshipFilter,
-  setPaidInternshipFilter,
   onClearFilters,
   hasActiveFilters,
   filteredCount,
@@ -78,16 +74,6 @@ const StudentFilters = ({
 
   const handleRemoveGraduationYear = (yearToRemove: string) => {
     setGraduationYearFilter(graduationYearFilter.filter(year => year !== yearToRemove));
-  };
-
-  const handleInternshipTypeSelect = (type: string) => {
-    if (!internshipTypeFilter.includes(type)) {
-      setInternshipTypeFilter([...internshipTypeFilter, type]);
-    }
-  };
-
-  const handleRemoveInternshipType = (typeToRemove: string) => {
-    setInternshipTypeFilter(internshipTypeFilter.filter(type => type !== typeToRemove));
   };
 
   return (
@@ -191,54 +177,21 @@ const StudentFilters = ({
 
           <div>
             <Label htmlFor="internshipType">Internship Type</Label>
-            <Select onValueChange={handleInternshipTypeSelect}>
+            <Select
+              value={internshipTypeFilter}
+              onValueChange={setInternshipTypeFilter}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select types" />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                {internshipTypes
-                  .filter(type => !internshipTypeFilter.includes(type))
-                  .map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            {internshipTypeFilter.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {internshipTypeFilter.map((type) => (
-                  <Badge key={type} variant="secondary" className="flex items-center gap-1">
+                {internshipTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
                     {type}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => handleRemoveInternshipType(type)}
-                    />
-                  </Badge>
+                  </SelectItem>
                 ))}
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              Select multiple types (matches any)
-            </p>
-          </div>
-
-          <div>
-            <Label htmlFor="paidInternshipType">Paid/Unpaid Preference</Label>
-            <Select value={paidInternshipFilter} onValueChange={setPaidInternshipFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select payment type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="paid">Paid Only</SelectItem>
-                <SelectItem value="unpaid">Unpaid Only</SelectItem>
-                <SelectItem value="both">Both Paid & Unpaid</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 mt-1">
-              Filter by payment preference
-            </p>
           </div>
         </div>
 
@@ -290,21 +243,12 @@ const StudentFilters = ({
                 />
               </Badge>
             )}
-            {internshipTypeFilter.length > 0 && (
+            {internshipTypeFilter && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Types: {internshipTypeFilter.join(', ')}
+                Type: {internshipTypeFilter}
                 <X
                   className="h-3 w-3 cursor-pointer"
-                  onClick={() => setInternshipTypeFilter([])}
-                />
-              </Badge>
-            )}
-            {paidInternshipFilter && paidInternshipFilter !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Payment: {paidInternshipFilter === 'paid' ? 'Paid Only' : paidInternshipFilter === 'unpaid' ? 'Unpaid Only' : 'Both'}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setPaidInternshipFilter("")}
+                  onClick={() => setInternshipTypeFilter("")}
                 />
               </Badge>
             )}
