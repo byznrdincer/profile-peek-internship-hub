@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -227,6 +226,10 @@ const RecruiterDashboard = () => {
     loadBookmarkedStudents();
   };
 
+  const handleProfileUpdate = (updatedProfile: any) => {
+    setRecruiterProfile(updatedProfile);
+  };
+
   if (selectedStudent) {
     return (
       <StudentProfile 
@@ -247,13 +250,26 @@ const RecruiterDashboard = () => {
         </div>
 
         <StatsCards 
-          studentsCount={students.length}
+          stats={{
+            totalStudents: students.length,
+            totalViews: 0,
+            newProfiles: 0
+          }}
           bookmarkedCount={bookmarkedStudents.length}
         />
 
         {!recruiterProfile?.name && (
           <div className="mb-8">
-            <ProfileForm />
+            <ProfileForm 
+              initialData={{
+                name: recruiterProfile?.name || "",
+                phone: recruiterProfile?.phone || "",
+                company_name: recruiterProfile?.company_name || "",
+                position: recruiterProfile?.position || "",
+                location: recruiterProfile?.location || ""
+              }}
+              onUpdate={handleProfileUpdate}
+            />
           </div>
         )}
 
