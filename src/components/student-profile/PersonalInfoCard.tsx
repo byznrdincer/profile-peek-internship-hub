@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Clock, MapPinIcon, Banknote, Mail, Phone, Globe } from "lucide-react";
+import { MapPin, Calendar, Clock, MapPinIcon, Banknote, Mail, Globe } from "lucide-react";
 
 interface PersonalInfoCardProps {
   student: any;
@@ -123,16 +123,7 @@ const PersonalInfoCard = ({ student }: PersonalInfoCardProps) => {
                   </a>
                 </div>
               )}
-              {student.phone && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Phone className="h-4 w-4 text-green-500" />
-                  <span className="font-medium">Phone:</span>
-                  <a href={`tel:${student.phone}`} className="text-green-600 hover:underline">
-                    {student.phone}
-                  </a>
-                </div>
-              )}
-              {!student.email && !student.phone && (
+              {!student.email && (
                 <p className="text-sm text-gray-500 italic">Contact information not provided</p>
               )}
             </div>
