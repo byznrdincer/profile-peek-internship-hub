@@ -81,11 +81,22 @@ const RecruiterDashboard = () => {
 
     if (projectSkillFilter) {
       filtered = filtered.filter(student =>
-        student.projects?.some((project: any) =>
-          project.technologies?.some((tech: string) =>
-            tech.toLowerCase().includes(projectSkillFilter.toLowerCase())
-          )
-        )
+        student.projects?.some((project: any) => {
+          const searchTerm = projectSkillFilter.toLowerCase();
+          
+          // Check technologies
+          const matchesTechnology = project.technologies?.some((tech: string) =>
+            tech.toLowerCase().includes(searchTerm)
+          );
+          
+          // Check project title
+          const matchesTitle = project.title?.toLowerCase().includes(searchTerm);
+          
+          // Check project description
+          const matchesDescription = project.description?.toLowerCase().includes(searchTerm);
+          
+          return matchesTechnology || matchesTitle || matchesDescription;
+        })
       );
     }
 

@@ -103,14 +103,17 @@ const StudentFilters = ({
           </div>
 
           <div>
-            <Label htmlFor="projectSkill">Project Technologies</Label>
+            <Label htmlFor="projectSkill">Project Search</Label>
             <Input
               id="projectSkill"
-              placeholder="Filter by project tech (React, Python, etc.)..."
+              placeholder="Search projects (tech, title, description)..."
               value={projectSkillFilter}
               onChange={(e) => setProjectSkillFilter(e.target.value)}
               className="border-purple-200 focus:border-purple-400"
             />
+            <p className="text-xs text-purple-600 mt-1">
+              Searches through technologies, project titles, and descriptions
+            </p>
           </div>
 
           <div>
@@ -184,7 +187,7 @@ const StudentFilters = ({
             )}
             {projectSkillFilter && (
               <Badge variant="default" className="flex items-center gap-1 bg-purple-500 hover:bg-purple-600">
-                Project Tech: {projectSkillFilter}
+                Project: {projectSkillFilter}
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => setProjectSkillFilter("")}
