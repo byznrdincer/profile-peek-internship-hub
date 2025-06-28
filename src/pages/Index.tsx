@@ -11,27 +11,20 @@ const Index = () => {
   const { isAuthenticated, profile, loading } = useAuth();
 
   const handleDashboardNavigation = () => {
-    console.log('Dashboard navigation clicked:', { isAuthenticated, profile, loading });
-    
     if (!isAuthenticated) {
-      console.log('User not authenticated, redirecting to auth');
       navigate('/auth');
       return;
     }
 
     if (profile?.role === 'student') {
-      console.log('Navigating to student dashboard');
       navigate('/student-dashboard');
     } else if (profile?.role === 'recruiter') {
-      console.log('Navigating to recruiter dashboard');
       navigate('/recruiter-dashboard');
     } else {
-      console.log('No profile role found, redirecting to auth');
       navigate('/auth');
     }
   };
 
-  // Show loading state while auth is being determined
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -51,7 +44,6 @@ const Index = () => {
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-4xl mx-auto">
-            {/* Show different content based on user role */}
             {isAuthenticated && profile?.role === 'recruiter' ? (
               <>
                 <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">

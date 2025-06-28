@@ -36,68 +36,40 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            const profileData = await fetchUserProfile(session.user.id);
-            
-            if (profileData) {
-              setProfile(profileData);
-              
-              // Update last login for students
-              if (profileData.role === 'student') {
-                try {
-                  await supabase.rpc('update_student_last_login');
-                } catch (error) {
-                  console.error('Error updating student last login:', error);
-                }
-              }
-            }
-            
-            setLoading(false);
-          }, 0);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Check for existing session
+    // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        setTimeout(async () => {
-          const profileData = await fetchUserProfile(session.user.id);
-          
+        fetchUserProfile(session.user.id).then((profileData) => {
           if (profileData) {
             setProfile(profileData);
-            
-            // Update last login for students
-            if (profileData.role === 'student') {
-              try {
-                await supabase.rpc('update_student_last_login');
-              } catch (error) {
-                console.error('Error updating student last login:', error);
-              }
-            }
           }
-          
           setLoading(false);
-        }, 0);
+        });
       } else {
         setLoading(false);
       }
     });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const profileData = await fetchUserProfile(session.user.id);
+          if (profileData) {
+            setProfile(profileData);
+          }
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
