@@ -64,16 +64,13 @@ const RecruiterDashboard = () => {
   // Check if any filters are active
   const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter || internshipTypeFilter);
 
-  // Load students when filters are applied or when switching to all students tab
+  // Load students only when filters are applied
   useEffect(() => {
-    if (user && !authLoading) {
-      if (hasActiveFilters || (activeTab === "all" && !studentsLoaded)) {
-        if (!studentsLoaded) {
-          loadStudents();
-        }
-      }
+    if (user && !authLoading && hasActiveFilters) {
+      console.log('Filters applied, loading students...');
+      loadStudents();
     }
-  }, [user, authLoading, hasActiveFilters, activeTab, studentsLoaded]);
+  }, [user, authLoading, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   // Filter and sort students based on all filters including project skills
   useEffect(() => {
@@ -347,12 +344,14 @@ const RecruiterDashboard = () => {
     setLocationFilter("");
     setGraduationYearFilter("");
     setInternshipTypeFilter("");
+    // Clear students when filters are cleared
+    setStudents([]);
+    setStudentsLoaded(false);
   };
 
   const handleLoadAllStudents = () => {
-    if (!studentsLoaded) {
-      loadStudents();
-    }
+    console.log('Loading all students explicitly...');
+    loadStudents();
   };
 
   if (selectedStudent) {
