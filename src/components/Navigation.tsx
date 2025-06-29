@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Home, User, Users, LogOut, Menu, Settings, Info, HelpCircle, GraduationCap, Building } from "lucide-react";
@@ -105,7 +104,7 @@ const Navigation = () => {
                   <Menu className="h-4 w-4" />
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="w-[500px] p-4">
+                  <div className="w-[300px] p-4">
                     <div className="grid gap-4">
                       <div className="grid gap-1">
                         <h4 className="font-medium leading-none">Navigation</h4>
@@ -114,74 +113,72 @@ const Navigation = () => {
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Main Pages Column */}
-                        <div className="space-y-2">
-                          <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Main Pages</h5>
-                          <Button
-                            variant={location.pathname === '/' ? "default" : "ghost"}
-                            onClick={() => navigate('/')}
-                            className="justify-start gap-2 h-auto p-2 w-full"
-                          >
-                            <Home className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">Home</div>
-                              <div className="text-xs text-muted-foreground">Back to homepage</div>
-                            </div>
-                          </Button>
+                      {/* Main Pages Section */}
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Main Pages</h5>
+                        <Button
+                          variant={location.pathname === '/' ? "default" : "ghost"}
+                          onClick={() => navigate('/')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <Home className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">Home</div>
+                            <div className="text-xs text-muted-foreground">Back to homepage</div>
+                          </div>
+                        </Button>
 
-                          <Button
-                            variant={location.pathname === '/about' ? "default" : "ghost"}
-                            onClick={() => navigate('/about')}
-                            className="justify-start gap-2 h-auto p-2 w-full"
-                          >
-                            <Info className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">About Us</div>
-                              <div className="text-xs text-muted-foreground">Our mission and story</div>
-                            </div>
-                          </Button>
+                        <Button
+                          variant={location.pathname === '/about' ? "default" : "ghost"}
+                          onClick={() => navigate('/about')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <Info className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">About Us</div>
+                            <div className="text-xs text-muted-foreground">Our mission and story</div>
+                          </div>
+                        </Button>
 
-                          <Button
-                            variant={location.pathname === '/how-it-works' ? "default" : "ghost"}
-                            onClick={() => navigate('/how-it-works')}
-                            className="justify-start gap-2 h-auto p-2 w-full"
-                          >
-                            <HelpCircle className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">How It Works</div>
-                              <div className="text-xs text-muted-foreground">Step-by-step guide</div>
-                            </div>
-                          </Button>
-                        </div>
+                        <Button
+                          variant={location.pathname === '/how-it-works' ? "default" : "ghost"}
+                          onClick={() => navigate('/how-it-works')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <HelpCircle className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">How It Works</div>
+                            <div className="text-xs text-muted-foreground">Step-by-step guide</div>
+                          </div>
+                        </Button>
+                      </div>
 
-                        {/* Target Audience Column */}
-                        <div className="space-y-2">
-                          <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">For You</h5>
-                          <Button
-                            variant={location.pathname === '/for-students' ? "default" : "ghost"}
-                            onClick={() => navigate('/for-students')}
-                            className="justify-start gap-2 h-auto p-2 w-full"
-                          >
-                            <GraduationCap className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">For Students</div>
-                              <div className="text-xs text-muted-foreground">Showcase your projects</div>
-                            </div>
-                          </Button>
+                      {/* Target Audience Section */}
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">For You</h5>
+                        <Button
+                          variant={location.pathname === '/for-students' ? "default" : "ghost"}
+                          onClick={() => navigate('/for-students')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <GraduationCap className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">For Students</div>
+                            <div className="text-xs text-muted-foreground">Showcase your projects</div>
+                          </div>
+                        </Button>
 
-                          <Button
-                            variant={location.pathname === '/for-companies' ? "default" : "ghost"}
-                            onClick={() => navigate('/for-companies')}
-                            className="justify-start gap-2 h-auto p-2 w-full"
-                          >
-                            <Building className="h-4 w-4" />
-                            <div className="text-left">
-                              <div className="font-medium">For Companies</div>
-                              <div className="text-xs text-muted-foreground">Find skilled developers</div>
-                            </div>
-                          </Button>
-                        </div>
+                        <Button
+                          variant={location.pathname === '/for-companies' ? "default" : "ghost"}
+                          onClick={() => navigate('/for-companies')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <Building className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">For Companies</div>
+                            <div className="text-xs text-muted-foreground">Find skilled engineers</div>
+                          </div>
+                        </Button>
                       </div>
 
                       {/* User-specific sections */}
