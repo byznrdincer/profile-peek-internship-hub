@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -46,8 +47,9 @@ const Navigation = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              lazyIntern
+            <span className="text-xl font-bold">
+              <span className="text-blue-600">lazy</span>
+              <span className="text-teal-600">Intern</span>
             </span>
           </Link>
 
