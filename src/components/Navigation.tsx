@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Home, User, Users, LogOut, Menu, Settings } from "lucide-react";
+import { Briefcase, Home, User, Users, LogOut, Menu, Settings, Info, HelpCircle, GraduationCap, Building } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -105,113 +105,176 @@ const Navigation = () => {
                   <Menu className="h-4 w-4" />
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="w-[400px] p-4">
-                    <div className="grid gap-3">
+                  <div className="w-[500px] p-4">
+                    <div className="grid gap-4">
                       <div className="grid gap-1">
                         <h4 className="font-medium leading-none">Navigation</h4>
                         <p className="text-sm text-muted-foreground">
-                          Quick access to all features
+                          Quick access to all features and information
                         </p>
                       </div>
-                      <div className="grid gap-2">
-                        <Button
-                          variant={location.pathname === '/' ? "default" : "ghost"}
-                          onClick={() => navigate('/')}
-                          className="justify-start gap-2 h-auto p-2"
-                        >
-                          <Home className="h-4 w-4" />
-                          <div className="text-left">
-                            <div className="font-medium">Home</div>
-                            <div className="text-xs text-muted-foreground">Back to homepage</div>
-                          </div>
-                        </Button>
-                        
-                        {isAuthenticated && (
-                          <>
-                            {profile?.role === 'student' && (
-                              <Button
-                                variant={location.pathname === '/student-dashboard' ? "default" : "ghost"}
-                                onClick={() => navigate('/student-dashboard')}
-                                className="justify-start gap-2 h-auto p-2"
-                              >
-                                <User className="h-4 w-4" />
-                                <div className="text-left">
-                                  <div className="font-medium">Student Dashboard</div>
-                                  <div className="text-xs text-muted-foreground">Manage your profile</div>
-                                </div>
-                              </Button>
-                            )}
-                            
-                            {profile?.role === 'recruiter' && (
-                              <>
-                                <Button
-                                  variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
-                                  onClick={() => navigate('/recruiter-dashboard')}
-                                  className="justify-start gap-2 h-auto p-2"
-                                >
-                                  <Users className="h-4 w-4" />
-                                  <div className="text-left">
-                                    <div className="font-medium">Recruiter Dashboard</div>
-                                    <div className="text-xs text-muted-foreground">Find talented students</div>
-                                  </div>
-                                </Button>
-                                
-                                <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      className="justify-start gap-2 h-auto p-2"
-                                    >
-                                      <Settings className="h-4 w-4" />
-                                      <div className="text-left">
-                                        <div className="font-medium">My Profile</div>
-                                        <div className="text-xs text-muted-foreground">Update recruiter profile</div>
-                                      </div>
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                      <DialogTitle>Recruiter Profile</DialogTitle>
-                                    </DialogHeader>
-                                    <ProfileForm
-                                      initialData={formData}
-                                      onUpdate={handleProfileUpdate}
-                                      loading={profileLoading}
-                                    />
-                                  </DialogContent>
-                                </Dialog>
-                              </>
-                            )}
-                            
-                            <div className="border-t pt-2">
-                              <Button
-                                variant="ghost"
-                                onClick={handleSignOut}
-                                className="justify-start gap-2 h-auto p-2 w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <LogOut className="h-4 w-4" />
-                                <div className="text-left">
-                                  <div className="font-medium">Sign Out</div>
-                                  <div className="text-xs text-muted-foreground">Logout from your account</div>
-                                </div>
-                              </Button>
-                            </div>
-                          </>
-                        )}
-                        
-                        <div className="border-t pt-2">
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Main Pages Column */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Main Pages</h5>
                           <Button
-                            variant="ghost"
-                            onClick={() => navigate('/terms')}
+                            variant={location.pathname === '/' ? "default" : "ghost"}
+                            onClick={() => navigate('/')}
                             className="justify-start gap-2 h-auto p-2 w-full"
                           >
-                            <Settings className="h-4 w-4" />
+                            <Home className="h-4 w-4" />
                             <div className="text-left">
-                              <div className="font-medium">Terms & Conditions</div>
-                              <div className="text-xs text-muted-foreground">Legal information</div>
+                              <div className="font-medium">Home</div>
+                              <div className="text-xs text-muted-foreground">Back to homepage</div>
+                            </div>
+                          </Button>
+
+                          <Button
+                            variant={location.pathname === '/about' ? "default" : "ghost"}
+                            onClick={() => navigate('/about')}
+                            className="justify-start gap-2 h-auto p-2 w-full"
+                          >
+                            <Info className="h-4 w-4" />
+                            <div className="text-left">
+                              <div className="font-medium">About Us</div>
+                              <div className="text-xs text-muted-foreground">Our mission and story</div>
+                            </div>
+                          </Button>
+
+                          <Button
+                            variant={location.pathname === '/how-it-works' ? "default" : "ghost"}
+                            onClick={() => navigate('/how-it-works')}
+                            className="justify-start gap-2 h-auto p-2 w-full"
+                          >
+                            <HelpCircle className="h-4 w-4" />
+                            <div className="text-left">
+                              <div className="font-medium">How It Works</div>
+                              <div className="text-xs text-muted-foreground">Step-by-step guide</div>
                             </div>
                           </Button>
                         </div>
+
+                        {/* Target Audience Column */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">For You</h5>
+                          <Button
+                            variant={location.pathname === '/for-students' ? "default" : "ghost"}
+                            onClick={() => navigate('/for-students')}
+                            className="justify-start gap-2 h-auto p-2 w-full"
+                          >
+                            <GraduationCap className="h-4 w-4" />
+                            <div className="text-left">
+                              <div className="font-medium">For Students</div>
+                              <div className="text-xs text-muted-foreground">Showcase your projects</div>
+                            </div>
+                          </Button>
+
+                          <Button
+                            variant={location.pathname === '/for-companies' ? "default" : "ghost"}
+                            onClick={() => navigate('/for-companies')}
+                            className="justify-start gap-2 h-auto p-2 w-full"
+                          >
+                            <Building className="h-4 w-4" />
+                            <div className="text-left">
+                              <div className="font-medium">For Companies</div>
+                              <div className="text-xs text-muted-foreground">Find skilled developers</div>
+                            </div>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* User-specific sections */}
+                      {isAuthenticated && (
+                        <>
+                          <div className="border-t pt-3">
+                            <h5 className="font-medium text-xs text-muted-foreground uppercase tracking-wide mb-2">Your Dashboard</h5>
+                            <div className="space-y-2">
+                              {profile?.role === 'student' && (
+                                <Button
+                                  variant={location.pathname === '/student-dashboard' ? "default" : "ghost"}
+                                  onClick={() => navigate('/student-dashboard')}
+                                  className="justify-start gap-2 h-auto p-2 w-full"
+                                >
+                                  <User className="h-4 w-4" />
+                                  <div className="text-left">
+                                    <div className="font-medium">Student Dashboard</div>
+                                    <div className="text-xs text-muted-foreground">Manage your profile</div>
+                                  </div>
+                                </Button>
+                              )}
+                              
+                              {profile?.role === 'recruiter' && (
+                                <>
+                                  <Button
+                                    variant={location.pathname === '/recruiter-dashboard' ? "default" : "ghost"}
+                                    onClick={() => navigate('/recruiter-dashboard')}
+                                    className="justify-start gap-2 h-auto p-2 w-full"
+                                  >
+                                    <Users className="h-4 w-4" />
+                                    <div className="text-left">
+                                      <div className="font-medium">Recruiter Dashboard</div>
+                                      <div className="text-xs text-muted-foreground">Find talented students</div>
+                                    </div>
+                                  </Button>
+                                  
+                                  <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        className="justify-start gap-2 h-auto p-2 w-full"
+                                      >
+                                        <Settings className="h-4 w-4" />
+                                        <div className="text-left">
+                                          <div className="font-medium">My Profile</div>
+                                          <div className="text-xs text-muted-foreground">Update recruiter profile</div>
+                                        </div>
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-md">
+                                      <DialogHeader>
+                                        <DialogTitle>Recruiter Profile</DialogTitle>
+                                      </DialogHeader>
+                                      <ProfileForm
+                                        initialData={formData}
+                                        onUpdate={handleProfileUpdate}
+                                        loading={profileLoading}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="border-t pt-3">
+                            <Button
+                              variant="ghost"
+                              onClick={handleSignOut}
+                              className="justify-start gap-2 h-auto p-2 w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              <div className="text-left">
+                                <div className="font-medium">Sign Out</div>
+                                <div className="text-xs text-muted-foreground">Logout from your account</div>
+                              </div>
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="border-t pt-3">
+                        <Button
+                          variant="ghost"
+                          onClick={() => navigate('/terms')}
+                          className="justify-start gap-2 h-auto p-2 w-full"
+                        >
+                          <Settings className="h-4 w-4" />
+                          <div className="text-left">
+                            <div className="font-medium">Terms & Conditions</div>
+                            <div className="text-xs text-muted-foreground">Legal information</div>
+                          </div>
+                        </Button>
                       </div>
                     </div>
                   </div>

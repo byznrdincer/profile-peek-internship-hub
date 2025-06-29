@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Users, Upload, Search, Star, ArrowRight } from "lucide-react";
+import { Briefcase, Users, Upload, Search, Star, ArrowRight, Code, TrendingUp, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
@@ -158,6 +158,112 @@ const Index = () => {
               {/* Connecting Lines */}
               <div className="absolute left-8 top-20 bottom-20 w-0.5 bg-gradient-to-b from-blue-600 via-teal-600 to-purple-600 -z-10"></div>
             </div>
+          </div>
+        </div>
+
+        {/* Why Choose InternStack Section */}
+        <div className="bg-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose InternStack?</h2>
+              <p className="text-xl text-gray-600">The future of student hiring is skill-based, not grade-based</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <Code className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Project-Based Hiring</h3>
+                  <p className="text-gray-600">Review actual code and projects, not just grades</p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <Users className="h-12 w-12 text-teal-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No University Bias</h3>
+                  <p className="text-gray-600">Talent is everywhere, we help you find it</p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <TrendingUp className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Faster Hiring</h3>
+                  <p className="text-gray-600">Skip lengthy screenings, see skills directly</p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Proven Results</h3>
+                  <p className="text-gray-600">90% of our matches lead to successful hires</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            <p className="text-xl text-gray-600">Everything you need to know about skill-based student hiring</p>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>How is InternStack different from traditional job boards?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Unlike traditional job boards that focus on resumes and GPAs, InternStack showcases actual 
+                  student projects and coding skills. Companies can see what candidates have built before 
+                  even scheduling an interview.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Do students need high GPAs to be successful on InternStack?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Not at all! We believe coding ability and project experience matter more than grades. 
+                  Many successful matches on our platform are students who might not have perfect GPAs 
+                  but have impressive portfolios of real projects.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>What types of companies use InternStack?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  We work with startups, scale-ups, and enterprises across all industries. From fintech 
+                  startups to established tech companies, any organization looking for skilled developers 
+                  can benefit from our project-based hiring approach.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>How do you ensure the quality of student profiles?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  We encourage students to showcase their best work with detailed project descriptions, 
+                  live demos, and GitHub repositories. This allows companies to thoroughly evaluate 
+                  technical skills and coding quality before making contact.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
