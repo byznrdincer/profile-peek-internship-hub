@@ -298,7 +298,7 @@ const RecruiterDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
-      <div className="container mx-auto">
+      <div className="container mx-auto max-w-7xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
           <p className="text-xl text-gray-600">Find and connect with talented students</p>
