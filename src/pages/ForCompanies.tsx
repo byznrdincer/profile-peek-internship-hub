@@ -16,11 +16,11 @@ const ForCompanies = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Hire Talented Developers Based on 
+            Hire Talented Engineers Based on 
             <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Real Skills</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Stop screening resumes. Start reviewing actual code. Find students who can 
+            Stop screening resumes. Start reviewing actual projects. Find engineering students who can 
             contribute from day one with our project-based talent discovery platform.
           </p>
           <Button 
@@ -28,7 +28,7 @@ const ForCompanies = () => {
             onClick={() => navigate('/auth')}
             className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
           >
-            Find Developer Talent
+            Find Engineering Talent
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -46,7 +46,7 @@ const ForCompanies = () => {
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                  <p className="text-gray-600">Students with high GPAs but no practical coding experience</p>
+                  <p className="text-gray-600">Students with high GPAs but no practical hands-on experience</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
@@ -54,7 +54,7 @@ const ForCompanies = () => {
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                  <p className="text-gray-600">Missing out on talented developers from non-target schools</p>
+                  <p className="text-gray-600">Missing out on talented engineers from non-target schools</p>
                 </div>
               </div>
             </div>
@@ -64,11 +64,11 @@ const ForCompanies = () => {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <p className="text-gray-600">Review actual projects and code before interviewing</p>
+                  <p className="text-gray-600">Review actual projects and work before interviewing</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <p className="text-gray-600">Find students with proven hands-on development skills</p>
+                  <p className="text-gray-600">Find students with proven hands-on technical skills</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
@@ -98,7 +98,7 @@ const ForCompanies = () => {
                 <ul className="space-y-2 text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Search by programming languages
+                    Search by technical skills and tools
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -110,7 +110,7 @@ const ForCompanies = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Technology stack matching
+                    Engineering discipline matching
                   </li>
                 </ul>
               </CardContent>
@@ -131,7 +131,7 @@ const ForCompanies = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Browse GitHub repositories
+                    Browse project repositories
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -139,7 +139,7 @@ const ForCompanies = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    Evaluate code quality and approach
+                    Evaluate technical quality and approach
                   </li>
                 </ul>
               </CardContent>
@@ -189,7 +189,7 @@ const ForCompanies = () => {
             <CardContent className="p-6">
               <Users className="h-12 w-12 text-teal-600 mx-auto mb-4" />
               <h3 className="font-bold text-3xl text-gray-900">500+</h3>
-              <p className="text-gray-600">Skilled Developers</p>
+              <p className="text-gray-600">Skilled Engineers</p>
             </CardContent>
           </Card>
           <Card className="text-center">
@@ -219,7 +219,7 @@ const ForCompanies = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Find versatile developers who can wear multiple hats and contribute 
+                  Find versatile engineers who can wear multiple hats and contribute 
                   to your product from day one.
                 </p>
               </CardContent>
@@ -246,7 +246,7 @@ const ForCompanies = () => {
               <CardContent>
                 <p className="text-gray-600">
                   Build your future talent pipeline with skilled students who 
-                  understand modern development practices.
+                  understand modern engineering practices.
                 </p>
               </CardContent>
             </Card>
