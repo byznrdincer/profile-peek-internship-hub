@@ -16,7 +16,7 @@ const HowItWorks = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            How <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">InternStack</span> Works
+            How <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">lazyIntern</span> Works
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             A simple, effective process that connects talented students with companies 
@@ -246,7 +246,7 @@ const HowItWorks = () => {
         <div className="text-center bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Ready to Experience Skill-Based Hiring?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join thousands of students and companies already using InternStack to make meaningful connections.
+            Join thousands of students and companies already using lazyIntern to make meaningful connections.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight, Code, TrendingUp, CheckCircle } from "lucide-react";
@@ -95,10 +94,10 @@ const Index = () => {
           </div>
         </div>
 
-        {/* How InternStack Works - Steps */}
+        {/* How lazyIntern Works - Steps */}
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How InternStack Works</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">How lazyIntern Works</h2>
             <p className="text-xl text-gray-600">Where talent meets opportunity - no bias, just skills</p>
           </div>
           
@@ -161,11 +160,11 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Why Choose InternStack Section */}
+        {/* Why Choose lazyIntern Section */}
         <div className="bg-white py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose InternStack?</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose lazyIntern?</h2>
               <p className="text-xl text-gray-600">The future of student hiring is skill-based, not grade-based</p>
             </div>
 
@@ -215,11 +214,11 @@ const Index = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>How is InternStack different from traditional job boards?</CardTitle>
+                <CardTitle>How is lazyIntern different from traditional job boards?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Unlike traditional job boards that focus on resumes and GPAs, InternStack showcases actual 
+                  Unlike traditional job boards that focus on resumes and GPAs, lazyIntern showcases actual 
                   student projects and coding skills. Companies can see what candidates have built before 
                   even scheduling an interview.
                 </p>
@@ -228,7 +227,7 @@ const Index = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Do students need high GPAs to be successful on InternStack?</CardTitle>
+                <CardTitle>Do students need high GPAs to be successful on lazyIntern?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
@@ -241,7 +240,7 @@ const Index = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>What types of companies use InternStack?</CardTitle>
+                <CardTitle>What types of companies use lazyIntern?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">

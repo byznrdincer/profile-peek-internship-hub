@@ -23,7 +23,7 @@ const AuthHeader = () => {
           <Briefcase className="h-5 w-5 text-white" />
         </div>
         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-          InternStack
+          lazyIntern
         </h1>
       </div>
     </>

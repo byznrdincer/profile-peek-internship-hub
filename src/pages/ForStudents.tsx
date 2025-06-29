@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Code, Briefcase, TrendingUp, ArrowRight, CheckCircle, Star } from "lucide-react";
@@ -36,7 +35,7 @@ const ForStudents = () => {
         {/* Benefits Section */}
         <div className="grid md:grid-cols-2 gap-12 mb-20">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Students Choose InternStack</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Students Choose lazyIntern</h2>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" />
@@ -181,7 +180,7 @@ const ForStudents = () => {
                 </div>
                 <p className="text-gray-700 italic mb-4">
                   "I was struggling to get interviews with my 3.2 GPA. But after showcasing my React projects 
-                  on InternStack, I got 5 interview calls in 2 weeks and landed my dream internship at a fintech startup!"
+                  on lazyIntern, I got 5 interview calls in 2 weeks and landed my dream internship at a fintech startup!"
                 </p>
                 <div className="text-sm text-blue-600 font-semibold">
                   Now: Software Engineering Intern at FinTech Co.
@@ -201,7 +200,7 @@ const ForStudents = () => {
                   </div>
                 </div>
                 <p className="text-gray-700 italic mb-4">
-                  "Without a CS degree, I thought I had no chance. InternStack let me show my portfolio of 
+                  "Without a CS degree, I thought I had no chance. lazyIntern let me show my portfolio of 
                   full-stack projects. Companies contacted me directly, and I'm now working at an amazing startup!"
                 </p>
                 <div className="text-sm text-teal-600 font-semibold">

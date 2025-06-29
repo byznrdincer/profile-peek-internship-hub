@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Search, TrendingUp, ArrowRight, CheckCircle, Zap, Target } from "lucide-react";
@@ -60,7 +59,7 @@ const ForCompanies = () => {
             </div>
             
             <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-green-600">InternStack Solutions:</h3>
+              <h3 className="text-xl font-semibold text-green-600">lazyIntern Solutions:</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />

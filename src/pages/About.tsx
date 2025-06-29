@@ -16,7 +16,7 @@ const About = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            About <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">InternStack</span>
+            About <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">lazyIntern</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             We're revolutionizing how companies discover and hire student talent by focusing on 
@@ -74,7 +74,7 @@ const About = () => {
 
         {/* Story Section */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Why We Started InternStack</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Why We Started lazyIntern</h2>
           <div className="text-lg text-gray-600 space-y-4">
             <p>
               Too many brilliant students with incredible coding skills and innovative projects 
@@ -86,7 +86,7 @@ const About = () => {
               could contribute from day one. The traditional hiring process was failing both sides.
             </p>
             <p>
-              InternStack was born from the belief that <strong>what you can build matters more 
+              lazyIntern was born from the belief that <strong>what you can build matters more 
               than where you studied</strong>. We created a platform where students can showcase 
               their real projects and companies can discover talent based on actual skills.
             </p>
@@ -98,7 +98,7 @@ const About = () => {
           <h2 className="text-2xl font-bold mb-4">Join the Skill-Based Hiring Revolution</h2>
           <p className="text-lg mb-6 opacity-90">
             Whether you're a student ready to showcase your projects or a company looking for real talent, 
-            InternStack is your platform.
+            lazyIntern is your platform.
           </p>
           <Button 
             size="lg" 
