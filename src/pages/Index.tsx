@@ -58,12 +58,13 @@ const Index = () => {
             ) : (
               <>
                 <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                  Upload Your Skills, 
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Discovered</span>
+                  Showcase Your Talent, 
+                  <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent"> Get Hired</span>
                 </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Simply showcase your skills and projects. Recruiters will find you based on what you can do, 
-                  not just where you studied. Let your abilities speak for themselves.
+                <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                  We hire based on <strong>what you can build</strong>, not just your GPA or university. 
+                  Upload your projects, demonstrate your skills, and get discovered by companies looking for 
+                  <span className="text-blue-600 font-semibold"> real talent</span>. Your code speaks louder than your grades.
                 </p>
               </>
             )}
@@ -86,7 +87,7 @@ const Index = () => {
                   onClick={() => navigate('/auth')}
                   className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 px-8"
                 >
-                  Get Started
+                  Start Building Your Portfolio
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
@@ -98,7 +99,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">How InternStack Works</h2>
-            <p className="text-xl text-gray-600">Simple steps to connect talent with opportunity</p>
+            <p className="text-xl text-gray-600">Where talent meets opportunity - no bias, just skills</p>
           </div>
           
           <div className="max-w-4xl mx-auto">
@@ -111,10 +112,11 @@ const Index = () => {
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
                     <Upload className="h-6 w-6 text-blue-600 mr-2" />
-                    <h3 className="text-xl font-semibold text-gray-900">Students Upload Profiles</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Upload Your Projects & Skills</h3>
                   </div>
                   <p className="text-gray-600">
-                    Create comprehensive profiles showcasing skills, projects, and resumes to stand out to recruiters.
+                    Show what you've built! Upload your coding projects, describe your technical skills, 
+                    and let your work demonstrate your capabilities. No need for perfect grades - we care about talent.
                   </p>
                 </div>
               </div>
@@ -127,10 +129,11 @@ const Index = () => {
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
                     <Search className="h-6 w-6 text-teal-600 mr-2" />
-                    <h3 className="text-xl font-semibold text-gray-900">Recruiters Discover Talent</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Companies Discover Real Talent</h3>
                   </div>
                   <p className="text-gray-600">
-                    Browse and filter through talented students, download resumes, and find the perfect fit for your team.
+                    Smart recruiters search by actual skills and project technologies, not just university rankings. 
+                    They find students who can deliver results, regardless of academic background.
                   </p>
                 </div>
               </div>
@@ -143,10 +146,11 @@ const Index = () => {
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
                     <Star className="h-6 w-6 text-purple-600 mr-2" />
-                    <h3 className="text-xl font-semibold text-gray-900">Make Connections</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Get Hired for Your Skills</h3>
                   </div>
                   <p className="text-gray-600">
-                    Direct communication between students and recruiters leads to meaningful internship opportunities.
+                    Land internships and jobs based on what you can actually do. Companies connect directly 
+                    with talented developers who have proven their abilities through real projects.
                   </p>
                 </div>
               </div>
