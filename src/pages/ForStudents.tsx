@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Code, Briefcase, TrendingUp, ArrowRight, CheckCircle, Star } from "lucide-react";
+import { GraduationCap, Code, Briefcase, TrendingUp, ArrowRight, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 
@@ -72,29 +73,29 @@ const ForStudents = () => {
             <Card className="text-center">
               <CardContent className="p-6">
                 <Code className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">500+</h3>
-                <p className="text-gray-600">Student Projects</p>
+                <h3 className="font-bold text-2xl text-gray-900">Growing</h3>
+                <p className="text-gray-600">Student Community</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <Briefcase className="h-12 w-12 text-teal-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">200+</h3>
-                <p className="text-gray-600">Internships Matched</p>
+                <h3 className="font-bold text-2xl text-gray-900">New</h3>
+                <p className="text-gray-600">Platform Launch</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <TrendingUp className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">85%</h3>
-                <p className="text-gray-600">Success Rate</p>
+                <h3 className="font-bold text-2xl text-gray-900">Focus</h3>
+                <p className="text-gray-600">On Skills</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <Star className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">4.8/5</h3>
-                <p className="text-gray-600">Student Rating</p>
+                <GraduationCap className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+                <h3 className="font-bold text-2xl text-gray-900">For</h3>
+                <p className="text-gray-600">All Students</p>
               </CardContent>
             </Card>
           </div>
@@ -163,59 +164,11 @@ const ForStudents = () => {
           </div>
         </div>
 
-        {/* Success Stories */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Student Success Stories</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                    A
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Alex Chen</h3>
-                    <p className="text-gray-600 text-sm">Computer Science Student</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 italic mb-4">
-                  "I was struggling to get interviews with my 3.2 GPA. But after showcasing my React projects 
-                  on lazyIntern, I got 5 interview calls in 2 weeks and landed my dream internship at a fintech startup!"
-                </p>
-                <div className="text-sm text-blue-600 font-semibold">
-                  Now: Software Engineering Intern at FinTech Co.
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                    S
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Sarah Rodriguez</h3>
-                    <p className="text-gray-600 text-sm">Self-Taught Developer</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 italic mb-4">
-                  "Without a CS degree, I thought I had no chance. lazyIntern let me show my portfolio of 
-                  full-stack projects. Companies contacted me directly, and I'm now working at an amazing startup!"
-                </p>
-                <div className="text-sm text-teal-600 font-semibold">
-                  Now: Full-Stack Developer Intern at TechStartup
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
         {/* CTA Section */}
         <div className="text-center bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Ready to Showcase Your Coding Skills?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join hundreds of students who've landed their dream internships through project-based hiring.
+            Join the platform where your projects speak louder than your grades.
           </p>
           <Button 
             size="lg" 
