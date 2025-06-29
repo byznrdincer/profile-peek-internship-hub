@@ -38,40 +38,10 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up the auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Use setTimeout to avoid blocking the auth state change
-          setTimeout(() => {
-            if (!mounted) return;
-            fetchUserProfile(session.user.id).then((profileData) => {
-              if (!mounted) return;
-              if (profileData) {
-                setProfile(profileData);
-              }
-              setLoading(false);
-            });
-          }, 0);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Get initial session
+    // Get current session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
-      console.log('Initial session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -91,6 +61,32 @@ export const useAuth = () => {
       }
     });
 
+    // Listen for auth changes - NO async/await in callback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(() => {
+            if (!mounted) return;
+            fetchUserProfile(session.user.id).then((profileData) => {
+              if (!mounted) return;
+              if (profileData) {
+                setProfile(profileData);
+              }
+              setLoading(false);
+            });
+          }, 0);
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -98,11 +94,7 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
-    console.log('Signing out...');
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-    }
+    await supabase.auth.signOut();
   };
 
   return {
