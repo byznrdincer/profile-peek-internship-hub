@@ -236,9 +236,19 @@ const RecruiterDashboard = () => {
         return false;
       }
 
-      // Internship type filter
-      if (internshipTypeFilter && student.internship_type_preference !== internshipTypeFilter) {
-        return false;
+      // Internship type preference filter - Updated to filter by paid/unpaid preference
+      if (internshipTypeFilter) {
+        const studentPreference = student.internship_type_preference;
+        
+        // If student preference is 'both', they match any filter
+        if (studentPreference === 'both') {
+          // Always include students who are open to both
+        } else if (internshipTypeFilter === 'both') {
+          // Filter shows 'both' - include all students
+        } else if (studentPreference !== internshipTypeFilter) {
+          // Student's preference doesn't match the filter
+          return false;
+        }
       }
 
       return true;

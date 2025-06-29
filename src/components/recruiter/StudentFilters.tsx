@@ -59,11 +59,9 @@ const StudentFilters = ({
   });
 
   const internshipTypes = [
-    "Full-time",
-    "Part-time", 
-    "Remote",
-    "On-site",
-    "Hybrid"
+    "paid",
+    "unpaid",
+    "both"
   ];
 
   const handleGraduationYearSelect = (year: string) => {
@@ -74,6 +72,19 @@ const StudentFilters = ({
 
   const handleRemoveGraduationYear = (yearToRemove: string) => {
     setGraduationYearFilter(graduationYearFilter.filter(year => year !== yearToRemove));
+  };
+
+  const getInternshipTypeDisplayName = (type: string) => {
+    switch (type) {
+      case 'paid':
+        return 'Paid';
+      case 'unpaid':
+        return 'Unpaid';
+      case 'both':
+        return 'Both';
+      default:
+        return type;
+    }
   };
 
   return (
@@ -176,22 +187,25 @@ const StudentFilters = ({
           </div>
 
           <div>
-            <Label htmlFor="internshipType">Internship Type</Label>
+            <Label htmlFor="internshipType">Internship Preference</Label>
             <Select
               value={internshipTypeFilter}
               onValueChange={setInternshipTypeFilter}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="Select preference" />
               </SelectTrigger>
               <SelectContent>
                 {internshipTypes.map((type) => (
                   <SelectItem key={type} value={type}>
-                    {type}
+                    {getInternshipTypeDisplayName(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Filter by paid/unpaid preference
+            </p>
           </div>
         </div>
 
@@ -245,7 +259,7 @@ const StudentFilters = ({
             )}
             {internshipTypeFilter && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                Type: {internshipTypeFilter}
+                Type: {getInternshipTypeDisplayName(internshipTypeFilter)}
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => setInternshipTypeFilter("")}
