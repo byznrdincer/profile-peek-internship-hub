@@ -3,7 +3,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
-import StatsCards from "@/components/recruiter/StatsCards";
 import ProfileForm from "@/components/recruiter/ProfileForm";
 import StudentFilters from "@/components/recruiter/StudentFilters";
 import StudentList from "@/components/recruiter/StudentList";
@@ -307,15 +306,6 @@ const RecruiterDashboard = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
           <p className="text-xl text-gray-600">Find and connect with talented students</p>
         </div>
-
-        <StatsCards 
-          stats={{
-            totalStudents: students.length,
-            totalViews: 0,
-            newProfiles: 0
-          }}
-          bookmarkedCount={bookmarkedStudents.length}
-        />
 
         {!recruiterProfile?.name && (
           <div className="mb-8">
