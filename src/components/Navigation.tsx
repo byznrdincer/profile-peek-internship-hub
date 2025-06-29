@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -9,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, profile, logout } = useAuth();
+  const { isAuthenticated, profile, signOut } = useAuth();
 
   const handleDashboardNavigation = () => {
     if (!isAuthenticated) {
@@ -27,7 +26,7 @@ const Navigation = () => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate('/');
   };
 
