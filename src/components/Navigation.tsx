@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, profile, signOut } = useAuth();
+  const { isAuthenticated, profile, signOut, loading } = useAuth();
 
   const handleDashboardNavigation = () => {
     if (!isAuthenticated) {
@@ -27,6 +27,7 @@ const Navigation = () => {
   };
 
   const handleLogout = async () => {
+    console.log('Logout clicked');
     await signOut();
     navigate('/');
   };
@@ -65,7 +66,9 @@ const Navigation = () => {
               </Link>
             ))}
             
-            {isAuthenticated ? (
+            {loading ? (
+              <div className="w-20 h-10 bg-gray-200 animate-pulse rounded"></div>
+            ) : isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <Button
                   variant="outline"
@@ -109,7 +112,9 @@ const Navigation = () => {
                   ))}
                   
                   <div className="border-t pt-4">
-                    {isAuthenticated ? (
+                    {loading ? (
+                      <div className="w-full h-10 bg-gray-200 animate-pulse rounded"></div>
+                    ) : isAuthenticated ? (
                       <div className="flex flex-col space-y-2">
                         <Button
                           variant="outline"
