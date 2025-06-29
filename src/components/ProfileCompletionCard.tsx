@@ -19,7 +19,6 @@ const ProfileCompletionCard = ({ student }: ProfileCompletionCardProps) => {
     if (!student.location) suggestions.push("Add location");
     if (!student.skills || student.skills.length === 0) suggestions.push("Add skills");
     if (!student.projects || student.projects.length === 0) suggestions.push("Add projects");
-    if (!student.resume_url) suggestions.push("Upload resume");
     if (!student.github_url) suggestions.push("Add GitHub profile");
     if (!student.linkedin_url) suggestions.push("Add LinkedIn profile");
     return suggestions.slice(0, 3); // Show top 3 suggestions

@@ -1,7 +1,6 @@
-
 export const calculateProfileCompletion = (student: any): number => {
   let completedFields = 0;
-  const totalFields = 12;
+  const totalFields = 11; // Reduced from 12 since resume is now optional
 
   // Basic info (4 fields)
   if (student.name) completedFields++;
@@ -13,10 +12,9 @@ export const calculateProfileCompletion = (student: any): number => {
   if (student.phone) completedFields++;
   if (student.location) completedFields++;
 
-  // Professional info (3 fields)
+  // Professional info (2 fields) - resume removed as required
   if (student.skills && student.skills.length > 0) completedFields++;
   if (student.projects && student.projects.length > 0) completedFields++;
-  if (student.resume_url) completedFields++;
 
   // Links (3 fields)
   if (student.github_url) completedFields++;
