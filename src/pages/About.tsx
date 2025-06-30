@@ -65,7 +65,7 @@ const About = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Connecting hundreds of talented students with companies that value 
+                Connecting talented students with companies that value 
                 practical skills and real-world project experience over traditional metrics.
               </p>
             </CardContent>

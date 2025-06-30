@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Search, TrendingUp, ArrowRight, CheckCircle, Zap, Target } from "lucide-react";
@@ -175,34 +176,34 @@ const ForCompanies = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
+        {/* Benefits Section */}
         <div className="grid md:grid-cols-4 gap-6 mb-20">
           <Card className="text-center">
             <CardContent className="p-6">
               <TrendingUp className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="font-bold text-3xl text-gray-900">75%</h3>
-              <p className="text-gray-600">Faster Hiring Process</p>
+              <h3 className="font-bold text-lg text-gray-900">Efficient Process</h3>
+              <p className="text-gray-600">Streamlined Hiring</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="p-6">
               <Users className="h-12 w-12 text-teal-600 mx-auto mb-4" />
-              <h3 className="font-bold text-3xl text-gray-900">500+</h3>
-              <p className="text-gray-600">Skilled Engineers</p>
+              <h3 className="font-bold text-lg text-gray-900">Skilled Talent</h3>
+              <p className="text-gray-600">Quality Engineers</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="p-6">
               <Building className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-bold text-3xl text-gray-900">100+</h3>
+              <h3 className="font-bold text-lg text-gray-900">Growing Network</h3>
               <p className="text-gray-600">Partner Companies</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="p-6">
               <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="font-bold text-3xl text-gray-900">90%</h3>
-              <p className="text-gray-600">Hire Success Rate</p>
+              <h3 className="font-bold text-lg text-gray-900">Quality Focus</h3>
+              <p className="text-gray-600">Better Matches</p>
             </CardContent>
           </Card>
         </div>
@@ -256,7 +257,7 @@ const ForCompanies = () => {
         <div className="text-center bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Start Hiring Based on Real Skills</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join forward-thinking companies already discovering top talent through project-based hiring.
+            Join forward-thinking companies discovering top talent through project-based hiring.
           </p>
           <Button 
             size="lg" 

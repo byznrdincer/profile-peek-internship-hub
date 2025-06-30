@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Upload, Search, Star, ArrowRight, Code, TrendingUp, CheckCircle } from "lucide-react";
@@ -196,8 +197,8 @@ const Index = () => {
               <Card className="text-center">
                 <CardContent className="p-6">
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Proven Results</h3>
-                  <p className="text-gray-600">90% of our matches lead to successful hires</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Quality Focus</h3>
+                  <p className="text-gray-600">Better matches through project review</p>
                 </CardContent>
               </Card>
             </div>
@@ -232,8 +233,8 @@ const Index = () => {
               <CardContent>
                 <p className="text-gray-600">
                   Not at all! We believe coding ability and project experience matter more than grades. 
-                  Many successful matches on our platform are students who might not have perfect GPAs 
-                  but have impressive portfolios of real projects.
+                  Students with impressive portfolios of real projects can showcase their talents 
+                  regardless of their academic performance.
                 </p>
               </CardContent>
             </Card>

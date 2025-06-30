@@ -246,7 +246,7 @@ const HowItWorks = () => {
         <div className="text-center bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Ready to Experience Skill-Based Hiring?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join thousands of students and companies already using lazyIntern to make meaningful connections.
+            Join students and companies using lazyIntern to make meaningful connections.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 

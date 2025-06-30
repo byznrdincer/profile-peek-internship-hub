@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Code, Briefcase, TrendingUp, ArrowRight, CheckCircle, Star } from "lucide-react";
+import { GraduationCap, Code, Briefcase, ArrowRight, CheckCircle, Zap, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 
@@ -72,29 +73,29 @@ const ForStudents = () => {
             <Card className="text-center">
               <CardContent className="p-6">
                 <Code className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">500+</h3>
-                <p className="text-gray-600">Student Projects</p>
+                <h3 className="font-bold text-lg text-gray-900">Project Showcase</h3>
+                <p className="text-gray-600">Display Your Work</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <Briefcase className="h-12 w-12 text-teal-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">200+</h3>
-                <p className="text-gray-600">Internships Matched</p>
+                <h3 className="font-bold text-lg text-gray-900">Direct Matching</h3>
+                <p className="text-gray-600">Connect with Companies</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <TrendingUp className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">85%</h3>
-                <p className="text-gray-600">Success Rate</p>
+                <Target className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-bold text-lg text-gray-900">Skill-Based</h3>
+                <p className="text-gray-600">Beyond Academics</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <Star className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
-                <h3 className="font-bold text-2xl text-gray-900">4.8/5</h3>
-                <p className="text-gray-600">Student Rating</p>
+                <Zap className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+                <h3 className="font-bold text-lg text-gray-900">Fast Track</h3>
+                <p className="text-gray-600">Quick Connections</p>
               </CardContent>
             </Card>
           </div>
@@ -163,49 +164,43 @@ const ForStudents = () => {
           </div>
         </div>
 
-        {/* Success Stories */}
+        {/* Value Proposition */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Student Success Stories</h2>
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Project-Based Hiring Works</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                    A
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Code className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Alex Chen</h3>
-                    <p className="text-gray-600 text-sm">Computer Science Student</p>
+                    <h3 className="font-semibold text-gray-900">Show, Don't Tell</h3>
+                    <p className="text-gray-600 text-sm">Demonstrate your abilities</p>
                   </div>
                 </div>
-                <p className="text-gray-700 italic mb-4">
-                  "I was struggling to get interviews with my 3.2 GPA. But after showcasing my React projects 
-                  on lazyIntern, I got 5 interview calls in 2 weeks and landed my dream internship at a fintech startup!"
+                <p className="text-gray-700 italic">
+                  "Your projects speak louder than your grades. Companies can see exactly what you're capable of 
+                  building and how you approach problem-solving through your actual work."
                 </p>
-                <div className="text-sm text-blue-600 font-semibold">
-                  Now: Software Engineering Intern at FinTech Co.
-                </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                    S
+                  <div className="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center">
+                    <Target className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Sarah Rodriguez</h3>
-                    <p className="text-gray-600 text-sm">Self-Taught Developer</p>
+                    <h3 className="font-semibold text-gray-900">Level Playing Field</h3>
+                    <p className="text-gray-600 text-sm">Equal opportunity for all</p>
                   </div>
                 </div>
-                <p className="text-gray-700 italic mb-4">
-                  "Without a CS degree, I thought I had no chance. lazyIntern let me show my portfolio of 
-                  full-stack projects. Companies contacted me directly, and I'm now working at an amazing startup!"
+                <p className="text-gray-700 italic">
+                  "Whether you're from a top university or teaching yourself, your skills and projects 
+                  matter most. Great talent comes from everywhere, and we help companies find it."
                 </p>
-                <div className="text-sm text-teal-600 font-semibold">
-                  Now: Full-Stack Developer Intern at TechStartup
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -215,7 +210,7 @@ const ForStudents = () => {
         <div className="text-center bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Ready to Showcase Your Coding Skills?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join hundreds of students who've landed their dream internships through project-based hiring.
+            Join talented students who are getting discovered through project-based hiring.
           </p>
           <Button 
             size="lg" 
