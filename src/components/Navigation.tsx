@@ -17,25 +17,28 @@ const Navigation = () => {
   const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, profile, signOut } = useAuth();
+  const { isAuthenticated, profile, user, signOut } = useAuth();
 
   useEffect(() => {
-    if (profile?.role === 'recruiter') {
+    if (profile?.role === 'recruiter' && user) {
       loadRecruiterProfile();
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const loadRecruiterProfile = async () => {
-    if (!profile) return;
+    if (!user) {
+      console.log('Navigation: No user found');
+      return;
+    }
 
     setLoading(true);
     try {
-      console.log('Navigation: Loading recruiter profile for user:', profile.id);
+      console.log('Navigation: Loading recruiter profile for user ID:', user.id);
       
       const { data: recruiterData, error } = await supabase
         .from('recruiter_profiles')
         .select('*')
-        .eq('user_id', profile.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) {
