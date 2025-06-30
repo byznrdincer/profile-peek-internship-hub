@@ -14,6 +14,7 @@ const Navigation = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated, profile, signOut } = useAuth();
 
@@ -26,14 +27,24 @@ const Navigation = () => {
   const loadRecruiterProfile = async () => {
     if (!profile) return;
 
-    const { data: recruiterData, error } = await supabase
-      .from('recruiter_profiles')
-      .select('*')
-      .eq('user_id', profile.id)
-      .single();
+    setLoading(true);
+    try {
+      const { data: recruiterData, error } = await supabase
+        .from('recruiter_profiles')
+        .select('*')
+        .eq('user_id', profile.id)
+        .single();
 
-    if (!error && recruiterData) {
-      setRecruiterProfile(recruiterData);
+      if (error) {
+        console.error('Error loading recruiter profile:', error);
+      } else if (recruiterData) {
+        console.log('Loaded recruiter profile:', recruiterData);
+        setRecruiterProfile(recruiterData);
+      }
+    } catch (error) {
+      console.error('Error in loadRecruiterProfile:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,6 +72,14 @@ const Navigation = () => {
     setRecruiterProfile(updatedProfile);
     setIsEditProfileOpen(false);
     setIsProfileOpen(false);
+    // Reload the profile data to ensure consistency
+    loadRecruiterProfile();
+  };
+
+  const handleProfileDialogOpen = () => {
+    // Reload profile data when opening the dialog to ensure fresh data
+    loadRecruiterProfile();
+    setIsProfileOpen(true);
   };
 
   // Different nav items based on user role
@@ -98,44 +117,48 @@ const Navigation = () => {
             My Profile
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Name</label>
-            <p className="text-sm text-gray-900">{recruiterProfile?.name || 'Not provided'}</p>
+        {loading ? (
+          <div className="py-4 text-center">Loading...</div>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Name</label>
+              <p className="text-sm text-gray-900">{recruiterProfile?.name || 'Not provided'}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Company</label>
+              <p className="text-sm text-gray-900">{recruiterProfile?.company_name || 'Not provided'}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Position</label>
+              <p className="text-sm text-gray-900">{recruiterProfile?.position || 'Not provided'}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Location</label>
+              <p className="text-sm text-gray-900">{recruiterProfile?.location || 'Not provided'}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Phone</label>
+              <p className="text-sm text-gray-900">{recruiterProfile?.phone || 'Not provided'}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Email</label>
+              <p className="text-sm text-gray-900">{profile?.email || 'Not provided'}</p>
+            </div>
+            <div className="pt-4">
+              <Button
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  setIsEditProfileOpen(true);
+                }}
+                className="w-full flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Profile
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Company</label>
-            <p className="text-sm text-gray-900">{recruiterProfile?.company_name || 'Not provided'}</p>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Position</label>
-            <p className="text-sm text-gray-900">{recruiterProfile?.position || 'Not provided'}</p>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Location</label>
-            <p className="text-sm text-gray-900">{recruiterProfile?.location || 'Not provided'}</p>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Phone</label>
-            <p className="text-sm text-gray-900">{recruiterProfile?.phone || 'Not provided'}</p>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <p className="text-sm text-gray-900">{profile?.email || 'Not provided'}</p>
-          </div>
-          <div className="pt-4">
-            <Button
-              onClick={() => {
-                setIsProfileOpen(false);
-                setIsEditProfileOpen(true);
-              }}
-              className="w-full flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit Profile
-            </Button>
-          </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -197,7 +220,7 @@ const Navigation = () => {
                 {profile?.role === 'recruiter' && (
                   <Button
                     variant="outline"
-                    onClick={() => setIsProfileOpen(true)}
+                    onClick={handleProfileDialogOpen}
                     className="flex items-center gap-2"
                   >
                     <User className="h-4 w-4" />
@@ -254,7 +277,7 @@ const Navigation = () => {
                           <Button
                             variant="outline"
                             onClick={() => {
-                              setIsProfileOpen(true);
+                              handleProfileDialogOpen();
                               setIsOpen(false);
                             }}
                             className="w-full flex items-center gap-2 justify-start"
