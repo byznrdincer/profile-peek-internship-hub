@@ -36,10 +36,16 @@ const StudentList = ({
 }: StudentListProps) => {
   const showEmptyState = activeTab === "all" && !studentsLoaded && !hasActiveFilters;
 
+  const handleTabChange = (newTab: string) => {
+    console.log('StudentList: Tab changing from', activeTab, 'to', newTab);
+    console.log('StudentList: Current filtered students count:', filteredStudents.length);
+    setActiveTab(newTab);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="all">All Students ({studentsCount})</TabsTrigger>
             <TabsTrigger value="bookmarks">Bookmarked ({bookmarkedCount})</TabsTrigger>
@@ -71,7 +77,18 @@ const StudentList = ({
         ) : filteredStudents.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No students found matching your criteria.</p>
+            {activeTab === "bookmarks" ? (
+              <div>
+                <p className="mb-2">No bookmarked students found.</p>
+                {hasActiveFilters ? (
+                  <p className="text-sm mb-4">Try clearing your filters to see all bookmarked students.</p>
+                ) : (
+                  <p className="text-sm mb-4">Start bookmarking students to see them here.</p>
+                )}
+              </div>
+            ) : (
+              <p>No students found matching your criteria.</p>
+            )}
             {hasActiveFilters && (
               <Button
                 variant="outline"

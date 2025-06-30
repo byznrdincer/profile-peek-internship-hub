@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,9 +38,13 @@ const RecruiterDashboard = () => {
     }
   }, [user]);
 
+  // Apply filters whenever any filter changes OR when activeTab changes OR when the source data changes
   useEffect(() => {
+    console.log('Dashboard: Applying filters. Active tab:', activeTab);
+    console.log('Dashboard: Students count:', students.length);
+    console.log('Dashboard: Bookmarked students count:', bookmarkedStudents.length);
     applyFilters();
-  }, [students, bookmarkedStudents, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
+  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
 
   const loadRecruiterProfile = async () => {
     if (!user) return;
@@ -167,7 +172,10 @@ const RecruiterDashboard = () => {
   };
 
   const applyFilters = () => {
-    const currentStudents = activeTab === "all" ? students : bookmarkedStudents;
+    // Choose the source data based on active tab
+    const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
+    
+    console.log('Dashboard: Applying filters to', currentStudents.length, 'students for tab:', activeTab);
     
     let filtered = currentStudents.filter(student => {
       // Major filter
@@ -273,6 +281,7 @@ const RecruiterDashboard = () => {
       return true;
     });
 
+    console.log('Dashboard: Filtered to', filtered.length, 'students');
     setFilteredStudents(filtered);
   };
 
@@ -311,6 +320,11 @@ const RecruiterDashboard = () => {
     setTimeout(() => {
       loadRecruiterProfile();
     }, 500);
+  };
+
+  const handleTabChange = (newTab: string) => {
+    console.log('Dashboard: Tab changing to:', newTab);
+    setActiveTab(newTab);
   };
 
   if (selectedStudent) {
@@ -377,7 +391,7 @@ const RecruiterDashboard = () => {
           <div className="lg:col-span-3">
             <StudentList
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
               loading={loading}
               filteredStudents={filteredStudents}
               hasActiveFilters={hasActiveFilters}
