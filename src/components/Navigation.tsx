@@ -31,12 +31,34 @@ const Navigation = () => {
     navigate('/');
   };
 
-  const navItems = [
-    { label: "How it Works", href: "/how-it-works" },
-    { label: "For Students", href: "/for-students" },
-    { label: "For Companies", href: "/for-companies" },
-    { label: "About", href: "/about" },
-  ];
+  // Different nav items based on user role
+  const getNavItems = () => {
+    if (isAuthenticated && profile?.role === 'recruiter') {
+      // Recruiter-specific navigation items
+      return [
+        { label: "Find Students", href: "/recruiter-dashboard" },
+        { label: "For Companies", href: "/for-companies" },
+      ];
+    } else if (isAuthenticated && profile?.role === 'student') {
+      // Student-specific navigation items
+      return [
+        { label: "How it Works", href: "/how-it-works" },
+        { label: "For Students", href: "/for-students" },
+        { label: "For Companies", href: "/for-companies" },
+        { label: "About", href: "/about" },
+      ];
+    } else {
+      // Default navigation for non-authenticated users
+      return [
+        { label: "How it Works", href: "/how-it-works" },
+        { label: "For Students", href: "/for-students" },
+        { label: "For Companies", href: "/for-companies" },
+        { label: "About", href: "/about" },
+      ];
+    }
+  };
+
+  const navItems = getNavItems();
 
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
