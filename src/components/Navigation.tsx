@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -96,7 +95,7 @@ const Navigation = () => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Recruiter Profile
+            My Profile
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -202,18 +201,20 @@ const Navigation = () => {
                     className="flex items-center gap-2"
                   >
                     <User className="h-4 w-4" />
-                    Profile
+                    My Profile
                   </Button>
                 )}
                 <Button
                   variant="outline"
                   onClick={handleDashboardNavigation}
+                  className="flex items-center gap-2"
                 >
                   Dashboard
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleLogout}
+                  className="flex items-center gap-2"
                 >
                   Logout
                 </Button>
@@ -259,7 +260,7 @@ const Navigation = () => {
                             className="w-full flex items-center gap-2 justify-start"
                           >
                             <User className="h-4 w-4" />
-                            Profile
+                            My Profile
                           </Button>
                         )}
                         <Button
@@ -268,7 +269,7 @@ const Navigation = () => {
                             handleDashboardNavigation();
                             setIsOpen(false);
                           }}
-                          className="w-full"
+                          className="w-full flex items-center gap-2 justify-start"
                         >
                           Dashboard
                         </Button>
@@ -278,7 +279,7 @@ const Navigation = () => {
                             handleLogout();
                             setIsOpen(false);
                           }}
-                          className="w-full"
+                          className="w-full flex items-center gap-2 justify-start"
                         >
                           Logout
                         </Button>
