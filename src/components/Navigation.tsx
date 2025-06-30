@@ -2,14 +2,39 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Menu, Briefcase, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState as useStateHook } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { isAuthenticated, profile, signOut } = useAuth();
+
+  useEffect(() => {
+    if (profile?.role === 'recruiter') {
+      loadRecruiterProfile();
+    }
+  }, [profile]);
+
+  const loadRecruiterProfile = async () => {
+    if (!profile) return;
+
+    const { data: recruiterData, error } = await supabase
+      .from('recruiter_profiles')
+      .select('*')
+      .eq('user_id', profile.id)
+      .single();
+
+    if (!error && recruiterData) {
+      setRecruiterProfile(recruiterData);
+    }
+  };
 
   const handleDashboardNavigation = () => {
     if (!isAuthenticated) {
@@ -23,12 +48,6 @@ const Navigation = () => {
       navigate('/recruiter-dashboard');
     } else {
       navigate('/auth');
-    }
-  };
-
-  const handleProfileNavigation = () => {
-    if (profile?.role === 'recruiter') {
-      navigate('/recruiter-dashboard');
     }
   };
 
@@ -63,6 +82,45 @@ const Navigation = () => {
 
   const navItems = getNavItems();
 
+  const ProfileDialog = () => (
+    <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Recruiter Profile
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Name</label>
+            <p className="text-sm text-gray-900">{recruiterProfile?.name || 'Not provided'}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Company</label>
+            <p className="text-sm text-gray-900">{recruiterProfile?.company_name || 'Not provided'}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Position</label>
+            <p className="text-sm text-gray-900">{recruiterProfile?.position || 'Not provided'}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Location</label>
+            <p className="text-sm text-gray-900">{recruiterProfile?.location || 'Not provided'}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Phone</label>
+            <p className="text-sm text-gray-900">{recruiterProfile?.phone || 'Not provided'}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Email</label>
+            <p className="text-sm text-gray-900">{profile?.email || 'Not provided'}</p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -94,8 +152,8 @@ const Navigation = () => {
               <div className="flex items-center space-x-4">
                 {profile?.role === 'recruiter' && (
                   <Button
-                    variant="ghost"
-                    onClick={handleProfileNavigation}
+                    variant="outline"
+                    onClick={() => setIsProfileOpen(true)}
                     className="flex items-center gap-2"
                   >
                     <User className="h-4 w-4" />
@@ -109,7 +167,7 @@ const Navigation = () => {
                   Dashboard
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   onClick={handleLogout}
                 >
                   Logout
@@ -148,9 +206,9 @@ const Navigation = () => {
                       <div className="flex flex-col space-y-2">
                         {profile?.role === 'recruiter' && (
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => {
-                              handleProfileNavigation();
+                              setIsProfileOpen(true);
                               setIsOpen(false);
                             }}
                             className="w-full flex items-center gap-2 justify-start"
@@ -170,7 +228,7 @@ const Navigation = () => {
                           Dashboard
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => {
                             handleLogout();
                             setIsOpen(false);
@@ -198,6 +256,8 @@ const Navigation = () => {
           </div>
         </div>
       </div>
+      
+      <ProfileDialog />
     </nav>
   );
 };
