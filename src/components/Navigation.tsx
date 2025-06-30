@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -34,11 +33,8 @@ const Navigation = () => {
   // Different nav items based on user role
   const getNavItems = () => {
     if (isAuthenticated && profile?.role === 'recruiter') {
-      // Recruiter-specific navigation items
-      return [
-        { label: "Find Students", href: "/recruiter-dashboard" },
-        { label: "For Companies", href: "/for-companies" },
-      ];
+      // Recruiter-specific navigation items - only essential items
+      return [];
     } else if (isAuthenticated && profile?.role === 'student') {
       // Student-specific navigation items
       return [
