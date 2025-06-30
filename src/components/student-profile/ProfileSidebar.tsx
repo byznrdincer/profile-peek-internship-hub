@@ -1,8 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Award, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import BookmarkButton from "../BookmarkButton";
 import { generateStudentProfilePDF } from "@/utils/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
@@ -50,32 +49,6 @@ const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
           </Button>
         </CardContent>
       </Card>
-
-      {/* Certifications Summary */}
-      {certifications.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Certifications ({certifications.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {certifications.slice(0, 3).map((cert, index) => (
-                <Badge key={index} variant="secondary" className="w-full justify-start text-xs">
-                  {cert.certification_name}
-                </Badge>
-              ))}
-              {certifications.length > 3 && (
-                <p className="text-xs text-gray-500">
-                  +{certifications.length - 3} more certifications
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
