@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Briefcase } from "lucide-react";
+import { Menu, Briefcase, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,6 +23,12 @@ const Navigation = () => {
       navigate('/recruiter-dashboard');
     } else {
       navigate('/auth');
+    }
+  };
+
+  const handleProfileNavigation = () => {
+    if (profile?.role === 'recruiter') {
+      navigate('/recruiter-dashboard');
     }
   };
 
@@ -85,6 +92,16 @@ const Navigation = () => {
             
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
+                {profile?.role === 'recruiter' && (
+                  <Button
+                    variant="ghost"
+                    onClick={handleProfileNavigation}
+                    className="flex items-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={handleDashboardNavigation}
@@ -129,6 +146,19 @@ const Navigation = () => {
                   <div className="border-t pt-4">
                     {isAuthenticated ? (
                       <div className="flex flex-col space-y-2">
+                        {profile?.role === 'recruiter' && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              handleProfileNavigation();
+                              setIsOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 justify-start"
+                          >
+                            <User className="h-4 w-4" />
+                            Profile
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           onClick={() => {
