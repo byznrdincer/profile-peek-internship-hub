@@ -35,6 +35,8 @@ const RecruiterDashboard = () => {
       console.log("User authenticated, loading recruiter data...", user);
       loadRecruiterProfile();
       loadBookmarkedStudents();
+      // Automatically load students when component mounts
+      loadStudents();
     }
   }, [user]);
 

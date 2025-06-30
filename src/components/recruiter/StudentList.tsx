@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Users, Search } from "lucide-react";
+import { Users } from "lucide-react";
 import StudentCard from "./StudentCard";
 
 interface StudentListProps {
@@ -34,8 +34,6 @@ const StudentList = ({
   studentsLoaded,
   onLoadAllStudents
 }: StudentListProps) => {
-  const showEmptyState = activeTab === "all" && !studentsLoaded && !hasActiveFilters;
-
   const handleTabChange = (newTab: string) => {
     console.log('StudentList: Tab changing from', activeTab, 'to', newTab);
     console.log('StudentList: Current filtered students count:', filteredStudents.length);
@@ -61,19 +59,6 @@ const StudentList = ({
             <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-gray-600">Loading student profiles...</p>
           </div>
-        ) : showEmptyState ? (
-          <div className="text-center py-12 text-gray-500">
-            <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Ready to find talented students?</h3>
-            <p className="mb-6 max-w-md mx-auto">
-              Use the filters above to search for students by major, skills, location, or project technologies. 
-              Or browse all available student profiles.
-            </p>
-            <Button onClick={onLoadAllStudents} className="bg-blue-600 hover:bg-blue-700">
-              <Users className="h-4 w-4 mr-2" />
-              Browse All Students
-            </Button>
-          </div>
         ) : filteredStudents.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -87,7 +72,14 @@ const StudentList = ({
                 )}
               </div>
             ) : (
-              <p>No students found matching your criteria.</p>
+              <div>
+                <p className="mb-2">No students found matching your criteria.</p>
+                {hasActiveFilters ? (
+                  <p className="text-sm mb-4">Try adjusting your filters to see more results.</p>
+                ) : (
+                  <p className="text-sm mb-4">All student profiles are loaded and ready to filter.</p>
+                )}
+              </div>
             )}
             {hasActiveFilters && (
               <Button
