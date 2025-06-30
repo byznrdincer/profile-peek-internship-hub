@@ -52,7 +52,6 @@ const StudentFilters = ({
   filteredCount,
   totalCount,
 }: StudentFiltersProps) => {
-  // Generate graduation year options from 2015 to 2030
   const graduationYearOptions = Array.from({ length: 16 }, (_, i) => {
     const year = 2015 + i;
     return year.toString();
@@ -88,55 +87,57 @@ const StudentFilters = ({
   };
 
   return (
-    <Card>
-      <CardContent className="p-6">
+    <Card className="sticky top-4">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-blue-600" />
+            <Filter className="h-4 w-4 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-900">
               Filter Students
             </h3>
           </div>
-          <div className="text-sm text-gray-600">
-            Showing {filteredCount} of {totalCount} students
+          <div className="text-xs text-gray-600">
+            {filteredCount} of {totalCount}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="major">Major</Label>
+            <Label htmlFor="major" className="text-sm font-medium">Major</Label>
             <Input
               id="major"
               placeholder="Filter by major..."
               value={majorFilter}
               onChange={(e) => setMajorFilter(e.target.value)}
+              className="mt-1"
             />
           </div>
 
           <div>
-            <Label htmlFor="skill">General Skills</Label>
+            <Label htmlFor="skill" className="text-sm font-medium">General Skills</Label>
             <Input
               id="skill"
-              placeholder="python java react (space/comma separated)"
+              placeholder="python java react"
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
+              className="mt-1"
             />
             <p className="text-xs text-blue-600 mt-1">
-              Use spaces or commas to search multiple skills (matches any)
+              Space/comma separated (matches any)
             </p>
           </div>
 
           <div>
-            <Label htmlFor="projectSkill">Project Search</Label>
+            <Label htmlFor="projectSkill" className="text-sm font-medium">Project Search</Label>
             <Input
               id="projectSkill"
-              placeholder="react node.js api (space/comma separated)"
+              placeholder="react node.js api"
               value={projectSkillFilter}
               onChange={(e) => setProjectSkillFilter(e.target.value)}
-              className="border-purple-200 focus:border-purple-400"
+              className="mt-1 border-purple-200 focus:border-purple-400"
             />
             <p className="text-xs text-purple-600 mt-1">
-              Searches technologies, titles, descriptions (matches any term)
+              Searches tech, titles, descriptions
             </p>
           </div>
 
@@ -145,17 +146,17 @@ const StudentFilters = ({
               label="Preferred Location"
               value={locationFilter}
               onChange={setLocationFilter}
-              placeholder="new york california (space/comma separated)"
+              placeholder="new york california"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Use spaces or commas for multiple locations (matches any)
+              Space/comma for multiple locations
             </p>
           </div>
 
           <div>
-            <Label htmlFor="graduationYear">Graduation Year</Label>
+            <Label htmlFor="graduationYear" className="text-sm font-medium">Graduation Year</Label>
             <Select onValueChange={handleGraduationYearSelect}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select years" />
               </SelectTrigger>
               <SelectContent>
@@ -171,7 +172,7 @@ const StudentFilters = ({
             {graduationYearFilter.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {graduationYearFilter.map((year) => (
-                  <Badge key={year} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={year} variant="secondary" className="flex items-center gap-1 text-xs">
                     {year}
                     <X
                       className="h-3 w-3 cursor-pointer"
@@ -181,18 +182,15 @@ const StudentFilters = ({
                 ))}
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-1">
-              Select multiple years (matches any)
-            </p>
           </div>
 
           <div>
-            <Label htmlFor="internshipType">Internship Preference</Label>
+            <Label htmlFor="internshipType" className="text-sm font-medium">Internship Preference</Label>
             <Select
               value={internshipTypeFilter}
               onValueChange={setInternshipTypeFilter}
             >
-              <SelectTrigger>
+              <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select preference" />
               </SelectTrigger>
               <SelectContent>
@@ -203,77 +201,78 @@ const StudentFilters = ({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 mt-1">
-              Filter by paid/unpaid preference
-            </p>
           </div>
         </div>
 
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-600">Active filters:</span>
-            {majorFilter && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Major: {majorFilter}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setMajorFilter("")}
-                />
-              </Badge>
-            )}
-            {skillFilter && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Skill: {skillFilter}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setSkillFilter("")}
-                />
-              </Badge>
-            )}
-            {projectSkillFilter && (
-              <Badge variant="default" className="flex items-center gap-1 bg-purple-500 hover:bg-purple-600">
-                Project: {projectSkillFilter}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setProjectSkillFilter("")}
-                />
-              </Badge>
-            )}
-            {locationFilter && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Location: {locationFilter}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setLocationFilter("")}
-                />
-              </Badge>
-            )}
-            {graduationYearFilter.length > 0 && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Years: {graduationYearFilter.join(', ')}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setGraduationYearFilter([])}
-                />
-              </Badge>
-            )}
-            {internshipTypeFilter && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Type: {getInternshipTypeDisplayName(internshipTypeFilter)}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setInternshipTypeFilter("")}
-                />
-              </Badge>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClearFilters}
-              className="ml-auto"
-            >
-              Clear All
-            </Button>
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-600">Active filters:</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearFilters}
+                className="text-xs h-7"
+              >
+                Clear All
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {majorFilter && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  Major: {majorFilter}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setMajorFilter("")}
+                  />
+                </Badge>
+              )}
+              {skillFilter && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  Skill: {skillFilter}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setSkillFilter("")}
+                  />
+                </Badge>
+              )}
+              {projectSkillFilter && (
+                <Badge variant="default" className="flex items-center gap-1 text-xs bg-purple-500 hover:bg-purple-600">
+                  Project: {projectSkillFilter}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setProjectSkillFilter("")}
+                  />
+                </Badge>
+              )}
+              {locationFilter && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  Location: {locationFilter}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setLocationFilter("")}
+                  />
+                </Badge>
+              )}
+              {graduationYearFilter.length > 0 && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  Years: {graduationYearFilter.join(', ')}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setGraduationYearFilter([])}
+                  />
+                </Badge>
+              )}
+              {internshipTypeFilter && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  Type: {getInternshipTypeDisplayName(internshipTypeFilter)}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => setInternshipTypeFilter("")}
+                  />
+                </Badge>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

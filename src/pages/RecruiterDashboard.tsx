@@ -1,305 +1,47 @@
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import ProfileForm from "@/components/recruiter/ProfileForm";
 import StudentFilters from "@/components/recruiter/StudentFilters";
 import StudentList from "@/components/recruiter/StudentList";
 import StudentProfile from "@/components/StudentProfile";
+import { useRecruiterData } from "@/hooks/useRecruiterData";
+import { useStudentFilters } from "@/hooks/useStudentFilters";
 
 const RecruiterDashboard = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [studentsLoaded, setStudentsLoaded] = useState(false);
-  const [students, setStudents] = useState<any[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
-  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
   
-  // Filter states
-  const [majorFilter, setMajorFilter] = useState("");
-  const [skillFilter, setSkillFilter] = useState("");
-  const [projectSkillFilter, setProjectSkillFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [graduationYearFilter, setGraduationYearFilter] = useState<string[]>([]);
-  const [internshipTypeFilter, setInternshipTypeFilter] = useState("");
+  const {
+    loading,
+    students,
+    bookmarkedStudents,
+    recruiterProfile,
+    profileLoading,
+    loadRecruiterProfile,
+    loadBookmarkedStudents
+  } = useRecruiterData();
 
-  useEffect(() => {
-    if (user) {
-      console.log("User authenticated, loading recruiter data...", user);
-      loadRecruiterProfile();
-      loadBookmarkedStudents();
-      // Automatically load students when component mounts
-      loadStudents();
-    }
-  }, [user]);
-
-  // Apply filters whenever any filter changes OR when activeTab changes OR when the source data changes
-  useEffect(() => {
-    console.log('Dashboard: Applying filters. Active tab:', activeTab);
-    console.log('Dashboard: Students count:', students.length);
-    console.log('Dashboard: Bookmarked students count:', bookmarkedStudents.length);
-    applyFilters();
-  }, [students, bookmarkedStudents, activeTab, majorFilter, skillFilter, projectSkillFilter, locationFilter, graduationYearFilter, internshipTypeFilter]);
-
-  const loadRecruiterProfile = async () => {
-    if (!user) return;
-
-    setProfileLoading(true);
-    try {
-      console.log('Loading recruiter profile for user:', user.id);
-      
-      const { data: profile, error } = await supabase
-        .from('recruiter_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading recruiter profile:', error);
-        if (error.code === 'PGRST116') {
-          console.log('No recruiter profile found, user needs to create one');
-          setRecruiterProfile(null);
-        }
-      } else if (profile) {
-        console.log('Successfully loaded recruiter profile:', profile);
-        setRecruiterProfile(profile);
-      } else {
-        console.log('No recruiter profile data found');
-        setRecruiterProfile(null);
-      }
-    } catch (error) {
-      console.error('Error in loadRecruiterProfile:', error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  const loadStudents = async () => {
-    setLoading(true);
-    setStudentsLoaded(true);
-    
-    try {
-      // First get student profiles with projects
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('student_profiles')
-        .select(`
-          *,
-          projects:student_projects(*)
-        `)
-        .order('last_login_at', { ascending: false, nullsFirst: false });
-
-      if (studentsError) throw studentsError;
-
-      if (studentsData) {
-        console.log("Students loaded with email field:", studentsData);
-        setStudents(studentsData);
-      }
-    } catch (error) {
-      console.error('Error loading students:', error);
-      toast({
-        title: "Error loading students",
-        description: "There was an error loading student profiles.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadBookmarkedStudents = async () => {
-    if (!user) return;
-
-    console.log("Loading bookmarked students for user:", user.id);
-    
-    try {
-      // Get recruiter profile first
-      const { data: recruiterProfile } = await supabase
-        .from('recruiter_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!recruiterProfile) {
-        console.log("No recruiter profile found");
-        return;
-      }
-
-      console.log("Recruiter profile found:", recruiterProfile.id);
-
-      // Get bookmarked student user IDs
-      const { data: bookmarks, error: bookmarksError } = await supabase
-        .from('student_bookmarks')
-        .select('student_user_id')
-        .eq('recruiter_id', recruiterProfile.id);
-
-      if (bookmarksError) throw bookmarksError;
-
-      console.log("Bookmarks found:", bookmarks?.length, bookmarks);
-
-      if (bookmarks && bookmarks.length > 0) {
-        const studentUserIds = bookmarks.map(b => b.student_user_id);
-        console.log("Student user IDs to fetch:", studentUserIds);
-
-        // Get full student profiles for bookmarked students
-        const { data: studentsData, error: studentsError } = await supabase
-          .from('student_profiles')
-          .select(`
-            *,
-            projects:student_projects(*)
-          `)
-          .in('user_id', studentUserIds)
-          .order('last_login_at', { ascending: false, nullsFirst: false });
-
-        if (studentsError) throw studentsError;
-
-        console.log("Student profiles found:", studentsData?.length);
-        console.log("Final bookmarked students with email:", studentsData?.length);
-        
-        if (studentsData) {
-          setBookmarkedStudents(studentsData);
-        }
-      } else {
-        setBookmarkedStudents([]);
-      }
-    } catch (error) {
-      console.error('Error loading bookmarked students:', error);
-    }
-  };
-
-  const applyFilters = () => {
-    // Choose the source data based on active tab
-    const currentStudents = activeTab === "bookmarks" ? bookmarkedStudents : students;
-    
-    console.log('Dashboard: Applying filters to', currentStudents.length, 'students for tab:', activeTab);
-    
-    let filtered = currentStudents.filter(student => {
-      // Major filter
-      if (majorFilter && !student.major?.toLowerCase().includes(majorFilter.toLowerCase())) {
-        return false;
-      }
-
-      // General skills filter - Updated to support comma and space-separated search terms with OR logic
-      if (skillFilter) {
-        const studentSkills = student.skills || [];
-        const searchTerms = skillFilter
-          .split(/[,\s]+/) // Split by comma and/or spaces
-          .map(term => term.trim().toLowerCase())
-          .filter(term => term);
-        
-        // Check if any search term matches any student skill
-        const hasMatchingSkill = searchTerms.some(searchTerm => 
-          studentSkills.some((studentSkill: string) => 
-            studentSkill.toLowerCase().includes(searchTerm)
-          )
-        );
-        
-        if (!hasMatchingSkill) return false;
-      }
-
-      // Project search filter - Updated to support comma and space-separated search terms with OR logic
-      if (projectSkillFilter) {
-        const projects = student.projects || [];
-        const searchTerms = projectSkillFilter
-          .split(/[,\s]+/) // Split by comma and/or spaces
-          .map(term => term.trim().toLowerCase())
-          .filter(term => term);
-        
-        // Check if any search term matches any project content
-        const hasMatchingProject = searchTerms.some(searchTerm => 
-          projects.some((project: any) => {
-            // Check project title
-            if (project.title?.toLowerCase().includes(searchTerm)) {
-              return true;
-            }
-            // Check project description
-            if (project.description?.toLowerCase().includes(searchTerm)) {
-              return true;
-            }
-            // Check project technologies
-            if (project.technologies?.some((tech: string) => 
-              tech.toLowerCase().includes(searchTerm)
-            )) {
-              return true;
-            }
-            return false;
-          })
-        );
-        
-        if (!hasMatchingProject) return false;
-      }
-
-      // Location filter - Updated to support comma and space-separated search terms with OR logic
-      if (locationFilter) {
-        const searchTerms = locationFilter
-          .split(/[,\s]+/) // Split by comma and/or spaces
-          .map(term => term.trim().toLowerCase())
-          .filter(term => term);
-        
-        const hasMatchingLocation = searchTerms.some(searchTerm => {
-          // Check current location
-          const currentLocationMatch = student.location?.toLowerCase().includes(searchTerm);
-          
-          // Check preferred_locations array
-          const preferredLocationsMatch = student.preferred_locations?.some((loc: string) => 
-            loc.toLowerCase().includes(searchTerm)
-          );
-          
-          // Check single preferred_internship_location
-          const singlePreferredLocationMatch = student.preferred_internship_location?.toLowerCase().includes(searchTerm);
-          
-          return currentLocationMatch || preferredLocationsMatch || singlePreferredLocationMatch;
-        });
-        
-        if (!hasMatchingLocation) return false;
-      }
-
-      // Graduation year filter - Updated to support multiple years with OR logic
-      if (graduationYearFilter.length > 0 && !graduationYearFilter.includes(student.graduation_year)) {
-        return false;
-      }
-
-      // Internship type preference filter - Updated to filter by paid/unpaid preference
-      if (internshipTypeFilter) {
-        const studentPreference = student.internship_type_preference;
-        
-        // If student preference is 'both', they match any filter
-        if (studentPreference === 'both') {
-          // Always include students who are open to both
-        } else if (internshipTypeFilter === 'both') {
-          // Filter shows 'both' - include all students
-        } else if (studentPreference !== internshipTypeFilter) {
-          // Student's preference doesn't match the filter
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    console.log('Dashboard: Filtered to', filtered.length, 'students');
-    setFilteredStudents(filtered);
-  };
-
-  const clearFilters = () => {
-    setMajorFilter("");
-    setSkillFilter("");
-    setProjectSkillFilter("");
-    setLocationFilter("");
-    setGraduationYearFilter([]);
-    setInternshipTypeFilter("");
-  };
-
-  const hasActiveFilters = Boolean(majorFilter || skillFilter || projectSkillFilter || locationFilter || graduationYearFilter.length > 0 || internshipTypeFilter);
+  const {
+    filteredStudents,
+    majorFilter,
+    setMajorFilter,
+    skillFilter,
+    setSkillFilter,
+    projectSkillFilter,
+    setProjectSkillFilter,
+    locationFilter,
+    setLocationFilter,
+    graduationYearFilter,
+    setGraduationYearFilter,
+    internshipTypeFilter,
+    setInternshipTypeFilter,
+    clearFilters,
+    hasActiveFilters
+  } = useStudentFilters(students, bookmarkedStudents, activeTab);
 
   const handleViewProfile = async (student: any) => {
-    // Increment profile view count
     try {
       await supabase.rpc('increment_profile_view', {
         student_user_id: student.user_id
@@ -317,8 +59,6 @@ const RecruiterDashboard = () => {
 
   const handleProfileUpdate = (updatedProfile: any) => {
     console.log('Dashboard received profile update:', updatedProfile);
-    setRecruiterProfile(updatedProfile);
-    // Reload profile to ensure consistency
     setTimeout(() => {
       loadRecruiterProfile();
     }, 500);
@@ -368,7 +108,7 @@ const RecruiterDashboard = () => {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-4 gap-8">
+        <div className="grid lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
             <StudentFilters
               majorFilter={majorFilter}
@@ -402,8 +142,8 @@ const RecruiterDashboard = () => {
               onBookmarkChange={handleBookmarkChange}
               studentsCount={students.length}
               bookmarkedCount={bookmarkedStudents.length}
-              studentsLoaded={studentsLoaded}
-              onLoadAllStudents={loadStudents}
+              studentsLoaded={true}
+              onLoadAllStudents={() => {}}
             />
           </div>
         </div>
