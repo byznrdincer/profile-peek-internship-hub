@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Menu, Briefcase, User, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,17 +30,27 @@ const Navigation = () => {
 
     setLoading(true);
     try {
+      console.log('Loading recruiter profile for user:', profile.id);
+      
       const { data: recruiterData, error } = await supabase
         .from('recruiter_profiles')
         .select('*')
         .eq('user_id', profile.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading recruiter profile:', error);
+        // If no profile exists, create an empty one
+        if (error.code === 'PGRST116') {
+          console.log('No recruiter profile found, will create on first save');
+          setRecruiterProfile(null);
+        }
       } else if (recruiterData) {
         console.log('Loaded recruiter profile:', recruiterData);
         setRecruiterProfile(recruiterData);
+      } else {
+        console.log('No recruiter profile found');
+        setRecruiterProfile(null);
       }
     } catch (error) {
       console.error('Error in loadRecruiterProfile:', error);
@@ -69,11 +80,14 @@ const Navigation = () => {
   };
 
   const handleProfileUpdate = (updatedProfile: any) => {
+    console.log('Profile updated:', updatedProfile);
     setRecruiterProfile(updatedProfile);
     setIsEditProfileOpen(false);
     setIsProfileOpen(false);
     // Reload the profile data to ensure consistency
-    loadRecruiterProfile();
+    setTimeout(() => {
+      loadRecruiterProfile();
+    }, 500);
   };
 
   const handleProfileDialogOpen = () => {
@@ -116,6 +130,9 @@ const Navigation = () => {
             <User className="h-5 w-5" />
             My Profile
           </DialogTitle>
+          <DialogDescription>
+            View and manage your profile information
+          </DialogDescription>
         </DialogHeader>
         {loading ? (
           <div className="py-4 text-center">Loading...</div>
@@ -171,6 +188,9 @@ const Navigation = () => {
             <Edit className="h-5 w-5" />
             Edit Profile
           </DialogTitle>
+          <DialogDescription>
+            Update your profile information
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <ProfileForm

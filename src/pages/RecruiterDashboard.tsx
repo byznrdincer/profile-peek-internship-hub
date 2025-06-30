@@ -19,6 +19,7 @@ const RecruiterDashboard = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
   const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   
   // Filter states
   const [majorFilter, setMajorFilter] = useState("");
@@ -43,14 +44,33 @@ const RecruiterDashboard = () => {
   const loadRecruiterProfile = async () => {
     if (!user) return;
 
-    const { data: profile, error } = await supabase
-      .from('recruiter_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    setProfileLoading(true);
+    try {
+      console.log('Loading recruiter profile for user:', user.id);
+      
+      const { data: profile, error } = await supabase
+        .from('recruiter_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (!error && profile) {
-      setRecruiterProfile(profile);
+      if (error) {
+        console.error('Error loading recruiter profile:', error);
+        if (error.code === 'PGRST116') {
+          console.log('No recruiter profile found, user needs to create one');
+          setRecruiterProfile(null);
+        }
+      } else if (profile) {
+        console.log('Successfully loaded recruiter profile:', profile);
+        setRecruiterProfile(profile);
+      } else {
+        console.log('No recruiter profile data found');
+        setRecruiterProfile(null);
+      }
+    } catch (error) {
+      console.error('Error in loadRecruiterProfile:', error);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -285,7 +305,12 @@ const RecruiterDashboard = () => {
   };
 
   const handleProfileUpdate = (updatedProfile: any) => {
+    console.log('Dashboard received profile update:', updatedProfile);
     setRecruiterProfile(updatedProfile);
+    // Reload profile to ensure consistency
+    setTimeout(() => {
+      loadRecruiterProfile();
+    }, 500);
   };
 
   if (selectedStudent) {
@@ -307,8 +332,12 @@ const RecruiterDashboard = () => {
           <p className="text-xl text-gray-600">Find and connect with talented students</p>
         </div>
 
-        {!recruiterProfile?.name && (
+        {(!recruiterProfile?.name && !profileLoading) && (
           <div className="mb-8">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-semibold text-yellow-800 mb-2">Complete Your Profile</h2>
+              <p className="text-yellow-700 mb-4">Please fill out your profile information to get started with recruiting.</p>
+            </div>
             <ProfileForm 
               initialData={{
                 name: recruiterProfile?.name || "",
@@ -318,6 +347,7 @@ const RecruiterDashboard = () => {
                 location: recruiterProfile?.location || ""
               }}
               onUpdate={handleProfileUpdate}
+              loading={profileLoading}
             />
           </div>
         )}
