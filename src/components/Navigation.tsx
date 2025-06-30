@@ -3,15 +3,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Menu, Briefcase, User } from "lucide-react";
+import { Menu, Briefcase, User, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState as useStateHook } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import ProfileForm from "@/components/recruiter/ProfileForm";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { isAuthenticated, profile, signOut } = useAuth();
@@ -54,6 +56,12 @@ const Navigation = () => {
   const handleLogout = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleProfileUpdate = (updatedProfile: any) => {
+    setRecruiterProfile(updatedProfile);
+    setIsEditProfileOpen(false);
+    setIsProfileOpen(false);
   };
 
   // Different nav items based on user role
@@ -116,6 +124,43 @@ const Navigation = () => {
             <label className="text-sm font-medium text-gray-700">Email</label>
             <p className="text-sm text-gray-900">{profile?.email || 'Not provided'}</p>
           </div>
+          <div className="pt-4">
+            <Button
+              onClick={() => {
+                setIsProfileOpen(false);
+                setIsEditProfileOpen(true);
+              }}
+              className="w-full flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const EditProfileDialog = () => (
+    <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Edit className="h-5 w-5" />
+            Edit Profile
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <ProfileForm
+            initialData={{
+              name: recruiterProfile?.name || "",
+              phone: recruiterProfile?.phone || "",
+              company_name: recruiterProfile?.company_name || "",
+              position: recruiterProfile?.position || "",
+              location: recruiterProfile?.location || ""
+            }}
+            onUpdate={handleProfileUpdate}
+          />
         </div>
       </DialogContent>
     </Dialog>
@@ -258,6 +303,7 @@ const Navigation = () => {
       </div>
       
       <ProfileDialog />
+      <EditProfileDialog />
     </nav>
   );
 };
