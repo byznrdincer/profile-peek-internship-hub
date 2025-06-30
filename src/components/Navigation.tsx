@@ -30,7 +30,7 @@ const Navigation = () => {
 
     setLoading(true);
     try {
-      console.log('Loading recruiter profile for user:', profile.id);
+      console.log('Navigation: Loading recruiter profile for user:', profile.id);
       
       const { data: recruiterData, error } = await supabase
         .from('recruiter_profiles')
@@ -39,21 +39,18 @@ const Navigation = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error loading recruiter profile:', error);
-        // If no profile exists, create an empty one
-        if (error.code === 'PGRST116') {
-          console.log('No recruiter profile found, will create on first save');
-          setRecruiterProfile(null);
-        }
+        console.error('Navigation: Error loading recruiter profile:', error);
+        setRecruiterProfile(null);
       } else if (recruiterData) {
-        console.log('Loaded recruiter profile:', recruiterData);
+        console.log('Navigation: Successfully loaded recruiter profile:', recruiterData);
         setRecruiterProfile(recruiterData);
       } else {
-        console.log('No recruiter profile found');
+        console.log('Navigation: No recruiter profile found');
         setRecruiterProfile(null);
       }
     } catch (error) {
-      console.error('Error in loadRecruiterProfile:', error);
+      console.error('Navigation: Error in loadRecruiterProfile:', error);
+      setRecruiterProfile(null);
     } finally {
       setLoading(false);
     }
@@ -80,18 +77,23 @@ const Navigation = () => {
   };
 
   const handleProfileUpdate = (updatedProfile: any) => {
-    console.log('Profile updated:', updatedProfile);
-    setRecruiterProfile(updatedProfile);
+    console.log('Navigation: Profile updated:', updatedProfile);
+    // Immediately update the local state with the new data
+    setRecruiterProfile({
+      ...recruiterProfile,
+      ...updatedProfile
+    });
     setIsEditProfileOpen(false);
     setIsProfileOpen(false);
-    // Reload the profile data to ensure consistency
+    // Reload the profile data from database to ensure consistency
     setTimeout(() => {
       loadRecruiterProfile();
-    }, 500);
+    }, 100);
   };
 
   const handleProfileDialogOpen = () => {
-    // Reload profile data when opening the dialog to ensure fresh data
+    // Always reload profile data when opening the dialog
+    console.log('Navigation: Opening profile dialog, reloading data...');
     loadRecruiterProfile();
     setIsProfileOpen(true);
   };

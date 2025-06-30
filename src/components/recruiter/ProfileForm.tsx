@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,38 +34,83 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
 
   // Update form data when initialData changes
   useEffect(() => {
+    console.log('ProfileForm: initialData changed:', initialData);
     setFormData(initialData);
   }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error('No user found for profile save');
+      return;
+    }
 
+    console.log('Saving profile data:', formData);
     setLoading(true);
+    
     try {
-      const { error } = await supabase
+      // First, check if profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('recruiter_profiles')
-        .upsert({
-          user_id: user.id,
-          name: formData.name,
-          phone: formData.phone,
-          company_name: formData.company_name,
-          position: formData.position,
-          location: formData.location,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('Error checking existing profile:', fetchError);
+        throw fetchError;
+      }
 
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        console.log('Updating existing profile:', existingProfile.id);
+        result = await supabase
+          .from('recruiter_profiles')
+          .update({
+            name: formData.name,
+            phone: formData.phone,
+            company_name: formData.company_name,
+            position: formData.position,
+            location: formData.location,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+      } else {
+        // Create new profile
+        console.log('Creating new profile for user:', user.id);
+        result = await supabase
+          .from('recruiter_profiles')
+          .insert({
+            user_id: user.id,
+            name: formData.name,
+            phone: formData.phone,
+            company_name: formData.company_name,
+            position: formData.position,
+            location: formData.location
+          })
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        console.error('Error saving profile:', result.error);
+        throw result.error;
+      }
+
+      console.log('Profile saved successfully:', result.data);
+      
+      // Call onUpdate with the saved data
       onUpdate(formData);
+      
       toast({
         title: "Profile updated successfully!",
         description: "Your recruiter profile has been saved.",
       });
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('Error in handleSubmit:', error);
       toast({
         title: "Save failed",
         description: "There was an error saving your profile. Please try again.",
@@ -96,6 +142,7 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               pattern="[A-Za-z\s]+"
               title="Please enter a valid name (letters and spaces only)"
               disabled={isLoading}
+              required
             />
           </div>
           <div>
@@ -107,6 +154,7 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               onChange={(e) => setFormData({...formData, company_name: e.target.value})}
               placeholder="Your Company"
               disabled={isLoading}
+              required
             />
           </div>
           <div>
@@ -118,6 +166,7 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               onChange={(e) => setFormData({...formData, position: e.target.value})}
               placeholder="HR Manager, Technical Recruiter, etc."
               disabled={isLoading}
+              required
             />
           </div>
           <div>
@@ -148,7 +197,7 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
             className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Update Profile"}
+            {isLoading ? "Saving..." : "Save Profile"}
           </Button>
         </form>
       </CardContent>
