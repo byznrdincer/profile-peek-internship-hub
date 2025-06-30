@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Github, Linkedin, Globe, Award, MapPin, Calendar, GraduationCap, Building, FileText } from "lucide-react";
+import { Award, FileText } from "lucide-react";
 import BookmarkButton from "../BookmarkButton";
 import { generateStudentProfilePDF } from "@/utils/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
@@ -14,8 +14,6 @@ interface ProfileSidebarProps {
 
 const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
   const { toast } = useToast();
-  const hasMultipleWebsites = student.multiple_website_urls && student.multiple_website_urls.length > 0;
-  const hasLegacyWebsite = student.website_url;
 
   const handleGeneratePDF = () => {
     try {
@@ -50,96 +48,6 @@ const ProfileSidebar = ({ student, certifications }: ProfileSidebarProps) => {
             <FileText className="h-4 w-4 mr-2" />
             Generate PDF Summary
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Basic Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2 text-sm">
-            <Building className="h-4 w-4 text-gray-500" />
-            <span>{student.university}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <GraduationCap className="h-4 w-4 text-gray-500" />
-            <span>{student.major}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span>Class of {student.graduation_year}</span>
-          </div>
-          {student.location && (
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-gray-500" />
-              <span>{student.location}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Social Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Links</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {student.github_url && (
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a href={student.github_url} target="_blank" rel="noopener noreferrer">
-                <Github className="h-4 w-4 mr-2" />
-                GitHub Profile
-              </a>
-            </Button>
-          )}
-          {student.linkedin_url && (
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a href={student.linkedin_url} target="_blank" rel="noopener noreferrer">
-                <Linkedin className="h-4 w-4 mr-2" />
-                LinkedIn Profile
-              </a>
-            </Button>
-          )}
-          
-          {/* Multiple Website Links */}
-          {hasMultipleWebsites && (
-            <div className="space-y-2">
-              {student.multiple_website_urls
-                .filter((url: string) => url && url.trim())
-                .map((url: string, index: number) => (
-                  <Button key={index} variant="outline" className="w-full justify-start" asChild>
-                    <a 
-                      href={url.startsWith('http') ? url : `https://${url}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      <Globe className="h-4 w-4 mr-2" />
-                      Website {index + 1}
-                    </a>
-                  </Button>
-                ))}
-            </div>
-          )}
-          
-          {/* Legacy Website Link */}
-          {hasLegacyWebsite && (
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a 
-                href={student.website_url.startsWith('http') ? student.website_url : `https://${student.website_url}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <Globe className="h-4 w-4 mr-2" />
-                Portfolio
-              </a>
-            </Button>
-          )}
-          
-          {!student.github_url && !student.linkedin_url && !hasMultipleWebsites && !hasLegacyWebsite && (
-            <p className="text-sm text-gray-500 italic">No social links provided</p>
-          )}
         </CardContent>
       </Card>
 
