@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -107,13 +106,8 @@ const Navigation = () => {
       // Recruiter-specific navigation items - only essential items
       return [];
     } else if (isAuthenticated && profile?.role === 'student') {
-      // Student-specific navigation items
-      return [
-        { label: "How it Works", href: "/how-it-works" },
-        { label: "For Students", href: "/for-students" },
-        { label: "For Companies", href: "/for-companies" },
-        { label: "About", href: "/about" },
-      ];
+      // Student-specific navigation items - removed all except essential
+      return [];
     } else {
       // Default navigation for non-authenticated users
       return [
