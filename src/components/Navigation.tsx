@@ -217,7 +217,7 @@ const Navigation = () => {
               <Briefcase className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold">
-              <span className="text-blue-600">lazy</span>
+              <span className="text-blue-600 font-fredoka">lazy</span>
               <span className="text-teal-600">Intern</span>
             </span>
           </Link>
