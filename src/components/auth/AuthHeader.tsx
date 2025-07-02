@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Code, ArrowLeft } from "lucide-react";
+import { Brain, ArrowLeft } from "lucide-react";
 
 const AuthHeader = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const AuthHeader = () => {
       </div>
       <div className="flex items-center justify-center space-x-2 mb-4">
         <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
-          <Code className="h-5 w-5 text-white" />
+          <Brain className="h-5 w-5 text-white" />
         </div>
         <h1 className="text-2xl font-bold">
           <span className="font-fredoka bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">lazy</span>

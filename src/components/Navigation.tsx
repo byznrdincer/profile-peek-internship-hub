@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Menu, Code, User, Edit } from "lucide-react";
+import { Menu, Brain, User, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState as useStateHook } from "react";
@@ -214,7 +214,7 @@ const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
-              <Code className="h-5 w-5 text-white" />
+              <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold">
               <span className="text-blue-600 font-fredoka">lazy</span>
