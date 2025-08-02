@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export const useRecruiterData = () => {
@@ -18,29 +16,16 @@ export const useRecruiterData = () => {
 
     setProfileLoading(true);
     try {
-      console.log('Loading recruiter profile for user:', user.id);
-      
-      const { data: profile, error } = await supabase
-        .from('recruiter_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading recruiter profile:', error);
-        if (error.code === 'PGRST116') {
-          console.log('No recruiter profile found, user needs to create one');
-          setRecruiterProfile(null);
-        }
-      } else if (profile) {
-        console.log('Successfully loaded recruiter profile:', profile);
-        setRecruiterProfile(profile);
-      } else {
-        console.log('No recruiter profile data found');
-        setRecruiterProfile(null);
-      }
+      const response = await fetch(`/api/recruiter/profile/me/`, {
+        method: "GET",
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to load recruiter profile");
+      const profile = await response.json();
+      setRecruiterProfile(profile);
     } catch (error) {
-      console.error('Error in loadRecruiterProfile:', error);
+      console.error("Error loading recruiter profile:", error);
+      setRecruiterProfile(null);
     } finally {
       setProfileLoading(false);
     }
@@ -48,24 +33,16 @@ export const useRecruiterData = () => {
 
   const loadStudents = async () => {
     setLoading(true);
-    
     try {
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('student_profiles')
-        .select(`
-          *,
-          projects:student_projects(*)
-        `)
-        .order('last_login_at', { ascending: false, nullsFirst: false });
-
-      if (studentsError) throw studentsError;
-
-      if (studentsData) {
-        console.log("Students loaded with email field:", studentsData);
-        setStudents(studentsData);
-      }
+      const response = await fetch(`/api/recruiter/students/`, {  // BURASI GÜNCELLENDİ
+        method: "GET",
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to load students");
+      const studentsData = await response.json();
+      setStudents(studentsData);
     } catch (error) {
-      console.error('Error loading students:', error);
+      console.error("Error loading students:", error);
       toast({
         title: "Error loading students",
         description: "There was an error loading student profiles.",
@@ -79,63 +56,22 @@ export const useRecruiterData = () => {
   const loadBookmarkedStudents = async () => {
     if (!user) return;
 
-    console.log("Loading bookmarked students for user:", user.id);
-    
     try {
-      const { data: recruiterProfile } = await supabase
-        .from('recruiter_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!recruiterProfile) {
-        console.log("No recruiter profile found");
-        return;
-      }
-
-      console.log("Recruiter profile found:", recruiterProfile.id);
-
-      const { data: bookmarks, error: bookmarksError } = await supabase
-        .from('student_bookmarks')
-        .select('student_user_id')
-        .eq('recruiter_id', recruiterProfile.id);
-
-      if (bookmarksError) throw bookmarksError;
-
-      console.log("Bookmarks found:", bookmarks?.length, bookmarks);
-
-      if (bookmarks && bookmarks.length > 0) {
-        const studentUserIds = bookmarks.map(b => b.student_user_id);
-        console.log("Student user IDs to fetch:", studentUserIds);
-
-        const { data: studentsData, error: studentsError } = await supabase
-          .from('student_profiles')
-          .select(`
-            *,
-            projects:student_projects(*)
-          `)
-          .in('user_id', studentUserIds)
-          .order('last_login_at', { ascending: false, nullsFirst: false });
-
-        if (studentsError) throw studentsError;
-
-        console.log("Student profiles found:", studentsData?.length);
-        console.log("Final bookmarked students with email:", studentsData?.length);
-        
-        if (studentsData) {
-          setBookmarkedStudents(studentsData);
-        }
-      } else {
-        setBookmarkedStudents([]);
-      }
+      const response = await fetch(`/api/recruiter/bookmarks/`, {
+        method: "GET",
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to load bookmarked students");
+      const bookmarked = await response.json();
+      setBookmarkedStudents(bookmarked);
     } catch (error) {
-      console.error('Error loading bookmarked students:', error);
+      console.error("Error loading bookmarked students:", error);
+      setBookmarkedStudents([]);
     }
   };
 
   useEffect(() => {
     if (user) {
-      console.log("User authenticated, loading recruiter data...", user);
       loadRecruiterProfile();
       loadBookmarkedStudents();
       loadStudents();

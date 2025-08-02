@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Menu, User, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState as useStateHook } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import ProfileForm from "@/components/recruiter/ProfileForm";
 import LILogo from "@/components/ui/LILogo";
 
@@ -34,25 +32,21 @@ const Navigation = () => {
     setLoading(true);
     try {
       console.log('Navigation: Loading recruiter profile for user ID:', user.id);
-      
-      const { data: recruiterData, error } = await supabase
-        .from('recruiter_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
 
-      if (error) {
-        console.error('Navigation: Error loading recruiter profile:', error);
-        setRecruiterProfile(null);
-      } else if (recruiterData) {
-        console.log('Navigation: Successfully loaded recruiter profile:', recruiterData);
-        setRecruiterProfile(recruiterData);
-      } else {
+      const res = await fetch(`/api/recruiter/profile/${user.id}`);
+      if (!res.ok) throw new Error('Failed to load recruiter profile');
+
+      const recruiterData = await res.json();
+
+      if (Object.keys(recruiterData).length === 0) {
         console.log('Navigation: No recruiter profile found');
         setRecruiterProfile(null);
+      } else {
+        console.log('Navigation: Successfully loaded recruiter profile:', recruiterData);
+        setRecruiterProfile(recruiterData);
       }
     } catch (error) {
-      console.error('Navigation: Error in loadRecruiterProfile:', error);
+      console.error('Navigation: Error loading recruiter profile:', error);
       setRecruiterProfile(null);
     } finally {
       setLoading(false);
@@ -81,36 +75,29 @@ const Navigation = () => {
 
   const handleProfileUpdate = (updatedProfile: any) => {
     console.log('Navigation: Profile updated:', updatedProfile);
-    // Immediately update the local state with the new data
     setRecruiterProfile({
       ...recruiterProfile,
       ...updatedProfile
     });
     setIsEditProfileOpen(false);
     setIsProfileOpen(false);
-    // Reload the profile data from database to ensure consistency
     setTimeout(() => {
       loadRecruiterProfile();
     }, 100);
   };
 
   const handleProfileDialogOpen = () => {
-    // Always reload profile data when opening the dialog
     console.log('Navigation: Opening profile dialog, reloading data...');
     loadRecruiterProfile();
     setIsProfileOpen(true);
   };
 
-  // Different nav items based on user role
   const getNavItems = () => {
     if (isAuthenticated && profile?.role === 'recruiter') {
-      // Recruiter-specific navigation items - only essential items
       return [];
     } else if (isAuthenticated && profile?.role === 'student') {
-      // Student-specific navigation items - removed all except essential
       return [];
     } else {
-      // Default navigation for non-authenticated users
       return [
         { label: "How it Works", href: "/how-it-works" },
         { label: "For Students", href: "/for-students" },
@@ -232,7 +219,7 @@ const Navigation = () => {
                 {item.label}
               </Link>
             ))}
-            
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 {profile?.role === 'recruiter' && (
@@ -287,7 +274,7 @@ const Navigation = () => {
                       {item.label}
                     </Link>
                   ))}
-                  
+
                   <div className="border-t pt-4">
                     {isAuthenticated ? (
                       <div className="flex flex-col space-y-2">
@@ -343,7 +330,7 @@ const Navigation = () => {
           </div>
         </div>
       </div>
-      
+
       <ProfileDialog />
       <EditProfileDialog />
     </nav>

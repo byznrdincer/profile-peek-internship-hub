@@ -1,13 +1,18 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Building } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth"; // ✅ auth hook
 
 interface LoginFormProps {
   loading: boolean;
@@ -17,10 +22,12 @@ interface LoginFormProps {
 const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [loginData, setLoginData] = useState({ 
-    email: "", 
+  const { login } = useAuth(); // ✅ kullanıcıyı setlemek için
+
+  const [loginData, setLoginData] = useState({
+    email: "",
     password: "",
-    role: "student" as "student" | "recruiter"
+    role: "student" as "student" | "recruiter",
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,62 +35,60 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
+      const response = await fetch("http://127.0.0.1:8000/api/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password,
+          role: loginData.role,
+        }),
       });
 
-      if (error) {
+      const data = await response.json();
+      console.log("Login response:", data); // 🔍 kontrol amaçlı
+
+      if (!response.ok) {
         toast({
           title: "Login failed",
-          description: error.message,
+          description: data.error || "Invalid credentials",
           variant: "destructive",
         });
         return;
       }
 
-      if (data.user) {
-        // Check user's actual role in the database
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .single();
+      // ✅ Auth hook'a gönder
+      await login({
+        id: data.user_id,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+      });
 
-        if (profileError) {
-          toast({
-            title: "Login failed",
-            description: "Unable to verify user role. Please try again.",
-            variant: "destructive",
-          });
-          await supabase.auth.signOut();
-          return;
-        }
+      toast({
+        title: `Welcome back, ${data.role}!`,
+        description: "You have been logged in successfully.",
+      });
 
-        // Verify that the selected role matches the user's actual role
-        if (profileData.role !== loginData.role) {
-          toast({
-            title: "Invalid login attempt",
-            description: `You cannot login as a ${loginData.role}. Your account is registered as a ${profileData.role}.`,
-            variant: "destructive",
-          });
-          await supabase.auth.signOut();
-          return;
-        }
-
-        toast({
-          title: `Welcome back, ${loginData.role}!`,
-          description: "You have been logged in successfully.",
-        });
-        navigate('/');
+      // ✅ Rol bazlı yönlendirme
+      if (data.role === "student") {
+        navigate("/student-dashboard");
+      } else if (data.role === "recruiter") {
+        navigate("/recruiter-dashboard");
+      } else {
+        navigate("/");
       }
+
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      await supabase.auth.signOut();
     } finally {
       setLoading(false);
     }
@@ -93,9 +98,14 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
     <form onSubmit={handleLogin} className="space-y-4">
       <div>
         <Label htmlFor="login-role">Login as</Label>
-        <Select value={loginData.role} onValueChange={(value: "student" | "recruiter") => setLoginData({ ...loginData, role: value })}>
+        <Select
+          value={loginData.role}
+          onValueChange={(value: "student" | "recruiter") =>
+            setLoginData({ ...loginData, role: value })
+          }
+        >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="student">
@@ -113,33 +123,42 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
           </SelectContent>
         </Select>
       </div>
+
       <div>
         <Label htmlFor="login-email">Email</Label>
         <Input
           id="login-email"
           type="email"
           value={loginData.email}
-          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          onChange={(e) =>
+            setLoginData({ ...loginData, email: e.target.value })
+          }
           placeholder="your@email.com"
           required
         />
       </div>
+
       <div>
         <Label htmlFor="login-password">Password</Label>
         <Input
           id="login-password"
           type="password"
           value={loginData.password}
-          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+          onChange={(e) =>
+            setLoginData({ ...loginData, password: e.target.value })
+          }
           required
         />
       </div>
-      <Button 
-        type="submit" 
+
+      <Button
+        type="submit"
         className="w-full bg-gradient-to-r from-blue-500 to-teal-500"
         disabled={loading}
       >
-        {loading ? "Logging in..." : `Login as ${loginData.role === 'student' ? 'Student' : 'Recruiter'}`}
+        {loading
+          ? "Logging in..."
+          : `Login as ${loginData.role === "student" ? "Student" : "Recruiter"}`}
       </Button>
     </form>
   );

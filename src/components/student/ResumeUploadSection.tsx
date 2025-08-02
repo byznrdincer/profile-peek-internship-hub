@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Download, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ResumeUploadSectionProps {
@@ -23,7 +21,7 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
   const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (10MB limit)
+      // 10MB limit
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -32,8 +30,7 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
         });
         return;
       }
-      
-      // Check file type
+      // File type check
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
         toast({
@@ -43,7 +40,6 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
         });
         return;
       }
-
       setResumeFile(file);
       toast({
         title: "Resume selected",
@@ -64,71 +60,37 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
 
     setUploadingResume(true);
     try {
-      const fileExt = resumeFile.name.split('.').pop();
-      const fileName = `${user.id}/resume_${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", resumeFile);
+      formData.append("user_id", user.id.toString());
 
-      console.log('Uploading file:', fileName);
+      // Upload endpoint (backendde bu endpointin olması gerekir)
+      const response = await fetch("/api/upload/resume", {
+        method: "POST",
+        body: formData,
+      });
 
-      // First, delete existing resume if any
-      if (existingResumeUrl) {
-        const oldFileName = existingResumeUrl.split('/').pop();
-        if (oldFileName) {
-          await supabase.storage
-            .from('resumes')
-            .remove([`${user.id}/${oldFileName}`]);
-        }
+      if (!response.ok) {
+        throw new Error("Upload failed");
       }
 
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, resumeFile, { 
-          upsert: false,
-          contentType: resumeFile.type
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
-      console.log('Public URL:', publicUrl);
-
-      // Update profile with resume info
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .upsert({ 
-          user_id: user.id,
-          resume_url: publicUrl,
-          resume_filename: resumeFile.name,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
+      const data = await response.json();
+      const publicUrl = data.public_url;
 
       setExistingResumeUrl(publicUrl);
       setResumeFile(null);
-      
+
       // Reset file input
       const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
       if (fileInput) {
         fileInput.value = '';
       }
-      
+
       toast({
         title: "Resume uploaded successfully!",
         description: "Your resume has been uploaded and is now visible to recruiters.",
       });
     } catch (error: any) {
-      console.error('Error uploading resume:', error);
       toast({
         title: "Upload failed",
         description: error.message || "There was an error uploading your resume. Please try again.",
@@ -144,47 +106,29 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
 
     setDeletingResume(true);
     try {
-      // Extract the file path from the URL
-      const urlParts = existingResumeUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
-      
-      // Delete file from storage
-      const { error: deleteError } = await supabase.storage
-        .from('resumes')
-        .remove([filePath]);
+      const response = await fetch("/api/delete/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          resume_url: existingResumeUrl,
+        }),
+      });
 
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
-        throw deleteError;
-      }
-
-      // Update profile to remove resume info
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .update({ 
-          resume_url: null,
-          resume_filename: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
+      if (!response.ok) {
+        throw new Error("Delete failed");
       }
 
       setExistingResumeUrl(null);
-      
+
       toast({
         title: "Resume deleted",
         description: "Your resume has been removed successfully.",
       });
     } catch (error: any) {
-      console.error('Error deleting resume:', error);
       toast({
         title: "Delete failed",
-        description: "There was an error deleting your resume. Please try again.",
+        description: error.message || "There was an error deleting your resume. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -193,28 +137,17 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
   };
 
   const downloadResume = async () => {
-    if (!existingResumeUrl || !user) return;
+    if (!existingResumeUrl) return;
 
     try {
-      // Extract the file path from the URL
-      const urlParts = existingResumeUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
-      
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .download(filePath);
+      const response = await fetch(existingResumeUrl);
+      if (!response.ok) throw new Error("Download failed");
 
-      if (error) {
-        console.error('Download error:', error);
-        throw error;
-      }
-
-      // Create download link
-      const url = URL.createObjectURL(data);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = existingResumeUrl.split('/').pop() || "resume";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -225,10 +158,9 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
         description: "Your resume has been downloaded successfully.",
       });
     } catch (error: any) {
-      console.error('Error downloading resume:', error);
       toast({
         title: "Download failed",
-        description: "There was an error downloading your resume.",
+        description: error.message || "There was an error downloading your resume.",
         variant: "destructive",
       });
     }
@@ -273,7 +205,7 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
             </div>
           </div>
         )}
-        
+
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 mb-4">
@@ -288,9 +220,9 @@ const ResumeUploadSection = ({ existingResumeUrl, setExistingResumeUrl }: Resume
               id="resume-upload"
             />
             <div className="flex gap-2 justify-center">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => document.getElementById('resume-upload')?.click()}
               >
                 Choose File

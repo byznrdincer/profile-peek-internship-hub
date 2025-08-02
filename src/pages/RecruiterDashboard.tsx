@@ -1,27 +1,20 @@
-
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import ProfileForm from "@/components/recruiter/ProfileForm";
 import StudentFilters from "@/components/recruiter/StudentFilters";
 import StudentList from "@/components/recruiter/StudentList";
 import StudentProfile from "@/components/StudentProfile";
-import { useRecruiterData } from "@/hooks/useRecruiterData";
 import { useStudentFilters } from "@/hooks/useStudentFilters";
 
 const RecruiterDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
-  
-  const {
-    loading,
-    students,
-    bookmarkedStudents,
-    recruiterProfile,
-    profileLoading,
-    loadRecruiterProfile,
-    loadBookmarkedStudents
-  } = useRecruiterData();
+
+  const [students, setStudents] = useState<any[]>([]);
+  const [bookmarkedStudents, setBookmarkedStudents] = useState<any[]>([]);
+  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const {
     filteredStudents,
@@ -41,15 +34,52 @@ const RecruiterDashboard = () => {
     hasActiveFilters
   } = useStudentFilters(students, bookmarkedStudents, activeTab);
 
+  useEffect(() => {
+    loadAllStudents();
+    loadBookmarkedStudents();
+    loadRecruiterProfile();
+  }, []);
+
+  const loadAllStudents = async () => {
+    try {
+      const res = await fetch("/api/recruiter/students/");
+      const data = await res.json();
+      setStudents(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to load students:", error);
+    }
+  };
+
+  const loadBookmarkedStudents = async () => {
+    try {
+      const res = await fetch("/api/recruiter/bookmarks/");
+      const data = await res.json();
+      setBookmarkedStudents(data);
+    } catch (error) {
+      console.error("Failed to load bookmarks:", error);
+    }
+  };
+
+  const loadRecruiterProfile = async () => {
+    try {
+      const res = await fetch("/api/recruiter/profile/");
+      const data = await res.json();
+      setRecruiterProfile(data);
+      setProfileLoading(false);
+    } catch (error) {
+      console.error("Failed to load recruiter profile:", error);
+    }
+  };
+
   const handleViewProfile = async (student: any) => {
     try {
-      await supabase.rpc('increment_profile_view', {
-        student_user_id: student.user_id
+      await fetch(`/api/student/increment-profile-views/${student.user_id}/`, {
+        method: "POST",
       });
     } catch (error) {
-      console.error('Error incrementing profile view:', error);
+      console.error("Error incrementing profile view:", error);
     }
-    
     setSelectedStudent(student);
   };
 
@@ -58,14 +88,13 @@ const RecruiterDashboard = () => {
   };
 
   const handleProfileUpdate = (updatedProfile: any) => {
-    console.log('Dashboard received profile update:', updatedProfile);
+    console.log("Dashboard received profile update:", updatedProfile);
     setTimeout(() => {
       loadRecruiterProfile();
     }, 500);
   };
 
   const handleTabChange = (newTab: string) => {
-    console.log('Dashboard: Tab changing to:', newTab);
     setActiveTab(newTab);
   };
 
@@ -81,7 +110,7 @@ const RecruiterDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
@@ -143,7 +172,7 @@ const RecruiterDashboard = () => {
               studentsCount={students.length}
               bookmarkedCount={bookmarkedStudents.length}
               studentsLoaded={true}
-              onLoadAllStudents={() => {}}
+              onLoadAllStudents={loadAllStudents}
             />
           </div>
         </div>

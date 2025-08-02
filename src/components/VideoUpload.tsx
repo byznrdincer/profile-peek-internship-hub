@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Upload, Video, X, Play } from 'lucide-react';
 
@@ -82,36 +81,32 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
 
     setUploading(true);
     try {
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${user.id}/project_${projectId}_${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("user_id", user.id.toString());
+      formData.append("project_id", projectId.toString());
 
-      console.log('Uploading video:', fileName);
-
-      // Delete existing video if any
+      // DELETE existing video first (optional)
       if (existingVideoUrl) {
-        const oldFileName = existingVideoUrl.split('/').pop();
-        if (oldFileName) {
-          await supabase.storage
-            .from('project-videos')
-            .remove([`${user.id}/${oldFileName}`]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('project-videos')
-        .upload(fileName, selectedFile, { 
-          upsert: false,
-          contentType: selectedFile.type
+        await fetch("/api/project-video/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, video_url: existingVideoUrl }),
         });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-videos')
-        .getPublicUrl(fileName);
+      // Upload video
+      const response = await fetch("/api/project-video/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      const publicUrl = data.public_url;
 
       onVideoUploaded(publicUrl);
       setSelectedFile(null);
@@ -127,7 +122,6 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
         description: "Your project video has been uploaded.",
       });
     } catch (error: any) {
-      console.error('Error uploading video:', error);
       toast({
         title: "Upload failed",
         description: error.message || "There was an error uploading your video. Please try again.",
@@ -142,11 +136,17 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
     if (!existingVideoUrl || !user) return;
 
     try {
-      const fileName = existingVideoUrl.split('/').pop();
-      if (fileName) {
-        await supabase.storage
-          .from('project-videos')
-          .remove([`${user.id}/${fileName}`]);
+      const response = await fetch("/api/project-video/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          video_url: existingVideoUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Remove failed");
       }
 
       onVideoRemoved();
@@ -155,10 +155,9 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
         description: "Your project video has been removed.",
       });
     } catch (error: any) {
-      console.error('Error removing video:', error);
       toast({
         title: "Remove failed",
-        description: "There was an error removing your video.",
+        description: error.message || "There was an error removing your video.",
         variant: "destructive",
       });
     }

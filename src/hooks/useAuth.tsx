@@ -1,110 +1,90 @@
-
-import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 interface UserProfile {
   id: string;
   role: 'student' | 'recruiter';
   email: string;
+  name?: string;
 }
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, role: 'student' | 'recruiter') => {
+    const endpoint = role === 'student'
+      ? `http://127.0.0.1:8000/api/student/profile/${userId}/`
+      : `http://127.0.0.1:8000/api/recruiter/profile/me/`; // recruiter için /me/
+
     try {
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      const response = await fetch(endpoint, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        const text = await response.text();
+        console.error("Unexpected response:", text);
         return null;
       }
 
-      return profileData;
+      const profileData = await response.json();
+      return {
+        ...profileData,
+        role, // role bilgisi profile'a ekleniyor
+      };
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
+  const login = async (userData: UserProfile) => {
+    try {
+      setLoading(true);
+      setUser(userData);
 
-    // Get current session first
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          if (!mounted) return;
-          fetchUserProfile(session.user.id).then((profileData) => {
-            if (!mounted) return;
-            if (profileData) {
-              setProfile(profileData);
-            }
-            setLoading(false);
-          });
-        }, 0);
+      const prof = await fetchUserProfile(userData.id, userData.role);
+      if (prof) {
+        setProfile(prof);
       } else {
-        setLoading(false);
+        setProfile(null);
       }
-    });
-
-    // Listen for auth changes - NO async/await in callback
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setTimeout(() => {
-            if (!mounted) return;
-            fetchUserProfile(session.user.id).then((profileData) => {
-              if (!mounted) return;
-              if (profileData) {
-                setProfile(profileData);
-              }
-              setLoading(false);
-            });
-          }, 0);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+    } catch (error) {
+      console.error('Error in login:', error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setUser(null);
+        setProfile(null);
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return {
     user,
-    session,
     profile,
     loading,
+    login,
     signOut,
     isAuthenticated: !!user,
     isStudent: profile?.role === 'student',
-    isRecruiter: profile?.role === 'recruiter'
+    isRecruiter: profile?.role === 'recruiter',
   };
 };

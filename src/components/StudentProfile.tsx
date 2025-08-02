@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import ProfileHeader from "./student-profile/ProfileHeader";
 import PersonalInfoCard from "./student-profile/PersonalInfoCard";
 import LocationPreferencesCard from "./student-profile/LocationPreferencesCard";
@@ -29,38 +27,14 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     if (!student?.user_id) return;
 
     try {
-      // Get complete student profile data
-      const { data: completeStudent, error: studentError } = await supabase
-        .from('student_profiles')
-        .select('*')
-        .eq('user_id', student.user_id)
-        .single();
+      const response = await fetch(`/api/student/profile/${student.user_id}/`);
+      if (!response.ok) throw new Error("Failed to fetch student profile");
+      const completeStudent = await response.json();
 
-      if (studentError) {
-        console.error('Error loading complete student data:', studentError);
-        return;
-      }
-
-      // Get user email from profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('user_id', student.user_id)
-        .single();
-
-      if (!profileError && profileData) {
-        // Merge all data including email from profiles table
-        setStudentData({ 
-          ...student, 
-          ...completeStudent,
-          email: profileData.email 
-        });
-      } else {
-        // Just merge student profile data if profiles fetch fails
-        setStudentData({ ...student, ...completeStudent });
-      }
+      // Assuming email is part of this API or separate API call can be added if needed
+      setStudentData({ ...student, ...completeStudent });
     } catch (error) {
-      console.error('Error loading complete student data:', error);
+      console.error("Error loading complete student data:", error);
     }
   };
 
@@ -68,24 +42,12 @@ const StudentProfile = ({ student, onBack }: StudentProfileProps) => {
     if (!student?.user_id) return;
 
     try {
-      const { data: studentProfile } = await supabase
-        .from('student_profiles')
-        .select('id')
-        .eq('user_id', student.user_id)
-        .single();
-
-      if (studentProfile) {
-        const { data: certificationsData, error } = await supabase
-          .from('student_certifications')
-          .select('*')
-          .eq('student_id', studentProfile.id);
-
-        if (!error && certificationsData) {
-          setCertifications(certificationsData);
-        }
-      }
+      const response = await fetch(`/api/student/certifications/${student.user_id}/`);
+      if (!response.ok) throw new Error("Failed to fetch certifications");
+      const certificationsData = await response.json();
+      setCertifications(certificationsData);
     } catch (error) {
-      console.error('Error loading certifications:', error);
+      console.error("Error loading certifications:", error);
     }
   };
 

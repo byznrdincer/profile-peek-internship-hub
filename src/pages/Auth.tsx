@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/auth/AuthHeader";
 import LoginForm from "@/components/auth/LoginForm";
@@ -16,11 +14,28 @@ const Auth = () => {
   const [otpEmail, setOtpEmail] = useState("");
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Kullanıcı zaten login olmuşsa, rolüne göre yönlendir
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
+      try {
+        const response = await fetch("/api/auth/user/profile/", {
+          method: "GET",
+          credentials: "include", // oturum çerezi varsa gönder
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.id && data.role) {
+            if (data.role === "student") {
+              navigate("/student-dashboard");
+            } else if (data.role === "recruiter") {
+              navigate("/recruiter-dashboard");
+            } else {
+              navigate("/");
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking user session:", error);
       }
     };
     checkUser();
@@ -50,11 +65,11 @@ const Auth = () => {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <LoginForm loading={loading} setLoading={setLoading} />
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <SignupForm
                 loading={loading}

@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Briefcase } from "lucide-react";
 
 interface OTPVerificationProps {
@@ -16,36 +14,48 @@ interface OTPVerificationProps {
   setOtpEmail: (email: string) => void;
 }
 
-const OTPVerification = ({ 
-  otpEmail, 
-  loading, 
-  setLoading, 
-  setShowOTPVerification, 
-  setOtpEmail 
+// Sabit backend URL
+const BACKEND_URL = "http://localhost:8000";
+
+const OTPVerification = ({
+  otpEmail,
+  loading,
+  setLoading,
+  setShowOTPVerification,
+  setOtpEmail,
 }: OTPVerificationProps) => {
   const { toast } = useToast();
 
   const handleOTPVerification = async (otp: string) => {
     if (otp.length !== 6) return;
-    
+
     setLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: otpEmail,
-        token: otp,
-        type: 'signup'
+      const response = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: otpEmail,
+          otp: otp,
+          type: "signup",
+        }),
       });
 
-      if (error) {
+      const data = await response.json();
+
+      if (!response.ok) {
         toast({
           title: "Verification failed",
-          description: error.message,
+          description: data.error || "Verification failed",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Account verified!",
-          description: "Your recruiter account has been successfully verified. You can now log in.",
+          description:
+            "Your account has been successfully verified. You can now log in.",
         });
         setShowOTPVerification(false);
         setOtpEmail("");
@@ -64,15 +74,23 @@ const OTPVerification = ({
   const resendOTP = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: otpEmail
+      const response = await fetch(`${BACKEND_URL}/api/auth/resend-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: otpEmail,
+          type: "signup",
+        }),
       });
 
-      if (error) {
+      const data = await response.json();
+
+      if (!response.ok) {
         toast({
           title: "Resend failed",
-          description: error.message,
+          description: data.error || "Resend failed",
           variant: "destructive",
         });
       } else {
@@ -125,7 +143,7 @@ const OTPVerification = ({
               </InputOTP>
             </div>
           </div>
-          
+
           <div className="flex flex-col gap-2">
             <Button
               variant="outline"

@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface BookmarkButtonProps {
   studentId: string;
   className?: string;
-  onBookmarkChange?: () => void; // Add callback prop
+  onBookmarkChange?: () => void; // Callback prop
 }
 
 const BookmarkButton = ({ studentId, className, onBookmarkChange }: BookmarkButtonProps) => {
@@ -26,24 +24,16 @@ const BookmarkButton = ({ studentId, className, onBookmarkChange }: BookmarkButt
     if (!user) return;
 
     try {
-      const { data: recruiterProfile } = await supabase
-        .from('recruiter_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (recruiterProfile) {
-        const { data } = await supabase
-          .from('student_bookmarks')
-          .select('id')
-          .eq('recruiter_id', recruiterProfile.id)
-          .eq('student_user_id', studentId)
-          .single();
-
-        setIsBookmarked(!!data);
-      }
+      // Backend'den bookmark durumu al
+      const res = await fetch(`/api/bookmarks/check/${studentId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to fetch bookmark status");
+      const data = await res.json();
+      setIsBookmarked(data.isBookmarked);
     } catch (error) {
-      console.error('Error checking bookmark status:', error);
+      console.error("Error checking bookmark status:", error);
     }
   };
 
@@ -52,51 +42,35 @@ const BookmarkButton = ({ studentId, className, onBookmarkChange }: BookmarkButt
 
     setLoading(true);
     try {
-      const { data: recruiterProfile } = await supabase
-        .from('recruiter_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!recruiterProfile) {
-        throw new Error('Recruiter profile not found');
-      }
-
       if (isBookmarked) {
-        // Remove bookmark
-        await supabase
-          .from('student_bookmarks')
-          .delete()
-          .eq('recruiter_id', recruiterProfile.id)
-          .eq('student_user_id', studentId);
-
+        // Bookmark kaldır
+        const res = await fetch(`/api/bookmarks/${studentId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!res.ok) throw new Error("Failed to remove bookmark");
         setIsBookmarked(false);
         toast({
           title: "Bookmark removed",
           description: "Student removed from your bookmarks",
         });
       } else {
-        // Add bookmark
-        await supabase
-          .from('student_bookmarks')
-          .insert({
-            recruiter_id: recruiterProfile.id,
-            student_user_id: studentId
-          });
-
+        // Bookmark ekle
+        const res = await fetch(`/api/bookmarks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ student_id: studentId }),
+        });
+        if (!res.ok) throw new Error("Failed to add bookmark");
         setIsBookmarked(true);
         toast({
           title: "Student bookmarked",
           description: "Student added to your bookmarks",
         });
       }
-
-      // Call the callback to refresh the parent component's bookmark list
-      if (onBookmarkChange) {
-        onBookmarkChange();
-      }
+      if (onBookmarkChange) onBookmarkChange();
     } catch (error) {
-      console.error('Error toggling bookmark:', error);
+      console.error("Error toggling bookmark:", error);
       toast({
         title: "Error",
         description: "Failed to update bookmark",

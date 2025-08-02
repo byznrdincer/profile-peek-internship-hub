@@ -1,15 +1,11 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { Plus, Upload, X, Download, ExternalLink, Calendar, Award } from "lucide-react";
+import { Plus, X, Download, Award } from "lucide-react";
 
 interface Certification {
   id?: string;
@@ -30,7 +26,6 @@ interface CertificationsSectionProps {
 
 const CertificationsSection = ({ certifications, setCertifications }: CertificationsSectionProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [uploading, setUploading] = useState<{ [key: number]: boolean }>({});
 
   const addCertification = () => {
@@ -58,34 +53,29 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
   };
 
   const handleFileUpload = async (index: number, file: File) => {
-    if (!user) return;
-
     setUploading(prev => ({ ...prev, [index]: true }));
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const { error: uploadError } = await supabase.storage
-        .from('certificates')
-        .upload(filePath, file);
+      const response = await fetch("/api/upload/certificate", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      if (!response.ok) throw new Error("Upload failed");
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('certificates')
-        .getPublicUrl(filePath);
+      const data = await response.json();
 
-      updateCertification(index, 'certificate_file_url', publicUrl);
-      updateCertification(index, 'certificate_filename', file.name);
+      updateCertification(index, "certificate_file_url", data.public_url);
+      updateCertification(index, "certificate_filename", file.name);
 
       toast({
         title: "Certificate uploaded",
         description: "Your certificate file has been uploaded successfully.",
       });
     } catch (error: any) {
-      console.error('Error uploading certificate:', error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your certificate. Please try again.",
@@ -103,9 +93,9 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
       const response = await fetch(certification.certificate_file_url);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = certification.certificate_filename || 'certificate';
+      a.download = certification.certificate_filename || "certificate";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -139,7 +129,7 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {certifications.map((certification, index) => (
+        {certifications.map((cert, index) => (
           <div key={index} className="border rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-gray-900">Certification {index + 1}</h4>
@@ -158,18 +148,18 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
                 <Label htmlFor={`cert-name-${index}`}>Certification Name *</Label>
                 <Input
                   id={`cert-name-${index}`}
-                  value={certification.certification_name}
-                  onChange={(e) => updateCertification(index, 'certification_name', e.target.value)}
-                  placeholder="e.g., AWS Certified Solutions Architect"
+                  value={cert.certification_name}
+                  onChange={(e) => updateCertification(index, "certification_name", e.target.value)}
+                  placeholder="AWS Certified Solutions Architect"
                 />
               </div>
               <div>
                 <Label htmlFor={`org-${index}`}>Issuing Organization</Label>
                 <Input
                   id={`org-${index}`}
-                  value={certification.issuing_organization}
-                  onChange={(e) => updateCertification(index, 'issuing_organization', e.target.value)}
-                  placeholder="e.g., Amazon Web Services"
+                  value={cert.issuing_organization}
+                  onChange={(e) => updateCertification(index, "issuing_organization", e.target.value)}
+                  placeholder="Amazon Web Services"
                 />
               </div>
             </div>
@@ -180,8 +170,8 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
                 <Input
                   id={`issue-date-${index}`}
                   type="date"
-                  value={certification.issue_date}
-                  onChange={(e) => updateCertification(index, 'issue_date', e.target.value)}
+                  value={cert.issue_date}
+                  onChange={(e) => updateCertification(index, "issue_date", e.target.value)}
                 />
               </div>
               <div>
@@ -189,8 +179,8 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
                 <Input
                   id={`expiry-date-${index}`}
                   type="date"
-                  value={certification.expiry_date}
-                  onChange={(e) => updateCertification(index, 'expiry_date', e.target.value)}
+                  value={cert.expiry_date}
+                  onChange={(e) => updateCertification(index, "expiry_date", e.target.value)}
                 />
               </div>
             </div>
@@ -200,17 +190,17 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
                 <Label htmlFor={`credential-id-${index}`}>Credential ID</Label>
                 <Input
                   id={`credential-id-${index}`}
-                  value={certification.credential_id}
-                  onChange={(e) => updateCertification(index, 'credential_id', e.target.value)}
-                  placeholder="e.g., ABC123DEF456"
+                  value={cert.credential_id}
+                  onChange={(e) => updateCertification(index, "credential_id", e.target.value)}
+                  placeholder="ABC123DEF456"
                 />
               </div>
               <div>
                 <Label htmlFor={`credential-url-${index}`}>Credential URL</Label>
                 <Input
                   id={`credential-url-${index}`}
-                  value={certification.credential_url}
-                  onChange={(e) => updateCertification(index, 'credential_url', e.target.value)}
+                  value={cert.credential_url}
+                  onChange={(e) => updateCertification(index, "credential_url", e.target.value)}
                   placeholder="https://..."
                 />
               </div>
@@ -231,9 +221,9 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
                     disabled={uploading[index]}
                   />
                 </div>
-                {certification.certificate_file_url && (
+                {cert.certificate_file_url && (
                   <Button
-                    onClick={() => downloadCertificate(certification)}
+                    onClick={() => downloadCertificate(cert)}
                     variant="outline"
                     size="sm"
                   >
@@ -245,9 +235,9 @@ const CertificationsSection = ({ certifications, setCertifications }: Certificat
               {uploading[index] && (
                 <p className="text-sm text-blue-600 mt-1">Uploading...</p>
               )}
-              {certification.certificate_filename && (
+              {cert.certificate_filename && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Current file: {certification.certificate_filename}
+                  Current file: {cert.certificate_filename}
                 </p>
               )}
             </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 
@@ -24,96 +22,85 @@ interface ProfileFormProps {
   loading?: boolean;
 }
 
-const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: ProfileFormProps) => {
+const ProfileForm = ({
+  initialData,
+  onUpdate,
+  loading: externalLoading,
+}: ProfileFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState<ProfileFormData>(initialData);
 
   const isLoading = loading || externalLoading;
 
-  // Update form data when initialData changes
+  // initialData değiştiğinde formu güncelle
   useEffect(() => {
-    console.log('ProfileForm: initialData changed:', initialData);
     setFormData(initialData);
   }, [initialData]);
 
+  // Backend URL’ini kendi sunucuna göre ayarla
+  const BASE_URL = "/api/recruiter/profile";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!user) {
-      console.error('No user found for profile save');
+      toast({
+        title: "User not found",
+        description: "Please login before saving profile.",
+        variant: "destructive",
+      });
       return;
     }
 
-    console.log('Saving profile data:', formData);
     setLoading(true);
-    
+
     try {
-      // First, check if profile exists
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('recruiter_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error('Error checking existing profile:', fetchError);
-        throw fetchError;
-      }
-
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        console.log('Updating existing profile:', existingProfile.id);
-        result = await supabase
-          .from('recruiter_profiles')
-          .update({
-            name: formData.name,
-            phone: formData.phone,
-            company_name: formData.company_name,
-            position: formData.position,
-            location: formData.location,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-          .select()
-          .single();
-      } else {
-        // Create new profile
-        console.log('Creating new profile for user:', user.id);
-        result = await supabase
-          .from('recruiter_profiles')
-          .insert({
-            user_id: user.id,
-            name: formData.name,
-            phone: formData.phone,
-            company_name: formData.company_name,
-            position: formData.position,
-            location: formData.location
-          })
-          .select()
-          .single();
-      }
-
-      if (result.error) {
-        console.error('Error saving profile:', result.error);
-        throw result.error;
-      }
-
-      console.log('Profile saved successfully:', result.data);
-      
-      // Call onUpdate with the saved data
-      onUpdate(formData);
-      
-      toast({
-        title: "Profile updated successfully!",
-        description: "Your recruiter profile has been saved.",
+      // Profil var mı kontrol et
+      const checkRes = await fetch(`${BASE_URL}/${user.id}`, {
+        method: "GET",
       });
-    } catch (error) {
-      console.error('Error in handleSubmit:', error);
+
+      let existingProfile = null;
+      if (checkRes.ok) {
+        existingProfile = await checkRes.json();
+      }
+
+      let saveRes;
+      if (existingProfile) {
+        // Güncelle
+        saveRes = await fetch(`${BASE_URL}/${user.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        // Yeni oluştur
+        saveRes = await fetch(BASE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...formData, user_id: user.id }),
+        });
+      }
+
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
+        throw new Error(err.error || "Failed to save profile");
+      }
+
+      const savedData = await saveRes.json();
+
       toast({
-        title: "Save failed",
-        description: "There was an error saving your profile. Please try again.",
+        title: "Profile saved",
+        description: "Your profile has been updated successfully.",
+      });
+
+      onUpdate(formData);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save profile",
         variant: "destructive",
       });
     } finally {
@@ -137,7 +124,9 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               id="name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Your Name"
               pattern="[A-Za-z\s]+"
               title="Please enter a valid name (letters and spaces only)"
@@ -145,30 +134,37 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               required
             />
           </div>
+
           <div>
-            <Label htmlFor="company">Company Name</Label>
+            <Label htmlFor="company_name">Company Name</Label>
             <Input
-              id="company"
+              id="company_name"
               type="text"
               value={formData.company_name}
-              onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, company_name: e.target.value })
+              }
               placeholder="Your Company"
               disabled={isLoading}
               required
             />
           </div>
+
           <div>
             <Label htmlFor="position">Position</Label>
             <Input
               id="position"
               type="text"
               value={formData.position}
-              onChange={(e) => setFormData({...formData, position: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, position: e.target.value })
+              }
               placeholder="HR Manager, Technical Recruiter, etc."
               disabled={isLoading}
               required
             />
           </div>
+
           <div>
             <Label htmlFor="phone">Phone</Label>
             <Input
@@ -176,8 +172,8 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               type="tel"
               value={formData.phone}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                setFormData({...formData, phone: value});
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData({ ...formData, phone: value });
               }}
               placeholder="5551234567"
               pattern="[0-9]*"
@@ -185,15 +181,17 @@ const ProfileForm = ({ initialData, onUpdate, loading: externalLoading }: Profil
               disabled={isLoading}
             />
           </div>
+
           <LocationAutocomplete
             value={formData.location}
-            onChange={(value) => setFormData({...formData, location: value})}
+            onChange={(value) => setFormData({ ...formData, location: value })}
             placeholder="New York, NY, USA"
             label="Location"
             disabled={isLoading}
           />
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
             disabled={isLoading}
           >
