@@ -11,21 +11,6 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from recruiter.models import RecruiterProfile
 
-
-@api_view(['GET'])
-def get_logged_in_user_profile(request):
-    user = request.user
-    if not user or not user.is_authenticated:
-        return Response({"error": "Not logged in"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    return Response({
-        "id": user.id,
-        "email": user.email,
-        "role": user.role,
-        "name": user.name
-    })
-
-
 # Tüm öğrenci profillerini getirir
 @api_view(['GET'])
 def get_all_students(request):

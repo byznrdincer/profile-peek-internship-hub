@@ -34,7 +34,7 @@ urlpatterns = [
     
      path('project-video/upload', views.upload_project_video, name='upload_project_video'),
     path('project-video/delete', views.delete_project_video, name='delete_project_video'),
-    path('auth/user/profile/', views.get_logged_in_user_profile, name='get_logged_in_user_profile'),
+   
 
 
 ]

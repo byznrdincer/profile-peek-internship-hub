@@ -10,9 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { GraduationCap, Building } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth"; // ✅ auth hook
+import { useAuth } from "@/hooks/useAuth";
 
 interface LoginFormProps {
   loading: boolean;
@@ -21,8 +20,7 @@ interface LoginFormProps {
 
 const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ kullanıcıyı setlemek için
+  const { login } = useAuth();
 
   const [loginData, setLoginData] = useState({
     email: "",
@@ -41,16 +39,10 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          email: loginData.email,
-          password: loginData.password,
-          role: loginData.role,
-        }),
+        body: JSON.stringify(loginData),
       });
 
       const data = await response.json();
-      console.log("Login response:", data); // 🔍 kontrol amaçlı
-
       if (!response.ok) {
         toast({
           title: "Login failed",
@@ -60,7 +52,6 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
         return;
       }
 
-      // ✅ Auth hook'a gönder
       await login({
         id: data.user_id,
         email: data.email,
@@ -72,21 +63,11 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
         title: `Welcome back, ${data.role}!`,
         description: "You have been logged in successfully.",
       });
-
-      // ✅ Rol bazlı yönlendirme
-      if (data.role === "student") {
-        navigate("/student-dashboard");
-      } else if (data.role === "recruiter") {
-        navigate("/recruiter-dashboard");
-      } else {
-        navigate("/");
-      }
-
     } catch (error) {
       console.error("Login error:", error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -133,7 +114,6 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
           onChange={(e) =>
             setLoginData({ ...loginData, email: e.target.value })
           }
-          placeholder="your@email.com"
           required
         />
       </div>

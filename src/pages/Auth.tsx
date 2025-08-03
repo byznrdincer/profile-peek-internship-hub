@@ -1,45 +1,29 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from "react-router-dom";
 import AuthHeader from "@/components/auth/AuthHeader";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 import OTPVerification from "@/components/auth/OTPVerification";
 
 const Auth = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showOTPVerification, setShowOTPVerification] = useState(false);
   const [otpEmail, setOtpEmail] = useState("");
 
-  useEffect(() => {
-    // Kullanıcı zaten login olmuşsa, rolüne göre yönlendir
-    const checkUser = async () => {
-      try {
-        const response = await fetch("/api/auth/user/profile/", {
-          method: "GET",
-          credentials: "include", // oturum çerezi varsa gönder
-        });
+  const { isAuthenticated, profile } = useAuth();
+  const navigate = useNavigate();
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.id && data.role) {
-            if (data.role === "student") {
-              navigate("/student-dashboard");
-            } else if (data.role === "recruiter") {
-              navigate("/recruiter-dashboard");
-            } else {
-              navigate("/");
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking user session:", error);
-      }
-    };
-    checkUser();
-  }, [navigate]);
+  // ✅ Login sonrası yönlendirme
+  useEffect(() => {
+    if (isAuthenticated && profile?.role === "student") {
+      navigate("/student-dashboard");
+    } else if (isAuthenticated && profile?.role === "recruiter") {
+      navigate("/recruiter-dashboard");
+    }
+  }, [isAuthenticated, profile, navigate]);
 
   if (showOTPVerification) {
     return (

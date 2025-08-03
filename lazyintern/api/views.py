@@ -16,21 +16,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from .utils import send_otp_email
-
-@api_view(['GET'])
-def get_logged_in_user_profile(request):
-    user = request.user
-    if not user or not user.is_authenticated:
-        return Response({"error": "Not logged in"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    return Response({
-        "id": user.id,
-        "email": user.email,
-        "role": user.role,
-        "name": user.name
-    })
-
-
+from django.http import JsonResponse
 # --- Mevcut signup, login, profile, project, certification viewler ---
 @csrf_exempt
 @api_view(['POST'])
@@ -72,26 +58,35 @@ def login(request):
     role = data.get("role")
 
     if not email or not password or not role:
-        return Response({"error": "Email, password, and role are required"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            {"error": "Email, password, and role are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user = authenticate(request, email=email, password=password)
 
     if user is not None:
         if user.role != role:
-            return Response({"error": "Incorrect role"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                {"error": "Incorrect role"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        django_login(request, user)  
+        django_login(request, user)
 
-        return Response({
+        return JsonResponse({
             "message": "Login successful",
             "email": user.email,
             "name": user.name,
             "role": user.role,
             "user_id": user.id
         }, status=status.HTTP_200_OK)
-    else:
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
+    else:
+        return JsonResponse(
+            {"error": "Invalid credentials"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 @api_view(['GET'])
 def get_student_profile(request, user_id):
     profile = get_object_or_404(StudentProfile, user_id=user_id)

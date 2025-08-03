@@ -11,6 +11,5 @@ urlpatterns = [
 
     path('bookmark/add/', views.add_bookmark, name='add_bookmark'),
     path('bookmark/remove/<int:student_id>/', views.remove_bookmark, name='remove_bookmark'),
-    path('auth/user/profile/', views.get_logged_in_user_profile, name='get_logged_in_user_profile'),
-    
+
 ]

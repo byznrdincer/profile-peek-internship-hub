@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface UserProfile {
   id: string;
-  role: 'student' | 'recruiter';
+  role: "student" | "recruiter";
   email: string;
   name?: string;
 }
@@ -12,79 +12,57 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchUserProfile = async (userId: string, role: 'student' | 'recruiter') => {
-    const endpoint = role === 'student'
-      ? `http://127.0.0.1:8000/api/student/profile/${userId}/`
-      : `http://127.0.0.1:8000/api/recruiter/profile/me/`; // recruiter için /me/
+  const login = async (userData: UserProfile) => {
+    setUser(userData); // ✅ kullanıcıyı kaydet
+    setLoading(true);
 
     try {
+      const endpoint =
+        userData.role === "student"
+          ? `http://127.0.0.1:8000/api/student/profile/${userData.id}/`
+          : `http://127.0.0.1:8000/api/recruiter/profile/me/`;
+
       const response = await fetch(endpoint, {
         method: "GET",
         credentials: "include",
       });
 
-      const contentType = response.headers.get("content-type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        const text = await response.text();
-        console.error("Unexpected response:", text);
-        return null;
-      }
-
-      const profileData = await response.json();
-      return {
-        ...profileData,
-        role, // role bilgisi profile'a ekleniyor
-      };
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      return null;
-    }
-  };
-
-  const login = async (userData: UserProfile) => {
-    try {
-      setLoading(true);
-      setUser(userData);
-
-      const prof = await fetchUserProfile(userData.id, userData.role);
-      if (prof) {
-        setProfile(prof);
+      if (response.ok) {
+        const profileData = await response.json();
+        // ✅ profilin içine role da ekleniyor
+        setProfile({ ...profileData, role: userData.role });
       } else {
+        console.error("Profile fetch failed:", await response.text());
         setProfile(null);
       }
-    } catch (error) {
-      console.error('Error in login:', error);
+    } catch (err) {
+      console.error("Profile fetch error:", err);
       setProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const signOut = async () => {
+  const logout = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetch("http://127.0.0.1:8000/api/logout/", {
+        method: "POST",
+        credentials: "include",
       });
-      if (response.ok) {
-        setUser(null);
-        setProfile(null);
-      } else {
-        console.error('Logout failed');
-      }
-    } catch (error) {
-      console.error('Error during logout:', error);
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setUser(null);
+      setProfile(null);
     }
   };
 
   return {
     user,
     profile,
-    loading,
+    isAuthenticated: !!user && !!profile, // ✅ login olmuş ve profili yüklenmişse true
     login,
-    signOut,
-    isAuthenticated: !!user,
-    isStudent: profile?.role === 'student',
-    isRecruiter: profile?.role === 'recruiter',
+    logout,
+    loading,
   };
 };
